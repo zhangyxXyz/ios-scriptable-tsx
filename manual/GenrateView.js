@@ -147,30 +147,13 @@ class GenrateView {
     static wtext(props, ...children) {
         return async parentInstance => {
             const widgetText = parentInstance.addText('')
-            const {
-                textColor,
-                font,
-                fontFamily,
-                opacity,
-                maxLine,
-                scale,
-                shadowColor,
-                shadowRadius,
-                shadowOffset,
-                href,
-                textAlign,
-                onClick
-            } = props
+            const { textColor, font, opacity, maxLine, scale, shadowColor, shadowRadius, shadowOffset, href, textAlign, onClick } = props
             if (children && Array.isArray(children)) {
                 widgetText.text = children.join('')
             }
             try {
                 isDefined(textColor) && (widgetText.textColor = getColor(textColor))
-                if (isDefined(fontFamily)) {
-                    isDefined(font) && (widgetText.font = typeof font === 'number' ? new Font(fontFamily, font) : font)
-                } else {
-                    isDefined(font) && (widgetText.font = typeof font === 'number' ? Font.systemFont(font) : font)
-                }
+                isDefined(font) && (widgetText.font = typeof font === 'number' ? Font.systemFont(font) : font)
                 isDefined(opacity) && (widgetText.textOpacity = opacity)
                 isDefined(maxLine) && (widgetText.lineLimit = maxLine)
                 isDefined(scale) && (widgetText.minimumScaleFactor = scale)
