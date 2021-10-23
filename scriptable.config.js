@@ -12,22 +12,24 @@ const inputFile = path.resolve(rootPath, './src/index.ts')
 const inputDir = path.resolve(rootPath, './src/scripts')
 
 /**输出文件夹，不建议修改*/
-const outputDir = path.resolve(rootPath, './dist')
+const outputDir = path.resolve(rootPath, './out')
 
 /**是否压缩代码*/
-const minify = process.env.NODE_ENV === 'production'
-
+// const minify = process.env.NODE_ENV === 'production'
+const minify = false
 /**是否加密代码*/
-const encrypt = process.env.NODE_ENV === 'production'
+// const encrypt = process.env.NODE_ENV === 'production'
+const encrypt = false
 
 /**往编译后的代码头部插入的代码*/
-const header = `
-/**
- * 作者: 小明
- * 版本: 1.0.0
- * 更新时间：${new Date().toLocaleDateString()}
- * github: https://github.com/2214962083/ios-scriptable-tsx
- */
+const header = `/********************************************************
+  * author   :  yx.zhang
+  * date     :  ${new Date().toLocaleString('en-US', {hour12: false})}
+  * desc     :
+  * version  :  1.0.0
+  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
+  * changelog:
+  *********************************************************/
 `
 
 module.exports = /** @type { import ('./src/lib/compile').CompileOptions }  */ ({
