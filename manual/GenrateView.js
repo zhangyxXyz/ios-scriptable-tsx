@@ -93,9 +93,10 @@ class GenrateView {
                 onClick
             } = props
             let _image = src
+
             if (typeof src === 'string') {
                 if (isUrlImgBase64(src)) {
-                    _image = await new Request(url).loadImage()
+                    _image = await new Request(src).loadImage()
                 } else if (isUrl(src)) {
                     _image = await getImage({ url: src })
                 } else if (!isUrl(src)) {
@@ -244,6 +245,18 @@ function h(type, props, ...children) {
         default:
             return type instanceof Function ? type({ children: _children, ...props }) : null
     }
+}
+
+var RowCenter = ({ children, ...props }) => {
+    return /* @__PURE__ */ h(
+        'wstack',
+        {
+            ...props
+        },
+        /* @__PURE__ */ h('wspacer', null),
+        children,
+        /* @__PURE__ */ h('wspacer', null)
+    )
 }
 
 function flatteningArr(arr) {
@@ -442,4 +455,4 @@ function hash(string) {
     return `hash_${hash2}`
 }
 
-module.exports = { GenrateView, h }
+module.exports = { GenrateView, h, RowCenter }

@@ -1,1 +1,2 @@
-import './scripts/tranlate.tsx'
+// import './scripts/infoCollectionTranslate.tsx'
+import './scripts/todayOilPriceTranslate.tsx'

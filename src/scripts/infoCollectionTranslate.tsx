@@ -1,4 +1,4 @@
-class Tranlate {
+class InfoCollectionTranslate {
   async init() {
     // ListWidget 实例
     const widget = (await this.render()) as ListWidget
@@ -39,4 +39,4 @@ class Tranlate {
 // 详见 https://github.com/2214962083/ios-scriptable-tsx/blob/master/docs/config.md#env-config
 console.log(process.env.HELLO + ',' + process.env.MOMENT)
 
-new Tranlate().init()
+new InfoCollectionTranslate().init()
