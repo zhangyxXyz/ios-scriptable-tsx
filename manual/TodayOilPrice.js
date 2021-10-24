@@ -17,8 +17,7 @@ const { GenrateView, h, RowCenter } = require('./GenrateView')
 const Utils = require('./Utils')
 
 const { Storage } = require('./DataStorage')
-const storage = new Storage()
-
+const storage = new Storage(module.filename)
 class Widget extends DmYY {
     constructor(arg) {
         super(arg)
@@ -79,48 +78,55 @@ class Widget extends DmYY {
 
     // 获取油价信息
     async getOilPrice() {
-        const location = this.locationInfo || (await this.getLocation())
-        // 直辖市省份为空
-        let _area = [
-            location.administrativeArea ? Utils.char2PinFullChar(location.administrativeArea.replace('省', '')) : '',
-            Utils.char2PinFullChar(location.locality || '')
-        ]
-        if (!_area[0]) {
-            _area = _area[1].replace('shi', '/')
+        // 假设存储器已经存在且距离上次请求时间不足60秒，使用存储器数据
+        let storageOilPrice = storage.getStorage('oilPrice', 1)
+        if (storageOilPrice) {
+            console.log('[+]油价查询请求时间间隔过小，使用缓存数据')
+            this.oilPriceInfo = storageOilPrice
         } else {
-            _area = _area.join('/') + '.html'
-        }
-        const url = `http://youjia.chemcp.com/${_area}`
-        const webView = new WebView()
-        await webView.loadURL(url)
-        const javascript = `
-            const data = []
-            const oil = document.querySelectorAll('table')[4].querySelectorAll('tr')
-            for (let i = 0; i < oil.length; i++) {
-                const dateItem = {}
-                let value = oil[i].innerText
-                value = value.split('	')
-                dateItem.cate = value[0]
-                dateItem.value = value[1]
-                data.push(dateItem)
+            const location = this.locationInfo || (await this.getLocation())
+            // 直辖市省份为空
+            let _area = [
+                location.administrativeArea ? Utils.char2PinFullChar(location.administrativeArea.replace('省', '')) : '',
+                Utils.char2PinFullChar(location.locality || '')
+            ]
+            if (!_area[0]) {
+                _area = _area[1].replace('shi', '/')
+            } else {
+                _area = _area.join('/') + '.html'
             }
-            completion(data)
-        `
+            const url = `http://youjia.chemcp.com/${_area}`
+            const webView = new WebView()
+            await webView.loadURL(url)
+            const javascript = `
+                const data = []
+                const oil = document.querySelectorAll('table')[4].querySelectorAll('tr')
+                for (let i = 0; i < oil.length; i++) {
+                    const dateItem = {}
+                    let value = oil[i].innerText
+                    value = value.split('	')
+                    dateItem.cate = value[0]
+                    dateItem.value = value[1]
+                    data.push(dateItem)
+                }
+                completion(data)
+            `
 
-        await webView
-            .evaluateJavaScript(javascript, true)
-            .then(async e => {
-                let data = typeof e === 'string' ? JSON.parse(e) : e
-                console.log(`[+]油价查询成功`)
-                storage.setStorage('oilPrice', data)
-                this.oilPriceInfo = data
-                return
-            })
-            .catch(() => {
-                console.log(`[+]油价查询失败，尝试使用缓存数据`)
-                this.oilPriceInfo = storage.getStorage('oilPrice') || {}
-                return
-            })
+            await webView
+                .evaluateJavaScript(javascript, true)
+                .then(async e => {
+                    let data = typeof e === 'string' ? JSON.parse(e) : e
+                    console.log(`[+]油价查询成功`)
+                    storage.setStorage('oilPrice', data)
+                    this.oilPriceInfo = data
+                    return
+                })
+                .catch(() => {
+                    console.log(`[+]油价查询失败，尝试使用缓存数据`)
+                    this.oilPriceInfo = storage.getStorage('oilPrice') || {}
+                    return
+                })
+        }
         console.log(this.oilPriceInfo)
     }
 
@@ -142,7 +148,8 @@ class Widget extends DmYY {
         try {
             const httpData = await this.$request.get(url)
             const gasStationData = httpData && httpData.status == 0 ? httpData.data : []
-            const infos = gasStationData?.splice(0, config.widgetFamily === 'large' ? 4 : 1)
+            const size = config.widgetFamily === 'large' ? 4 : 1
+            const infos = gasStationData?.splice(0, size)
             console.log(`[+]就近加油站信息请求成功`)
             storage.setStorage('gasStation', infos)
             this.gasStationInfo = infos
