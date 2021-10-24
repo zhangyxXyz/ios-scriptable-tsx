@@ -166,6 +166,7 @@ class Widget extends DmYY {
                     '添加账号数据，添加完成之后请去设置默认账号',
                     {
                         airportName: '机场名称',
+                        url: '机场链接',
                         subUrl: '订阅链接',
                         resetDay: '流量重置日期',
                         icon: '机场图标'
@@ -174,7 +175,7 @@ class Widget extends DmYY {
                 )
                 if (!this.settings.dataSource) this.settings.dataSource = []
                 if (!account) return
-                if (account.airportName && account.subUrl && account.resetDay && account.icon) {
+                if (account.airportName && account.url && account.subUrl && account.resetDay && account.icon) {
                     this.settings.dataSource.push(account)
                 }
                 this.settings.dataSource = this.settings.dataSource.filter(item => item)
@@ -222,10 +223,12 @@ class Widget extends DmYY {
 
         let icon_image_stack = bannerStack.addImage(this.iconImage)
         icon_image_stack.imageSize = this.scaleImage(this.iconImage.size, 40)
+        icon_image_stack.url = this.account.url
 
         bannerStack.addSpacer(null)
 
         let item = bannerStack.addText(this.account.airportName)
+
         item.textColor = new Color('#AE504F')
         item.font = new Font('Chalkduster', 12)
         bannerStack.addSpacer(null)
