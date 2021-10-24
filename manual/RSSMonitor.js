@@ -28,7 +28,7 @@ class Widget extends DmYY {
 
     contentCount = 6 //自定义显示数量
     isRandomColor = true //true为开启随机颜色
-    rsslink = 'https://github.com/zhangyxXyz/HotFixDemo/commits/master.atom'
+    rsslink = 'https://github.com/zhangyxXyz/ios-scriptable-tsx/commits/master.atom'
     gotoType = 0 // 0 跳转到app, 1 跳转到浏览器, 选择跳转 app 时若未安装 app，则会无响应
     isShowUpdateTime = true // 是否展示更新时间
     contentRowSpacing = 5
