@@ -247,18 +247,6 @@ function h(type, props, ...children) {
     }
 }
 
-var RowCenter = ({ children, ...props }) => {
-    return /* @__PURE__ */ h(
-        'wstack',
-        {
-            ...props
-        },
-        /* @__PURE__ */ h('wspacer', null),
-        children,
-        /* @__PURE__ */ h('wspacer', null)
-    )
-}
-
 function flatteningArr(arr) {
     return [].concat(
         ...arr.map(item => {
@@ -455,4 +443,4 @@ function hash(string) {
     return `hash_${hash2}`
 }
 
-module.exports = { GenrateView, h, RowCenter }
+module.exports = { GenrateView, h }

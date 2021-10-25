@@ -148,8 +148,7 @@ class Widget extends DmYY {
         try {
             const httpData = await this.$request.get(url)
             const gasStationData = httpData && httpData.status == 0 ? httpData.data : []
-            const size = config.widgetFamily === 'large' ? 4 : 1
-            const infos = gasStationData?.splice(0, size)
+            const infos = gasStationData?.splice(0, this.widgetFamily === 'large' ? 4 : 1)
             console.log(`[+]就近加油站信息请求成功`)
             storage.setStorage('gasStation', infos)
             this.gasStationInfo = infos
@@ -231,7 +230,6 @@ class Widget extends DmYY {
     }
 
     renderOilPrice(data) {
-        const isGasoline = data.cate.indexOf('汽油') != -1
         return /* @__PURE__ */ h(
             'wstack',
             {
@@ -239,13 +237,14 @@ class Widget extends DmYY {
                 verticalAlign: 'center'
             },
             /* @__PURE__ */ h(
-                RowCenter,
+                'wstack',
                 null,
+                /* @__PURE__ */ h('wspacer', null),
                 /* @__PURE__ */ h(
                     'wtext',
                     {
                         textAlign: 'center',
-                        textColor: this.oilNameColorHex || this.widgetColor,
+                        textColor: this.oilNameColorHex,
                         font: new Font('Chalkduster', 26)
                     },
                     data.cate.replace('号汽油', '').replace('号柴油', '')
@@ -254,50 +253,38 @@ class Widget extends DmYY {
                     'wstack',
                     {
                         flexDirection: 'column',
-                        verticalAlign: 'center'
+                        verticalAlign: 'bottom'
                     },
+                    /* @__PURE__ */ h('wspacer', null),
+                    /* @__PURE__ */ h('wspacer', null),
+                    // /* @__PURE__ */ h(
+                    //     'wtext',
+                    //     {
+                    //         textColor: this.oilNameColorHex,
+                    //         font: 8,
+                    //         textAlign: 'center'
+                    //     },
+                    //     '号'
+                    // ),
                     /* @__PURE__ */ h(
                         'wtext',
                         {
-                            textColor: this.oilNameColorHex || this.widgetColor,
-                            font: new Font('Chalkduster', 8),
+                            textColor: this.oilNameColorHex,
+                            font: 12,
                             textAlign: 'center'
                         },
-                        ' '
-                    ),
-                    /* @__PURE__ */ h(
-                        'wstack',
-                        {
-                            flexDirection: 'column',
-                            verticalAlign: 'center'
-                        },
-                        /* @__PURE__ */ h(
-                            'wtext',
-                            {
-                                textColor: this.oilNameColorHex || this.widgetColor,
-                                font: new Font('HiraKakuProN-W6', 8),
-                                textAlign: 'center'
-                            },
-                            '号'
-                        ),
-                        /* @__PURE__ */ h(
-                            'wtext',
-                            {
-                                textColor: this.oilNameColorHex || this.widgetColor,
-                                font: new Font('HiraKakuProN-W6', 12),
-                                textAlign: 'center'
-                            },
-                            isGasoline ? '汽油' : '柴油'
-                        )
+                        data.cate.indexOf('汽油') != -1 ? '汽油' : '柴油'
                     )
-                )
+                ),
+                /* @__PURE__ */ h('wspacer', null)
             ),
             /* @__PURE__ */ h('wspacer', {
                 length: 10
             }),
             /* @__PURE__ */ h(
-                RowCenter,
+                'wstack',
                 null,
+                /* @__PURE__ */ h('wspacer', null),
                 /* @__PURE__ */ h(
                     'wtext',
                     {
@@ -313,15 +300,7 @@ class Widget extends DmYY {
                         flexDirection: 'column',
                         verticalAlign: 'center'
                     },
-                    /* @__PURE__ */ h(
-                        'wtext',
-                        {
-                            textColor: this.oilPriceColorHex || this.widgetColor,
-                            font: new Font('Chalkduster', 5),
-                            textAlign: 'center'
-                        },
-                        ' '
-                    ),
+                    /* @__PURE__ */ h('wspacer', null),
                     /* @__PURE__ */ h(
                         'wtext',
                         {
@@ -331,7 +310,8 @@ class Widget extends DmYY {
                         },
                         '/L'
                     )
-                )
+                ),
+                /* @__PURE__ */ h('wspacer', null)
             )
         )
     }

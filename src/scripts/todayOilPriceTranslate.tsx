@@ -14,30 +14,31 @@ class TodayOilPriceTranslate {
     const isGasoline = data.cate.indexOf('汽油') != -1
     return (
       <wstack flexDirection="column" verticalAlign="center">
-        <RowCenter>
+        <wstack>
+          <wspacer></wspacer>
           <wtext textAlign="center" textColor={this.fontColor} font={new Font('Chalkduster', 26)}>
             {data.cate.replace('号汽油', '').replace('号柴油', '')}
           </wtext>
           <wstack flexDirection="column" verticalAlign="center">
-            <wtext
-              textColor={this.oilNameColorHex || this.widgetColor}
-              font={new Font('Chalkduster', 8)}
-              textAlign="center"
-            >
-              {' '}
-            </wtext>
-            <wstack flexDirection="column" verticalAlign="center">
-              <wtext textColor="#ffffff" font={new Font('HiraKakuProN-W6', 8)} textAlign="center">
+            <wstack>
+              <wspacer></wspacer>
+            </wstack>
+            <wstack>
+              <wtext textColor="#ffffff" font={8} textAlign="center">
                 {'号'}
               </wtext>
-              <wtext textColor="#ffffff" font={new Font('HiraKakuProN-W6', 12)} textAlign="center">
+            </wstack>
+            <wstack>
+              <wtext textColor="#ffffff" font={12} textAlign="center">
                 {isGasoline ? '汽油' : '柴油'}
               </wtext>
             </wstack>
           </wstack>
-        </RowCenter>
+          <wspacer></wspacer>
+        </wstack>
         <wspacer length={10} />
-        <RowCenter>
+        <wstack>
+          <wspacer></wspacer>
           <wtext textColor={this.fontColor} font={new Font('Chalkduster', 16)} textAlign="center">
             {data.value.replace('/升', '').replace('元', '')}
           </wtext>
@@ -49,7 +50,8 @@ class TodayOilPriceTranslate {
               {'/L'}
             </wtext>
           </wstack>
-        </RowCenter>
+          <wspacer></wspacer>
+        </wstack>
       </wstack>
     )
   }
