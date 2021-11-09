@@ -13,6 +13,7 @@
 
 if (typeof require === 'undefined') require = importModule
 const { DmYY, Runing } = require('./DmYY')
+const { GenrateView, h } = require('./GenrateView')
 const Utils = require('./Utils')
 
 class Widget extends DmYY {
@@ -113,70 +114,83 @@ class Widget extends DmYY {
         }
     }
 
-    addTextToListWidget(text, url, listWidget) {
-        const stackItem = listWidget.addStack()
-        if (url) {
-            stackItem.url = url
-        }
-
-        let item = stackItem.addText(text)
-        if (this.isRandomColor == true) {
-            item.textColor = new Color(Utils.randomColor16())
-        } else {
-            item.textColor = this.widgetColor
-        }
-        item.font = new Font('SF Mono', 12)
-    }
-
     renderCommon = async w => {
         if (this.httpData && this.httpData['count'] && this.httpData['count'] > 0) {
-            let group = this.httpData['subject_collection_items']
-            let items = []
-            for (let i = 0; i < this.contentCount && i < group.length; i++) {
-                let gTitle = group[i].title
-                let rating = group[i].rating
-                if (rating == null) {
-                    var star = '暂无'
-                    var value = '无评分'
-                } else {
-                    star = rating['star_count']
-                    value = `${rating['value']}分`
-                }
-                let item = `${gTitle}  『${value}』* ${star}✨;`
-                items.push(item)
-            }
-            console.log(items)
+            let items = this.httpData['subject_collection_items'].splice(
+                0,
+                Math.min(this.contentCount, this.httpData['subject_collection_items'].length)
+            )
+            items.map(item => {
+                console.log(`• ${item.title}`)
+            })
 
-            w.addSpacer()
-            w.spacing = this.contentRowSpacing
-
-            const firstLine = w.addText(`🎞 豆瓣电影`)
-            firstLine.font = new Font('SF Mono', 15)
-            firstLine.textColor = this.widgetColor
-            firstLine.textOpacity = 0.7
-
-            for (let i = 0; i < items.length; i++) {
-                this.addTextToListWidget(`• ${items[i]}`, this.decideGoto(group[i]), w)
-            }
-
-            if (this.isShowUpdateTime) {
-                const updateTimeItem = w.addStack()
-                updateTimeItem.centerAlignContent()
-                updateTimeItem.spacing = this.contentRowSpacing
-                updateTimeItem.addSpacer(Device.screenSize().width - 160)
-                const updateTimeImg = updateTimeItem.addImage(SFSymbol.named('arrow.clockwise').image)
-                updateTimeImg.imageSize = new Size(10, 10)
-                updateTimeImg.tintColor = this.widgetColor
-                updateTimeImg.imageOpacity = 0.5
-                const updateTimeText = updateTimeItem.addText(Utils.time('HH:mm:ss'))
-                updateTimeText.font = new Font('SF Mono', 10)
-                updateTimeText.textColor = this.isRequestSuccess ? this.widgetColor : Color.red()
-                updateTimeText.textOpacity = 0.5
-            }
-
-            w.addSpacer()
-            w.spacing = this.contentRowSpacing
-            return w
+            GenrateView.setListWidget(w)
+            return /* @__PURE__ */ h(
+                'wbox',
+                {
+                    spacing: this.contentRowSpacing
+                },
+                /* @__PURE__ */ h('wspacer', {
+                    length: this.contentRowSpacing
+                }),
+                /* @__PURE__ */ h(
+                    'wtext',
+                    {
+                        textColor: this.widgetColor,
+                        font: new Font('SF Mono', 15),
+                        opacity: 0.7
+                    },
+                    `🎞 豆瓣电影`
+                ),
+                items.map(item => {
+                    let gTitle = item.title
+                    let rating = item.rating
+                    if (rating == null) {
+                        var star = '暂无'
+                        var value = '无评分'
+                    } else {
+                        star = rating['star_count']
+                        value = `${rating['value']}分`
+                    }
+                    return /* @__PURE__ */ h(
+                        'wtext',
+                        {
+                            textColor: this.isRandomColor ? new Color(Utils.randomColor16()) : this.widgetColor,
+                            font: new Font('SF Mono', 12),
+                            href: this.decideGoto(item)
+                        },
+                        `• ${gTitle}  『${value}』* ${star}✨`
+                    )
+                }),
+                /* @__PURE__ */ h(
+                    'wstack',
+                    {
+                        verticalAlign: 'center',
+                        padding: [0, 0, 5, 0]
+                    },
+                    /* @__PURE__ */ h('wspacer', null),
+                    /* @__PURE__ */ h('wimage', {
+                        src: 'arrow.clockwise',
+                        width: 10,
+                        height: 10,
+                        filter: this.widgetColor,
+                        opacity: 0.5
+                    }),
+                    /* @__PURE__ */ h('wspacer', {
+                        length: 5
+                    }),
+                    /* @__PURE__ */ h(
+                        'wtext',
+                        {
+                            textColor: this.isRequestSuccess ? this.widgetColor : Color.red(),
+                            font: new Font('SF Mono', 10),
+                            textAlign: 'right',
+                            opacity: 0.5
+                        },
+                        Utils.time('HH:mm:ss')
+                    )
+                )
+            )
         }
     }
 
