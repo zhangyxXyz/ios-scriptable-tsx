@@ -145,7 +145,7 @@ class Widget extends DmYY {
                 items.map(item => {
                     let gTitle = item.title
                     let rating = item.rating
-                    if (rating == null) {
+                    if (rating == null || (parseInt(rating['star_count']) <= 0 && parseInt(rating['value']) <= 0)) {
                         var star = '暂无'
                         var value = '无评分'
                     } else {
