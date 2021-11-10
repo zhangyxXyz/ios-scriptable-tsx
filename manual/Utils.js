@@ -55,6 +55,14 @@ function randomColor16() {
     return color
 }
 
+function isEmpty(obj) {
+    if (typeof obj == 'undefined' || obj == null || obj == '') {
+        return true
+    } else {
+        return false
+    }
+}
+
 async function renderUnsupport(w = null) {
     const widget = w || new ListWidget()
     const text = widget.addText('暂不支持')
@@ -511,6 +519,7 @@ var char2PinFullChar = pinyin_default.fullChar
 module.exports = {
     time,
     randomColor16,
+    isEmpty,
     renderUnsupport,
     char2PinFirstChar,
     char2PinFullChar
