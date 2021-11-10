@@ -15,8 +15,8 @@ if (typeof require === 'undefined') require = importModule
 const { DmYY, Runing } = require('./DmYY')
 const Utils = require('./Utils')
 
-const { Cache } = require('./DataStorage')
-const cache = new Cache('VpnAirportTrafficData', 360)
+const { Storage } = require('./DataStorage')
+const storage = new Storage('VpnAirportTrafficData')
 
 const canvSize = 200
 const canvTextSize = 40
@@ -36,6 +36,7 @@ class Widget extends DmYY {
 
     // 订阅数据
     data = null
+    isRequestSuccess = false
 
     // 账号信息
     account = {
@@ -69,9 +70,11 @@ class Widget extends DmYY {
     }
 
     async getData() {
-        const cached = await cache.getCache(this.account.airportName)
-        if (cached) {
-            this.data = cached
+        this.isRequestSuccess = false
+        const storageData = await storage.getStorage(this.account.airportName, 30)
+        if (storageData) {
+            console.log('[+]订阅信息请求时间间隔过小，使用缓存数据')
+            this.data = storageData
             return
         }
         try {
@@ -95,12 +98,15 @@ class Widget extends DmYY {
             data.expires = expires
             data.total = total_k / 1024
             data.remain = (total_k - upload_k - download_k) / 1024
-            cache.setCache(this.account.airportName, data)
+            console.log('[+]订阅信息获取成功')
+            storage.setStorage(this.account.airportName, data)
             this.data = data
-            console.log(this.data)
+            this.isRequestSuccess = true
         } catch (error) {
-            console.log('订阅信息获取失败' + error)
+            console.log('[+]订阅信息获取失败，尝试使用缓存信息' + error)
+            this.data = await storage.getStorage(this.account.airportName)
         }
+        console.log(this.data)
     }
 
     async actionSettings() {
@@ -278,7 +284,7 @@ class Widget extends DmYY {
         let useStack = flowStack.addStack()
         useStack.layoutVertically()
         item = useStack.addText(`${(this.data.total - this.data.remain).toFixed(2)}G`)
-        item.textColor = new Color('#FFFFFF')
+        item.textColor = this.isRequestSuccess ? this.widgetColor : Color.red()
         item.font = Font.boldSystemFont(14)
 
         item = useStack.addText(`已用`)
