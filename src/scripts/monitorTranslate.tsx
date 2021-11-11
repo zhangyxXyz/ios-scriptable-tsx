@@ -16,13 +16,25 @@ class MonitorTranslate {
         <wtext textColor={this.widgetColor} font={new Font('SF Mono', 15)} opacity={0.7}>
           📖 知乎热榜
         </wtext>
-        {items.map(item => {
-          return (
-            <wtext textColor={this.widgetColor} font={new Font('SF Mono', 12)} href="https://www.baidu.com">
-              123456789
-            </wtext>
-          )
-        })}
+        <wstack flexDirection="column">
+          {items.map(item => {
+            return (
+              <wstack verticalAlign="center" href="www.baidu.com">
+                <wimage src={item['pic']} width={18} height={18}></wimage>
+                <wspacer length={5} />
+                <wtext textColor={this.widgetColor} font={new Font('SF Mono', 14)} textAlign="left" maxLine={1}>
+                  {item['desc']}
+                </wtext>
+                <wspacer length={5} />
+                {item['icon'] && <wimage src={item['icon']} width={18} height={18}></wimage>}
+                <wspacer />
+                <wtext font={12} textColor={this.widgetColor} opacity={0.6}>
+                  {item['desc_extr']}
+                </wtext>
+              </wstack>
+            )
+          })}
+        </wstack>
         <wstack verticalAlign="center" padding={[0, 10, 10, 10]}>
           <wspacer />
           <wimage src="arrow.clockwise" width={10} height={10} filter={this.widgetColor} opacity={0.5} />

@@ -138,6 +138,7 @@ class Widget extends DmYY {
                         {
                             textColor: this.isRandomColor ? new Color(Utils.randomColor16()) : this.widgetColor,
                             font: new Font('SF Mono', 12),
+                            maxLine: 1,
                             href: this.decideGoto(item)
                         },
                         `• ${item.title}`

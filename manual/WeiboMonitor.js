@@ -27,12 +27,13 @@ class Widget extends DmYY {
     // 组件传入参数
     widgetParam = args.widgetParameter
 
-    contentCount = 6 //自定义显示数量
+    contentCount = { small: 1, medium: 6, large: 15 } // 自定义显示条数
     isRandomColor = true //true为开启随机颜色
     gotoType = 0 // 0 跳转到app, 1 跳转到浏览器, 选择跳转 app 时若未安装 app，则会无响应
     isShowUpdateTime = true // 是否展示更新时间
     url = 'https://m.weibo.cn/api/container/getIndex?containerid=106003%26filter_type%3Drealtimehot'
     contentRowSpacing = 5
+    isEnhancedEffect = true // 强化显示效果
 
     httpData = null
     isRequestSuccess = false
@@ -67,10 +68,12 @@ class Widget extends DmYY {
                         `${this.name}数据显示配置`,
                         '热搜数据显示条数|条目颜色是否随机\n条目跳转方式\n是否展示更新时间',
                         {
-                            contentCount: '热搜数据显示条数',
+                            mediaContentCount: '中尺寸热搜数据显示条数',
+                            largeContentCount: '大尺寸热搜数据显示条数',
                             isRandomColor: '是否随机颜色, 0 不随机, 1 随机',
                             gotoType: '跳转方式 0 跳转到app, 1 跳转到浏览器',
-                            isShowUpdateTime: '是否展示更新时间 0 不展示, 1 展示'
+                            isShowUpdateTime: '是否展示更新时间 0 不展示, 1 展示',
+                            isEnhancedEffect: '强化显示效果 0 不强化, 1 强化'
                         }
                     )
                 },
@@ -84,12 +87,14 @@ class Widget extends DmYY {
         }
 
         try {
-            const { contentCount, isRandomColor, gotoType, isShowUpdateTime } = this.settings
+            const { mediaContentCount, largeContentCount, isRandomColor, gotoType, isShowUpdateTime, isEnhancedEffect } = this.settings
 
-            this.contentCount = contentCount ? parseInt(contentCount) : this.contentCount
+            this.contentCount.medium = mediaContentCount ? parseInt(mediaContentCount) : this.contentCount.medium
+            this.contentCount.large = largeContentCount ? parseInt(largeContentCount) : this.contentCount.large
             this.isRandomColor = isRandomColor ? parseInt(isRandomColor) == 1 : this.isRandomColor
             this.gotoType = gotoType ? parseInt(gotoType) : this.gotoType
             this.isShowUpdateTime = isShowUpdateTime ? parseInt(isShowUpdateTime) == 1 : this.isShowUpdateTime
+            this.isEnhancedEffect = isEnhancedEffect ? parseInt(isEnhancedEffect) == 1 : this.isEnhancedEffect
         } catch (error) {
             console.log(error)
         }
@@ -108,9 +113,10 @@ class Widget extends DmYY {
 
     renderCommon = async w => {
         if (this.httpData && this.httpData.data.cards[0] && this.httpData.data.cards[0].title.indexOf('实时热点') != -1) {
-            let items = this.httpData.data.cards[0]['card_group'].splice(
-                0,
-                Math.min(this.contentCount, this.httpData.data.cards[0]['card_group'].length)
+            // 剔除第一条
+            let items = this.httpData['data']['cards'][0]['card_group'].splice(
+                1,
+                Math.min(this.contentCount[this.widgetFamily], this.httpData['data']['cards'][0]['card_group'].length - 1)
             )
             items.map(item => {
                 console.log(`• ${item.desc}`)
@@ -135,15 +141,63 @@ class Widget extends DmYY {
                     `🔥 微博热搜`
                 ),
                 items.map(item => {
-                    return /* @__PURE__ */ h(
-                        'wtext',
-                        {
-                            textColor: this.isRandomColor ? new Color(Utils.randomColor16()) : this.widgetColor,
-                            font: new Font('SF Mono', 12),
-                            href: this.decideGoto(item)
-                        },
-                        `• ${item.desc}`
-                    )
+                    if (this.isEnhancedEffect) {
+                        return /* @__PURE__ */ h(
+                            'wstack',
+                            {
+                                verticalAlign: 'center',
+                                href: this.decideGoto(item)
+                            },
+                            /* @__PURE__ */ h('wimage', {
+                                src: item['pic'],
+                                width: 18,
+                                height: 18
+                            }),
+                            /* @__PURE__ */ h('wspacer', {
+                                length: 5
+                            }),
+                            /* @__PURE__ */ h(
+                                'wtext',
+                                {
+                                    textColor: this.isRandomColor ? new Color(Utils.randomColor16()) : this.widgetColor,
+                                    font: Font.lightSystemFont(13),
+                                    textAlign: 'left',
+                                    maxLine: 1
+                                },
+                                item['desc']
+                            ),
+                            /* @__PURE__ */ h('wspacer', {
+                                length: 5
+                            }),
+                            item['icon'] &&
+                                /* @__PURE__ */ h('wimage', {
+                                    src: item['icon'],
+                                    width: 18,
+                                    height: 18
+                                }),
+                            /* @__PURE__ */ h('wspacer', null),
+                            /* @__PURE__ */ h(
+                                'wtext',
+                                {
+                                    font: Font.lightSystemFont(12),
+                                    textColor: this.widgetColor,
+                                    opacity: 0.6
+                                },
+                                item['desc_extr']
+                            )
+                        )
+                    } else {
+                        return /* @__PURE__ */ h(
+                            'wtext',
+                            {
+                                textColor: this.isRandomColor ? new Color(Utils.randomColor16()) : this.widgetColor,
+                                font: new Font('SF Mono', 12),
+                                maxLine: 1,
+                                href: this.decideGoto(item)
+                            },
+                            `• ${item.desc}`
+                        )
+                    }
                 }),
                 /* @__PURE__ */ h(
                     'wstack',
