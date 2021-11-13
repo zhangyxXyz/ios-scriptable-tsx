@@ -1409,5 +1409,3 @@ const Runing = async (Widget, default_args = '', isDebug = true, extra) => {
 
 // await new DmYY().setWidgetConfig();
 module.exports = { DmYY, Runing };
-
-//version:

@@ -5,21 +5,18 @@
 /*
  * author   :  yx.zhang
  * date     :  2021/10/24
- * desc     :  信息集合, 采用了2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
+ * desc     :  信息集合
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
 
 if (typeof require === 'undefined') require = importModule
-const { DmYY, Runing } = require('./DmYY')
-const { GenrateView, h } = require('./GenrateView')
+const { WidgetBase, Runing, GenrateView, h, Storage } = require('./zyx.Env')
 const Utils = require('./Utils')
-const { Storage } = require('./DataStorage')
-
 const storage = new Storage('InfoCollectionData')
 
-class Widget extends DmYY {
+class Widget extends WidgetBase {
     constructor(arg) {
         super(arg)
         this.name = '信息合集'
@@ -30,26 +27,32 @@ class Widget extends DmYY {
     // 组件传入参数
     widgetParam = args.widgetParameter
 
-    isRandomColor = true // 提示语是否使用随机颜色
     padding = { top: 10, left: 10, bottom: 10, right: 10 }
-    userName = 'yx.zhang'
-    weatherKey = '' // 和风天气api-key 申请地址： https://dev.heweather.com/
-
-    tencentApiKey = '' // 腾讯位置服务apiKey，自带官方key，也可以使用自己申请的
-    lockLocation = false //是否锁定定位信息
-
-    // 颜色配置
-    lunarInfoColorHex = '#C6FFDD'
-    honeyInfoColorHex = '#BBD676'
-    weatherInfoColorHex = '#FBD786'
-    batteryInfoColorHex = '#00FF00'
-    yearProgressColorHex = '#F19C65'
-
     locationInfo = null
     areaInfo = null
     lunarInfo = null // 阴历信息
     weatherInfo = null
     honeyInfo = null // 情话
+
+    // 组件当前设置
+    currentSettings = {
+        accountSettings: {
+            userName: { val: 'yx.zhang', type: this.settingValTypeString },
+            // 和风天气api-key 申请地址： https://dev.heweather.com/
+            weatherKey: { val: '', type: this.settingValTypeString },
+            // 腾讯位置服务apiKey，自带官方key，也可以使用自己申请的
+            tencentApiKey: { val: '', type: this.settingValTypeString },
+            lockLocation: { val: '不锁定', type: this.settingValTypeString }
+        },
+        displaySettings: {
+            lunarInfoColorHex: { val: '#C6FFDD', type: this.settingValTypeString },
+            honeyInfoColorHex: { val: '#BBD676', type: this.settingValTypeString },
+            weatherInfoColorHex: { val: '#FBD786', type: this.settingValTypeString },
+            batteryInfoColorHex: { val: '#00FF00', type: this.settingValTypeString },
+            yearProgressColorHex: { val: '#F19C65', type: this.settingValTypeString },
+            listDataColorShowType: { val: '组件文本颜色', type: this.settingValTypeString }
+        }
+    }
 
     init = async () => {
         try {
@@ -67,7 +70,7 @@ class Widget extends DmYY {
     async getLocation() {
         // 如果位置设定保存且锁定了，从缓存文件读取信息
         this.locationInfo = storage.getStorage('location')
-        if (this.lockLocation && this.locationInfo) {
+        if (this.currentSettings.accountSettings.lockLocation.val === '锁定' && this.locationInfo) {
             console.log('[+]位置锁定，使用缓存数据')
         } else {
             try {
@@ -94,7 +97,10 @@ class Widget extends DmYY {
                 let location = this.locationInfo || (await this.getLocation())
                 // 官方文档的key
                 let testKey = 'OB4BZ-D4W3U-B7VVO-4PJWW-6TKDJ-WPB77'
-                let apiKey = this.tencentApiKey == '' ? testKey : this.tencentApiKey
+                let apiKey =
+                    this.currentSettings.accountSettings.tencentApiKey.val == ''
+                        ? testKey
+                        : this.currentSettings.accountSettings.tencentApiKey.val
                 let areaReqUrl = `https://apis.map.qq.com/ws/geocoder/v1/?location=${location.latitude},${location.longitude}&key=${apiKey}&get_poi=0`
                 let area = await this.$request.get({
                     url: areaReqUrl,
@@ -121,7 +127,7 @@ class Widget extends DmYY {
         } else {
             try {
                 let location = this.locationInfo || (await this.getLocation())
-                const weatherReqUrl = `https://devapi.heweather.net/v7/weather/now?location=${location.longitude},${location.latitude}&key=${this.weatherKey}&lang=zh-cn`
+                const weatherReqUrl = `https://devapi.heweather.net/v7/weather/now?location=${location.longitude},${location.latitude}&key=${this.currentSettings.accountSettings.weatherKey.val}&lang=zh-cn`
                 let weather = await this.$request.get(weatherReqUrl)
                 console.log('[+]天气信息请求成功：' + weatherReqUrl)
                 storage.setStorage('weather', weather)
@@ -227,28 +233,108 @@ class Widget extends DmYY {
 
     Run() {
         if (config.runsInApp) {
+            this.registerExtraSettingsCategory('accountSettings', '账号设置')
+            this.registerExtraSettingsCategoryItem(
+                'accountSettings',
+                'text',
+                '如何称呼您？',
+                '提示语内对您的称呼',
+                { userName: 'yx.zhang' },
+                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/flow.png'
+            )
+            this.registerExtraSettingsCategoryItem(
+                'accountSettings',
+                'text',
+                '和风天气api-key',
+                '申请地址\nhttps://dev.heweather.com/',
+                { weatherKey: '' },
+                { name: 'cloud.sun', color: '#F6F6F6' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'accountSettings',
+                'text',
+                '腾讯地图api-key',
+                '自带官方key\n也可以使用自己申请的',
+                { tencentApiKey: '' },
+                { name: 'mappin.and.ellipse', color: '#46ACFF' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'accountSettings',
+                'menu',
+                '是否锁定位置信息',
+                '锁定后将持续使用缓存位置信息\n\n缺省值: 不锁定',
+                { lockLocation: '不锁定' },
+                { name: 'location.slash', color: '#D371E3' },
+                ['锁定', '不锁定']
+            )
+            this.registerExtraSettingsCategory('displaySettings', '显示设置')
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '万年历字体颜色',
+                '缺省值: #C6FFDD',
+                { lunarInfoColorHex: '#C6FFDD' },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '情话字体颜色',
+                '缺省值: #BBD676',
+                { honeyInfoColorHex: '#BBD676' },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '天气信息字体颜色',
+                '缺省值: #FBD786',
+                { weatherInfoColorHex: '#FBD786' },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '电池信息字体颜色',
+                '缺省值: #00FF00',
+                { batteryInfoColorHex: '#00FF00' },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '年进度字体颜色',
+                '缺省值: #F19C65',
+                { yearProgressColorHex: '#F19C65' },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'menu',
+                '数据条目颜色',
+                '\n缺省值: 组件文本颜色',
+                { listDataColorShowType: '组件文本颜色' },
+                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png',
+                ['组件文本颜色', '随机颜色']
+            )
+
             this.registerAction(
                 '账号设置',
                 async () => {
-                    await this.setAlertInput(`${this.name}账号配置`, '如何称呼您？\n和风天气api key\n腾讯地图api key', {
-                        userName: '主人',
-                        weatherKey: '申请地址：https://dev.heweather.com/',
-                        tencentApiKey: '选填，内附官方Key'
-                    })
+                    const table = new UITable()
+                    table.showSeparators = true
+                    await this.renderSettings(table, { accountSettings: this._extraSettings.accountSettings || {} })
+                    await table.present()
                 },
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/account.png'
             )
             this.registerAction(
-                '数据显示配置',
+                '显示设置',
                 async () => {
-                    await this.setAlertInput(`${this.name}数据显示配置`, '问候语颜色是否随机\n条目颜色自定义配置', {
-                        isRandomColor: '0 不随机, 1 随机',
-                        lunarInfoColorHex: '万年历字体颜色Hex代码',
-                        honeyInfoColorHex: '情话字体颜色Hex代码',
-                        weatherInfoColorHex: '天气信息字体颜色Hex代码',
-                        batteryInfoColorHex: '电池信息字体颜色Hex代码',
-                        yearProgressColorHex: '年进度字体颜色Hex代码,'
-                    })
+                    const table = new UITable()
+                    table.showSeparators = true
+                    await this.renderSettings(table, { displaySettings: this._extraSettings.displaySettings || {} })
+                    await table.present()
                 },
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
             )
@@ -258,30 +344,39 @@ class Widget extends DmYY {
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
             )
         }
-        try {
-            const {
-                userName,
-                weatherKey,
-                tencentApiKey,
-                isRandomColor,
-                lunarInfoColorHex,
-                honeyInfoColorHex,
-                weatherInfoColorHex,
-                batteryInfoColorHex,
-                yearProgressColorHex
-            } = this.settings
-            this.userName = userName ? userName : this.userName
-            this.weatherKey = weatherKey ? weatherKey : this.weatherKey
-            this.tencentApiKey = tencentApiKey ? tencentApiKey : this.tencentApiKey
-            this.isRandomColor = isRandomColor ? parseInt(isRandomColor) == 1 : this.isRandomColor
-            this.lunarInfoColorHex = lunarInfoColorHex ? lunarInfoColorHex : this.lunarInfoColorHex
-            this.honeyInfoColorHex = honeyInfoColorHex ? honeyInfoColorHex : this.honeyInfoColorHex
-            this.weatherInfoColorHex = weatherInfoColorHex ? weatherInfoColorHex : this.weatherInfoColorHex
-            this.batteryInfoColorHex = batteryInfoColorHex ? batteryInfoColorHex : this.batteryInfoColorHex
-            this.yearProgressColorHex = yearProgressColorHex ? yearProgressColorHex : this.yearProgressColorHex
-        } catch (error) {
-            console.log(error)
+    }
+
+    async renderSettings(table, extraSettings) {
+        var renderCustomHeader = function () {
+            table.removeAllRows()
+            let resetHeader = new UITableRow()
+            let resetHeading = resetHeader.addText('重置设置')
+            resetHeading.titleFont = Font.mediumSystemFont(17)
+            resetHeading.centerAligned()
+            table.addRow(resetHeader)
+            let resetRow = new UITableRow()
+            let resetRowText = resetRow.addText('重置设置参数', '设置参数绑定脚本文件名，请勿随意更改脚本文件名')
+            resetRowText.titleFont = Font.systemFont(16)
+            resetRowText.subtitleFont = Font.systemFont(12)
+            resetRowText.subtitleColor = new Color('999999')
+            resetRow.dismissOnSelect = false
+            resetRow.onSelect = async () => {
+                const options = ['取消', '重置']
+                const message = '本菜单里的所有设置参数将会重置为默认值，重置后请重新打开设置菜单'
+                const index = await this.generateAlert(message, options)
+                if (index === 0) return
+                for (const category of Object.keys(extraSettings)) {
+                    if (category === this.noneCategoryName) {
+                        continue
+                    }
+                    delete this.settings[category]
+                }
+                this.saveSettings()
+                await this.renderSettings(table, extraSettings)
+            }
+            table.addRow(resetRow)
         }
+        this.renderExtraSettings(table, renderCustomHeader, null, extraSettings)
     }
 
     renderCommon = async w => {
@@ -301,16 +396,19 @@ class Widget extends DmYY {
             /* @__PURE__ */ h(
                 'wtext',
                 {
-                    textColor: this.isRandomColor ? new Color(Utils.randomColor16()) : this.widgetColor,
+                    textColor:
+                        this.currentSettings.displaySettings.listDataColorShowType.val === '随机颜色'
+                            ? new Color(Utils.randomColor16())
+                            : this.widgetColor,
                     font: new Font('Menlo', 11),
                     textAlign: 'left'
                 },
-                `[🤖]Hi, ${this.userName}. Good ${this.getDayHourGreetings(time)}`
+                `[🤖]Hi, ${this.currentSettings.accountSettings.userName.val}. Good ${this.getDayHourGreetings(time)}`
             ),
             /* @__PURE__ */ h(
                 'wtext',
                 {
-                    textColor: new Color(this.lunarInfoColorHex),
+                    textColor: new Color(this.currentSettings.displaySettings.lunarInfoColorHex.val),
                     font: new Font('Menlo', 11),
                     textAlign: 'left'
                 },
@@ -321,7 +419,7 @@ class Widget extends DmYY {
             /* @__PURE__ */ h(
                 'wtext',
                 {
-                    textColor: new Color(this.honeyInfoColorHex),
+                    textColor: new Color(this.currentSettings.displaySettings.honeyInfoColorHex.val),
                     font: new Font('Menlo', 11),
                     textAlign: 'left',
                     maxLine: 1
@@ -331,7 +429,7 @@ class Widget extends DmYY {
             /* @__PURE__ */ h(
                 'wtext',
                 {
-                    textColor: new Color(this.weatherInfoColorHex),
+                    textColor: new Color(this.currentSettings.displaySettings.weatherInfoColorHex.val),
                     font: new Font('Menlo', 11),
                     textAlign: 'left'
                 },
@@ -340,7 +438,7 @@ class Widget extends DmYY {
             /* @__PURE__ */ h(
                 'wtext',
                 {
-                    textColor: new Color(this.batteryInfoColorHex),
+                    textColor: new Color(this.currentSettings.displaySettings.batteryInfoColorHex.val),
                     font: new Font('Menlo', 11),
                     textAlign: 'left'
                 },
@@ -349,7 +447,7 @@ class Widget extends DmYY {
             /* @__PURE__ */ h(
                 'wtext',
                 {
-                    textColor: new Color(this.yearProgressColorHex),
+                    textColor: new Color(this.currentSettings.displaySettings.yearProgressColorHex.val),
                     font: new Font('Menlo', 11),
                     textAlign: 'left'
                 },

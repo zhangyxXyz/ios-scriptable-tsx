@@ -5,18 +5,17 @@
 /*
  * author   :  yx.zhang
  * date     :  2021/10/21
- * desc     :  一言, 采用了2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
+ * desc     :  一言
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
 
 if (typeof require === 'undefined') require = importModule
-const { DmYY, Runing } = require('./DmYY')
-const { GenrateView, h } = require('./GenrateView')
+const { WidgetBase, Runing, GenrateView, h } = require('./zyx.Env')
 const Utils = require('./Utils')
 
-class Widget extends DmYY {
+class Widget extends WidgetBase {
     constructor(arg) {
         super(arg)
         this.name = '一言'
@@ -26,12 +25,16 @@ class Widget extends DmYY {
 
     // 组件传入参数
     widgetParam = args.widgetParameter
-
-    isRandomColor = true
-
     url = 'https://v1.hitokoto.cn'
     httpData = null
     isRequestSuccess = false
+
+    // 组件当前设置
+    currentSettings = {
+        displaySettings: {
+            listDataColorShowType: { val: '随机颜色', type: this.settingValTypeString }
+        }
+    }
 
     init = async () => {
         try {
@@ -55,12 +58,23 @@ class Widget extends DmYY {
 
     Run() {
         if (config.runsInApp) {
+            this.registerExtraSettingsCategory('displaySettings', '显示设置')
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'menu',
+                '数据条目颜色',
+                '\n缺省值: 随机颜色',
+                { listDataColorShowType: '随机颜色' },
+                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png',
+                ['组件文本颜色', '随机颜色']
+            )
             this.registerAction(
-                '数据显示配置',
+                '显示设置',
                 async () => {
-                    await this.setAlertInput(`${this.name}数据显示配置`, '条目颜色是否随机', {
-                        isRandomColor: '0 不随机, 1 随机'
-                    })
+                    const table = new UITable()
+                    table.showSeparators = true
+                    await this.renderSettings(table)
+                    await table.present()
                 },
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
             )
@@ -70,15 +84,39 @@ class Widget extends DmYY {
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
             )
         }
+    }
 
-        try {
-            const { isRandomColor } = this.settings
-
-            this.isRandomColor = isRandomColor ? parseInt(isRandomColor) == 1 : this.isRandomColor
-            this.isRandomColor = this.widgetParam ? parseInt(this.widgetParam) == 1 : this.isRandomColor
-        } catch (error) {
-            console.log(error)
+    async renderSettings(table) {
+        var renderCustomHeader = function () {
+            table.removeAllRows()
+            let resetHeader = new UITableRow()
+            let resetHeading = resetHeader.addText('重置设置')
+            resetHeading.titleFont = Font.mediumSystemFont(17)
+            resetHeading.centerAligned()
+            table.addRow(resetHeader)
+            let resetRow = new UITableRow()
+            let resetRowText = resetRow.addText('重置设置参数', '设置参数绑定脚本文件名，请勿随意更改脚本文件名')
+            resetRowText.titleFont = Font.systemFont(16)
+            resetRowText.subtitleFont = Font.systemFont(12)
+            resetRowText.subtitleColor = new Color('999999')
+            resetRow.dismissOnSelect = false
+            resetRow.onSelect = async () => {
+                const options = ['取消', '重置']
+                const message = '本菜单里的所有设置参数将会重置为默认值，重置后请重新打开设置菜单'
+                const index = await this.generateAlert(message, options)
+                if (index === 0) return
+                for (const category of Object.keys(this.currentSettings)) {
+                    if (category === this.noneCategoryName) {
+                        continue
+                    }
+                    delete this.settings[category]
+                }
+                this.saveSettings()
+                await this.renderSettings(table)
+            }
+            table.addRow(resetRow)
         }
+        this.renderExtraSettings(table, renderCustomHeader)
     }
 
     renderCommon = async w => {
@@ -119,7 +157,13 @@ class Widget extends DmYY {
                     'wtext',
                     {
                         font: Font.lightSystemFont(16),
-                        textColor: this.isRandomColor ? Utils.randomColor16() : this.widgetColor
+                        textColor: (
+                            this.widgetParam
+                                ? parseInt(this.widgetParam) === 1
+                                : this.currentSettings.displaySettings.listDataColorShowType.val === '随机颜色'
+                        )
+                            ? Utils.randomColor16()
+                            : this.widgetColor
                         /* onClick: () => this.render(),*/
                     },
                     hitokoto

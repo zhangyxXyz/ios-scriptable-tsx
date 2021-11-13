@@ -4,20 +4,18 @@
 /*
  * author   :  yx.zhang
  * date     :  2021/11/10
- * desc     :  疫情日报, 基于2Ya的 COVID-19 重构，采用了2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
+ * desc     :  疫情日报
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
 
 if (typeof require === 'undefined') require = importModule
-const { DmYY, Runing } = require('./DmYY')
-const { GenrateView, h } = require('./GenrateView')
+const { WidgetBase, Runing, GenrateView, h, Storage } = require('./zyx.Env')
 const Utils = require('./Utils')
-const { Storage } = require('./DataStorage')
 const storage = new Storage('COVID-19')
 
-class Widget extends DmYY {
+class Widget extends WidgetBase {
     constructor(arg) {
         super(arg)
         this.name = '疫情日报'
@@ -28,17 +26,21 @@ class Widget extends DmYY {
     // 组件传入参数
     widgetParam = args.widgetParameter
 
-    // 组件渲染
-    covidDetailCellBgColorHex = '#fff0f1'
-    addressBgColorHex = '#f8f8f8'
-    addressFontColorHex = '#3BB5F3'
-
     // 数据信息
     locationInfo = null
     covid19Info = null
     cityCovid19Info = null
     covid19UpdateInfo = null
     covid19newsInfo = null
+
+    // 组件当前设置
+    currentSettings = {
+        displaySettings: {
+            covidDetailCellBgColorHex: { val: '#fff0f1', type: this.settingValTypeString },
+            addressBgColorHex: { val: '#f8f8f8', type: this.settingValTypeString },
+            addressFontColorHex: { val: '#3BB5F3', type: this.settingValTypeString }
+        }
+    }
 
     init = async () => {
         try {
@@ -195,14 +197,38 @@ class Widget extends DmYY {
 
     Run() {
         if (config.runsInApp) {
+            this.registerExtraSettingsCategory('displaySettings', '显示设置')
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '疫情数据面板背景颜色',
+                '\n缺省值：#fff0f1',
+                { covidDetailCellBgColorHex: '#fff0f1' },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '定位信息背景颜色',
+                '\n缺省值：#f8f8f8',
+                { addressBgColorHex: '#f8f8f8' },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '定位信息字体颜色',
+                '\n缺省值：#3bb5f3',
+                { addressFontColorHex: '#3bb5f3' },
+                { name: 'number.square', color: '#5BD078' }
+            )
             this.registerAction(
-                '数据显示配置',
+                '显示设置',
                 async () => {
-                    await this.setAlertInput(`${this.name}数据显示配置`, '', {
-                        covidDetailCellBgColorHex: '疫情数据背景颜色',
-                        addressBgColorHex: '地址信息背景颜色',
-                        addressFontColorHex: '地址信息字体颜色'
-                    })
+                    const table = new UITable()
+                    table.showSeparators = true
+                    await this.renderSettings(table)
+                    await table.present()
                 },
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
             )
@@ -212,16 +238,39 @@ class Widget extends DmYY {
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
             )
         }
+    }
 
-        try {
-            const { covidDetailCellBgColorHex, addressBgColorHex, addressFontColorHex } = this.settings
-
-            this.covidDetailCellBgColorHex = covidDetailCellBgColorHex ? covidDetailCellBgColorHex : this.covidDetailCellBgColorHex
-            this.addressBgColorHex = addressBgColorHex ? addressBgColorHex : this.addressBgColorHex
-            this.addressFontColorHex = addressFontColorHex ? addressFontColorHex : this.addressFontColorHex
-        } catch (error) {
-            console.log(error)
+    async renderSettings(table) {
+        var renderCustomHeader = function () {
+            table.removeAllRows()
+            let resetHeader = new UITableRow()
+            let resetHeading = resetHeader.addText('重置设置')
+            resetHeading.titleFont = Font.mediumSystemFont(17)
+            resetHeading.centerAligned()
+            table.addRow(resetHeader)
+            let resetRow = new UITableRow()
+            let resetRowText = resetRow.addText('重置设置参数', '设置参数绑定脚本文件名，请勿随意更改脚本文件名')
+            resetRowText.titleFont = Font.systemFont(16)
+            resetRowText.subtitleFont = Font.systemFont(12)
+            resetRowText.subtitleColor = new Color('999999')
+            resetRow.dismissOnSelect = false
+            resetRow.onSelect = async () => {
+                const options = ['取消', '重置']
+                const message = '本菜单里的所有设置参数将会重置为默认值，重置后请重新打开设置菜单'
+                const index = await this.generateAlert(message, options)
+                if (index === 0) return
+                for (const category of Object.keys(this.currentSettings)) {
+                    if (category === this.noneCategoryName) {
+                        continue
+                    }
+                    delete this.settings[category]
+                }
+                this.saveSettings()
+                await this.renderSettings(table)
+            }
+            table.addRow(resetRow)
         }
+        this.renderExtraSettings(table, renderCustomHeader)
     }
 
     renderCovidNews() {
@@ -423,7 +472,7 @@ class Widget extends DmYY {
                 },
                 this.renderCovidDetailCell({
                     color: '#f23a3b',
-                    bg: this.covidDetailCellBgColorHex,
+                    bg: this.currentSettings.displaySettings.covidDetailCellBgColorHex.val,
                     value: `${(this.covid19Info?.confirm || 0) - parseInt(this.covid19Info?.heal || '0') || '-'}`,
                     text: '现有确诊',
                     addnum: this.formatNumber(this.covid19UpdateInfo?.nowConfirm)
@@ -433,7 +482,7 @@ class Widget extends DmYY {
                 }),
                 this.renderCovidDetailCell({
                     color: '#cc1e1e',
-                    bg: this.covidDetailCellBgColorHex,
+                    bg: this.currentSettings.displaySettings.covidDetailCellBgColorHex.val,
                     value: `${this.covid19Info?.confirm || '-'}`,
                     text: '累计确诊',
                     addnum: this.formatNumber(this.covid19UpdateInfo?.confirmAdd)
@@ -443,7 +492,7 @@ class Widget extends DmYY {
                 }),
                 this.renderCovidDetailCell({
                     color: '#178b50',
-                    bg: this.covidDetailCellBgColorHex,
+                    bg: this.currentSettings.displaySettings.covidDetailCellBgColorHex.val,
                     value: `${this.covid19Info?.heal || '-'}`,
                     text: '累计治愈',
                     addnum: this.formatNumber(this.covid19UpdateInfo?.heal)
@@ -453,7 +502,7 @@ class Widget extends DmYY {
                 }),
                 this.renderCovidDetailCell({
                     color: '#4e5a65',
-                    bg: this.covidDetailCellBgColorHex,
+                    bg: this.currentSettings.displaySettings.covidDetailCellBgColorHex.val,
                     value: `${this.covid19Info?.dead || '-'}`,
                     text: '累计死亡',
                     addnum: this.formatNumber(this.covid19UpdateInfo?.dead)
@@ -468,7 +517,7 @@ class Widget extends DmYY {
                     borderRadius: 10,
                     padding: [5, 5, 5, 5],
                     flexDirection: 'column',
-                    background: this.addressBgColorHex
+                    background: this.currentSettings.displaySettings.addressBgColorHex.val
                 },
                 /* @__PURE__ */ h(
                     'wstack',
@@ -477,7 +526,7 @@ class Widget extends DmYY {
                     },
                     /* @__PURE__ */ h('wimage', {
                         src: 'location',
-                        filter: this.addressFontColorHex,
+                        filter: this.currentSettings.displaySettings.addressFontColorHex.val,
                         opacity: 0.8,
                         width: 12,
                         height: 12
@@ -488,7 +537,7 @@ class Widget extends DmYY {
                     /* @__PURE__ */ h(
                         'wtext',
                         {
-                            textColor: this.addressFontColorHex,
+                            textColor: this.currentSettings.displaySettings.addressFontColorHex.val,
                             font: 12,
                             opacity: 0.8
                         },

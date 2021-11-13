@@ -5,20 +5,18 @@
 /*
  * author   :  yx.zhang
  * date     :  2021/10/24
- * desc     :  今日油价, 采用了2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
+ * desc     :  今日油价
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
 
 if (typeof require === 'undefined') require = importModule
-const { DmYY, Runing } = require('./DmYY')
-const { GenrateView, h, RowCenter } = require('./GenrateView')
+const { WidgetBase, Runing, Storage, GenrateView, h } = require('./zyx.Env')
 const Utils = require('./Utils')
 
-const { Storage } = require('./DataStorage')
 const storage = new Storage(module.filename)
-class Widget extends DmYY {
+class Widget extends WidgetBase {
     constructor(arg) {
         super(arg)
         this.name = '今日油价'
@@ -34,20 +32,25 @@ class Widget extends DmYY {
     }
 
     tencentMapAPIKey = ''
-
-    headerBGColorHex = '#000000'
-    oilNameColorHex = '#FC6D26'
-    oilPriceColorHex = null
-    gasStationBGColorHex = '#000000'
-    gasStationCarIconColorHex = '#61AFEF'
-    gasStationAddressIconColorHex = '#E06C75'
-    footBGColorHex = '#000000'
-    footLogoColorHex = '#FC6D26'
     distance2NearestGasStation = 5000
 
     locationInfo = null
     oilPriceInfo = null
     gasStationInfo = []
+
+    // 组件当前设置
+    currentSettings = {
+        displaySettings: {
+            headerBGColorHex: { val: '#000000', type: this.settingValTypeString },
+            oilNameColorHex: { val: '#FC6D26', type: this.settingValTypeString },
+            oilPriceColorHex: { val: '', type: this.stttingValTypeStringEmptyCheck },
+            gasStationBGColorHex: { val: '#000000', type: this.settingValTypeString },
+            gasStationCarIconColorHex: { val: '#61AFEF', type: this.settingValTypeString },
+            gasStationAddressIconColorHex: { val: '#E06C75', type: this.settingValTypeString },
+            footBGColorHex: { val: '#000000', type: this.settingValTypeString },
+            footLogoColorHex: { val: '#FC6D26', type: this.settingValTypeString }
+        }
+    }
 
     init = async () => {
         try {
@@ -148,7 +151,7 @@ class Widget extends DmYY {
         try {
             const httpData = await this.$request.get(url)
             const gasStationData = httpData && httpData.status == 0 ? httpData.data : []
-            const infos = gasStationData?.splice(0, this.widgetFamily === 'large' ? 4 : 1)
+            const infos = gasStationData?.splice(0, this.widgetFamily === 'large' ? 5 : 1)
             console.log(`[+]就近加油站信息请求成功`)
             storage.setStorage('gasStation', infos)
             this.gasStationInfo = infos
@@ -161,40 +164,119 @@ class Widget extends DmYY {
 
     Run() {
         if (config.runsInApp) {
-            this.registerAction('腾讯地图 Token', async () => {
-                await this.setAlertInput(`${this.name}腾讯Token`, 'BoxJS 缓存 | 手动输入', {
-                    tencentMapAPIKey: '腾讯地图 Token'
-                })
-            })
+            this.registerExtraSettingsCategory('displaySettings', '显示设置')
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '油价背景颜色',
+                '\n缺省值：#000000',
+                {
+                    headerBGColorHex: '#000000'
+                },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '油名称字体颜色',
+                '\n缺省值：#FC6D26',
+                {
+                    oilNameColorHex: '#FC6D26'
+                },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '油价格字体颜色',
+                '\n缺省值：系统字体颜色',
+                {
+                    oilPriceColorHex: ''
+                },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '加油站详情背景颜色',
+                '\n缺省值：#000000',
+                {
+                    gasStationBGColorHex: '#000000'
+                },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '加油站详情车辆图标颜色',
+                '\n缺省值：#61AFEF',
+                {
+                    gasStationCarIconColorHex: '#61AFEF'
+                },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '加油站详情地址图标颜色',
+                '\n缺省值：#E06C75',
+                {
+                    gasStationAddressIconColorHex: '#E06C75'
+                },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '底部页脚背景颜色',
+                '\n缺省值：#000000',
+                {
+                    footBGColorHex: '#000000'
+                },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerExtraSettingsCategoryItem(
+                'displaySettings',
+                'text',
+                '底部页脚logo颜色',
+                '\n缺省值：#FC6D26',
+                { footLogoColorHex: '#FC6D26' },
+                { name: 'number.square', color: '#5BD078' }
+            )
+            this.registerAction(
+                '显示设置',
+                async () => {
+                    const table = new UITable()
+                    table.showSeparators = true
+                    await this.renderSettings(table)
+                    await table.present()
+                },
+                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
+            )
+            this.registerAction(
+                '加油站查询距离',
+                async () => {
+                    await this.setAlertInput('就近加油站距离限制', '查询距离范围：单位m', {
+                        distance2NearestGasStation: '就近加油站查询范围，单位m'
+                    })
+                },
+                { name: 'car.fill', color: '#AC4E4D' }
+            )
+            this.registerAction(
+                '腾讯地图 Token',
+                async () => {
+                    await this.setAlertInput('腾讯Token', 'BoxJS 缓存 | 手动输入', {
+                        tencentMapAPIKey: '腾讯地图 Token'
+                    })
+                },
+                { name: 'mappin.and.ellipse', color: '#46ACFF' }
+            )
             this.registerAction(
                 '代理缓存',
                 async () => {
                     await this.setCacheBoxJSData(this.widgetInitConfig)
                 },
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/boxjs.png'
-            )
-            this.registerAction(
-                '数据显示配置',
-                async () => {
-                    await this.setAlertInput(`${this.name}数据显示配置`, '配置Widget模块颜色', {
-                        headerBGColorHex: '顶部油价背景颜色',
-                        oilNameColorHex: '油名称字体颜色',
-                        oilPriceColorHex: '油价格字体颜色',
-                        gasStationBGColorHex: '加油站详情背景颜色',
-                        footBGColorHex: '底部页脚背景颜色',
-                        footLogoColorHex: '底部页脚logo颜色'
-                    })
-                },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
-            )
-            this.registerAction(
-                '就近加油站配置',
-                async () => {
-                    await this.setAlertInput(`${this.name}就近加油站配置`, '查询距离范围：单位m', {
-                        distance2NearestGasStation: '就近加油站查询范围，单位m'
-                    })
-                },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/more.png'
             )
             this.registerAction(
                 '基础设置',
@@ -204,23 +286,8 @@ class Widget extends DmYY {
         }
 
         try {
-            const {
-                tencentMapAPIKey,
-                headerBGColorHex,
-                oilNameColorHex,
-                oilPriceColorHex,
-                gasStationBGColorHex,
-                footBGColorHex,
-                footLogoColorHex,
-                distance2NearestGasStation
-            } = this.settings
+            const { tencentMapAPIKey, distance2NearestGasStation } = this.settings
             this.tencentMapAPIKey = tencentMapAPIKey ? tencentMapAPIKey : this.tencentMapAPIKey
-            this.headerBGColorHex = headerBGColorHex ? headerBGColorHex : this.headerBGColorHex
-            this.oilNameColorHex = oilNameColorHex ? oilNameColorHex : this.oilNameColorHex
-            this.oilPriceColorHex = oilPriceColorHex ? oilPriceColorHex : this.oilPriceColorHex
-            this.gasStationBGColorHex = gasStationBGColorHex ? gasStationBGColorHex : this.gasStationBGColorHex
-            this.footBGColorHex = footBGColorHex ? footBGColorHex : this.footBGColorHex
-            this.footLogoColorHex = footLogoColorHex ? footLogoColorHex : this.footLogoColorHex
             this.distance2NearestGasStation = distance2NearestGasStation
                 ? parseInt(distance2NearestGasStation)
                 : this.distance2NearestGasStation
@@ -229,7 +296,40 @@ class Widget extends DmYY {
         }
     }
 
-    renderOilPrice(data) {
+    async renderSettings(table) {
+        var renderCustomHeader = function () {
+            table.removeAllRows()
+            let resetHeader = new UITableRow()
+            let resetHeading = resetHeader.addText('重置设置')
+            resetHeading.titleFont = Font.mediumSystemFont(17)
+            resetHeading.centerAligned()
+            table.addRow(resetHeader)
+            let resetRow = new UITableRow()
+            let resetRowText = resetRow.addText('重置设置参数', '设置参数绑定脚本文件名，请勿随意更改脚本文件名')
+            resetRowText.titleFont = Font.systemFont(16)
+            resetRowText.subtitleFont = Font.systemFont(12)
+            resetRowText.subtitleColor = new Color('999999')
+            resetRow.dismissOnSelect = false
+            resetRow.onSelect = async () => {
+                const options = ['取消', '重置']
+                const message = '本菜单里的所有设置参数将会重置为默认值，重置后请重新打开设置菜单'
+                const index = await this.generateAlert(message, options)
+                if (index === 0) return
+                for (const category of Object.keys(this.currentSettings)) {
+                    if (category === this.noneCategoryName) {
+                        continue
+                    }
+                    delete this.settings[category]
+                }
+                this.saveSettings()
+                await this.renderSettings(table)
+            }
+            table.addRow(resetRow)
+        }
+        this.renderExtraSettings(table, renderCustomHeader)
+    }
+
+    async renderOilPrice(data) {
         return /* @__PURE__ */ h(
             'wstack',
             {
@@ -244,7 +344,7 @@ class Widget extends DmYY {
                     'wtext',
                     {
                         textAlign: 'center',
-                        textColor: this.oilNameColorHex,
+                        textColor: this.currentSettings.displaySettings.oilNameColorHex.val,
                         font: new Font('Chalkduster', 26)
                     },
                     data.cate.replace('号汽油', '').replace('号柴油', '')
@@ -257,24 +357,34 @@ class Widget extends DmYY {
                     },
                     /* @__PURE__ */ h('wspacer', null),
                     /* @__PURE__ */ h('wspacer', null),
-                    // /* @__PURE__ */ h(
-                    //     'wtext',
-                    //     {
-                    //         textColor: this.oilNameColorHex,
-                    //         font: 8,
-                    //         textAlign: 'center'
-                    //     },
-                    //     '号'
-                    // ),
                     /* @__PURE__ */ h(
                         'wtext',
                         {
-                            textColor: this.oilNameColorHex,
+                            textColor: this.currentSettings.displaySettings.oilNameColorHex.val,
+                            font: 8,
+                            textAlign: 'center'
+                        },
+                        '号'
+                    ),
+                    /* @__PURE__ */ h(
+                        'wtext',
+                        {
+                            textColor: this.currentSettings.displaySettings.oilNameColorHex.val,
                             font: 12,
                             textAlign: 'center'
                         },
                         data.cate.indexOf('汽油') != -1 ? '汽油' : '柴油'
                     )
+                    // /* @__PURE__ */ h('wimage', {
+                    //     src: {
+                    //         url: 'https://github.com/zhangyxXyz/ios-scriptable-tsx/blob/master/src/font/bgtxt.ttf?raw=true',
+                    //         text: data.cate.indexOf('汽油') != -1 ? '汽油' : '柴油',
+                    //         size: 12,
+                    //         textColor: this.currentSettings.displaySettings.oilNameColorHex.val
+                    //     },
+                    //     width: 15,
+                    //     height: 15
+                    // })
                 ),
                 /* @__PURE__ */ h('wspacer', null)
             ),
@@ -288,7 +398,7 @@ class Widget extends DmYY {
                 /* @__PURE__ */ h(
                     'wtext',
                     {
-                        textColor: this.oilPriceColorHex || this.widgetColor,
+                        textColor: this.currentSettings.displaySettings.oilPriceColorHex.val || this.widgetColor,
                         font: new Font('Chalkduster', 16),
                         textAlign: 'center'
                     },
@@ -304,7 +414,7 @@ class Widget extends DmYY {
                     /* @__PURE__ */ h(
                         'wtext',
                         {
-                            textColor: this.oilPriceColorHex || this.widgetColor,
+                            textColor: this.currentSettings.displaySettings.oilPriceColorHex.val || this.widgetColor,
                             font: new Font('Chalkduster', 10),
                             textAlign: 'center'
                         },
@@ -365,7 +475,7 @@ class Widget extends DmYY {
                     label: '油站',
                     href,
                     icon: 'car',
-                    iconColor: this.gasStationCarIconColorHex
+                    iconColor: this.currentSettings.displaySettings.gasStationCarIconColorHex.val
                 }),
                 /* @__PURE__ */ h('wspacer', {
                     length: 2
@@ -375,7 +485,7 @@ class Widget extends DmYY {
                     label: '地址',
                     href,
                     icon: 'mappin.and.ellipse',
-                    iconColor: this.gasStationAddressIconColorHex
+                    iconColor: this.currentSettings.displaySettings.gasStationAddressIconColorHex.val
                 }),
                 /* @__PURE__ */ h('wspacer', {
                     length: 2
@@ -397,20 +507,22 @@ class Widget extends DmYY {
             /* @__PURE__ */ h(
                 'wstack',
                 {
-                    background: this.headerBGColorHex,
+                    background: this.currentSettings.displaySettings.headerBGColorHex.val,
                     padding: [10, 10, 10, 10]
                 },
-                this.oilPriceInfo.map(item => {
-                    const city = this.locationInfo?.locality?.replace('市', '') || ''
-                    const cate = item.cate.replace(city, '').replace('#', '号').replace('价格', '')
-                    return this.renderOilPrice({ ...item, cate })
-                })
+                await Promise.all(
+                    this.oilPriceInfo.map(async item => {
+                        const city = this.locationInfo?.locality?.replace('市', '') || ''
+                        const cate = item.cate.replace(city, '').replace('#', '号').replace('价格', '')
+                        return await this.renderOilPrice({ ...item, cate })
+                    })
+                )
             ),
             this.gasStationInfo.length > 0 &&
                 /* @__PURE__ */ h(
                     'wstack',
                     {
-                        background: this.gasStationBGColorHex,
+                        background: this.currentSettings.displaySettings.gasStationBGColorHex.val,
                         flexDirection: 'column',
                         padding: [10, 10, 10, 10]
                     },
@@ -420,7 +532,7 @@ class Widget extends DmYY {
             /* @__PURE__ */ h(
                 'wstack',
                 {
-                    background: this.footBGColorHex,
+                    background: this.currentSettings.displaySettings.footBGColorHex.val,
                     verticalAlign: 'center',
                     padding: [0, 10, 10, 10]
                 },
@@ -428,7 +540,7 @@ class Widget extends DmYY {
                     src: 'data:image/png;base64,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',
                     width: 15,
                     height: 15,
-                    filter: this.footLogoColorHex
+                    filter: this.currentSettings.displaySettings.footLogoColorHex.val
                 }),
                 /* @__PURE__ */ h('wspacer', {
                     length: 10

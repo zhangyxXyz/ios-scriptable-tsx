@@ -5,17 +5,17 @@
 /*
  * author   :  yx.zhang
  * date     :  2021/10/18
- * desc     :  日期助手, 采用了2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
+ * desc     :  日期助手
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
 
 if (typeof require === 'undefined') require = importModule
-const { DmYY, Runing } = require('./DmYY')
+const { WidgetBase, Runing } = require('./zyx.Env')
 const Utils = require('./Utils')
 
-class Widget extends DmYY {
+class Widget extends WidgetBase {
     constructor(arg) {
         super(arg)
         this.name = '日期助手'
@@ -25,8 +25,6 @@ class Widget extends DmYY {
 
     // 组件传入参数
     widgetParam = args.widgetParameter
-
-    bgColor = '#000000'
 
     // 布局数据
     commonPadding = 10
@@ -45,26 +43,10 @@ class Widget extends DmYY {
     Run() {
         if (config.runsInApp) {
             this.registerAction(
-                '颜色配置',
-                async () => {
-                    await this.setAlertInput(`${this.name}颜色配置`, '组件背景颜色', {
-                        bgColor: '组件背景颜色'
-                    })
-                },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
-            )
-            this.registerAction(
                 '基础设置',
                 this.setWidgetConfig,
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
             )
-        }
-
-        try {
-            const { bgColor } = this.settings
-            this.bgColor = bgColor ? bgColor : this.bgColor
-        } catch (error) {
-            console.log(error)
         }
     }
 
@@ -82,7 +64,7 @@ class Widget extends DmYY {
         const q = '今天是周五吗？'
         let question = w.addText(q)
         question.font = Font.boldSystemFont(18)
-        question.textColor = new Color('#FFFFFF')
+        question.textColor = this.widgetColor
 
         if (this.isFriday()) {
             let answer = w.addText('是😏')
@@ -91,7 +73,7 @@ class Widget extends DmYY {
         } else {
             let answer = w.addText('不是😶')
             answer.font = Font.boldSystemFont(40)
-            answer.textColor = new Color('#FFFFFF')
+            answer.textColor = this.widgetColor
         }
         return w
     }
