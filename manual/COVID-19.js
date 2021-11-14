@@ -11,8 +11,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Storage } = require('./zyx.Env')
-const Utils = require('./Utils')
+const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./zyx.Env')
 const storage = new Storage('COVID-19')
 
 class Widget extends WidgetBase {
@@ -227,7 +226,7 @@ class Widget extends WidgetBase {
                 async () => {
                     const table = new UITable()
                     table.showSeparators = true
-                    await this.renderSettings(table)
+                    await this.renderExtraSettings(table)
                     await table.present()
                 },
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
@@ -238,39 +237,6 @@ class Widget extends WidgetBase {
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
             )
         }
-    }
-
-    async renderSettings(table) {
-        var renderCustomHeader = function () {
-            table.removeAllRows()
-            let resetHeader = new UITableRow()
-            let resetHeading = resetHeader.addText('重置设置')
-            resetHeading.titleFont = Font.mediumSystemFont(17)
-            resetHeading.centerAligned()
-            table.addRow(resetHeader)
-            let resetRow = new UITableRow()
-            let resetRowText = resetRow.addText('重置设置参数', '设置参数绑定脚本文件名，请勿随意更改脚本文件名')
-            resetRowText.titleFont = Font.systemFont(16)
-            resetRowText.subtitleFont = Font.systemFont(12)
-            resetRowText.subtitleColor = new Color('999999')
-            resetRow.dismissOnSelect = false
-            resetRow.onSelect = async () => {
-                const options = ['取消', '重置']
-                const message = '本菜单里的所有设置参数将会重置为默认值，重置后请重新打开设置菜单'
-                const index = await this.generateAlert(message, options)
-                if (index === 0) return
-                for (const category of Object.keys(this.currentSettings)) {
-                    if (category === this.noneCategoryName) {
-                        continue
-                    }
-                    delete this.settings[category]
-                }
-                this.saveSettings()
-                await this.renderSettings(table)
-            }
-            table.addRow(resetRow)
-        }
-        this.renderExtraSettings(table, renderCustomHeader)
     }
 
     renderCovidNews() {

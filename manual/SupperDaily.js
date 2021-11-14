@@ -12,8 +12,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing } = require('./zyx.Env')
-const Utils = require('./Utils')
+const { WidgetBase, Runing, Utils } = require('./zyx.Env')
 
 class Widget extends WidgetBase {
     constructor(arg) {

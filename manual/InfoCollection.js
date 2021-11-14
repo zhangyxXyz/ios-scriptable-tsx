@@ -12,8 +12,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Storage } = require('./zyx.Env')
-const Utils = require('./Utils')
+const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./zyx.Env')
 const storage = new Storage('InfoCollectionData')
 
 class Widget extends WidgetBase {
@@ -248,7 +247,7 @@ class Widget extends WidgetBase {
                 '和风天气api-key',
                 '申请地址\nhttps://dev.heweather.com/',
                 { weatherKey: '' },
-                { name: 'cloud.sun', color: '#F6F6F6' }
+                { name: 'cloud.sun', color: '#787877' }
             )
             this.registerExtraSettingsCategoryItem(
                 'accountSettings',
@@ -323,7 +322,7 @@ class Widget extends WidgetBase {
                 async () => {
                     const table = new UITable()
                     table.showSeparators = true
-                    await this.renderSettings(table, { accountSettings: this._extraSettings.accountSettings || {} })
+                    await this.renderExtraSettings(table, { accountSettings: this._extraSettings.accountSettings || {} })
                     await table.present()
                 },
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/account.png'
@@ -333,7 +332,7 @@ class Widget extends WidgetBase {
                 async () => {
                     const table = new UITable()
                     table.showSeparators = true
-                    await this.renderSettings(table, { displaySettings: this._extraSettings.displaySettings || {} })
+                    await this.renderExtraSettings(table, { displaySettings: this._extraSettings.displaySettings || {} })
                     await table.present()
                 },
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
@@ -344,39 +343,6 @@ class Widget extends WidgetBase {
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
             )
         }
-    }
-
-    async renderSettings(table, extraSettings) {
-        var renderCustomHeader = function () {
-            table.removeAllRows()
-            let resetHeader = new UITableRow()
-            let resetHeading = resetHeader.addText('重置设置')
-            resetHeading.titleFont = Font.mediumSystemFont(17)
-            resetHeading.centerAligned()
-            table.addRow(resetHeader)
-            let resetRow = new UITableRow()
-            let resetRowText = resetRow.addText('重置设置参数', '设置参数绑定脚本文件名，请勿随意更改脚本文件名')
-            resetRowText.titleFont = Font.systemFont(16)
-            resetRowText.subtitleFont = Font.systemFont(12)
-            resetRowText.subtitleColor = new Color('999999')
-            resetRow.dismissOnSelect = false
-            resetRow.onSelect = async () => {
-                const options = ['取消', '重置']
-                const message = '本菜单里的所有设置参数将会重置为默认值，重置后请重新打开设置菜单'
-                const index = await this.generateAlert(message, options)
-                if (index === 0) return
-                for (const category of Object.keys(extraSettings)) {
-                    if (category === this.noneCategoryName) {
-                        continue
-                    }
-                    delete this.settings[category]
-                }
-                this.saveSettings()
-                await this.renderSettings(table, extraSettings)
-            }
-            table.addRow(resetRow)
-        }
-        this.renderExtraSettings(table, renderCustomHeader, null, extraSettings)
     }
 
     renderCommon = async w => {
