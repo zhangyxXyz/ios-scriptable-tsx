@@ -24,12 +24,16 @@ class Widget extends WidgetBase {
 
     // 组件传入参数
     widgetParam = args.widgetParameter
-    url = 'https://v1.hitokoto.cn'
+    splitWidgetParam = []
+
     httpData = null
     isRequestSuccess = false
 
     // 组件当前设置
     currentSettings = {
+        basicSettings: {
+            filterTypeString: { val: '', type: this.settingValTypeString }
+        },
         displaySettings: {
             listDataColorShowType: { val: '随机颜色', type: this.settingValTypeString }
         }
@@ -46,7 +50,20 @@ class Widget extends WidgetBase {
     async getData() {
         this.isRequestSuccess = false
         try {
-            let data = await this.$request.get(this.url)
+            let args = 'abcdefghijkl'
+            let types =
+                (this.splitWidgetParam.length >= 2
+                    ? this.splitWidgetParam[1]
+                    : this.currentSettings.basicSettings.filterTypeString.val || ''
+                )
+                    .split('')
+                    .filter(c => args.indexOf(c) > -1)
+                    .map(c => `c=${c}`)
+                    .join('&') || ''
+            types = Utils.isEmpty(types) ? '' : `?${types}`
+            let url = `https://v1.hitokoto.cn/${types}`
+            console.log(url)
+            let data = await this.$request.get(url)
             this.httpData = data
             this.isRequestSuccess = true
             console.log(data)
@@ -57,6 +74,15 @@ class Widget extends WidgetBase {
 
     Run() {
         if (config.runsInApp) {
+            this.registerExtraSettingsCategory('basicSettings', '基础设置')
+            this.registerExtraSettingsCategoryItem(
+                'basicSettings',
+                'text',
+                '分类',
+                '填写对应分类字母(可组合多个)\n留空代表全分类\n\na ==> 动画\nb ==> 漫画\nc ==> 游戏\nd ==> 文学\ne ==> 原创\nf ==> 来自网络\ng ==> 其他\nh ==> 影视\ni ==> 诗词\nj ==> 网易云\nk ==> 哲学\nl ==> 抖机灵\n缺省值: 全分类',
+                { filterTypeString: '' },
+                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/flow.png'
+            )
             this.registerExtraSettingsCategory('displaySettings', '显示设置')
             this.registerExtraSettingsCategoryItem(
                 'displaySettings',
@@ -68,20 +94,27 @@ class Widget extends WidgetBase {
                 ['组件文本颜色', '随机颜色']
             )
             this.registerAction(
-                '显示设置',
+                '参数配置',
                 async () => {
                     const table = new UITable()
                     table.showSeparators = true
                     await this.renderExtraSettings(table)
                     await table.present()
                 },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/setting.png'
             )
             this.registerAction(
                 '基础设置',
                 this.setWidgetConfig,
                 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
             )
+        }
+        try {
+            if (this.widgetParam) {
+                this.splitWidgetParam = this.widgetParam.split(',')
+            }
+        } catch (e) {
+            console.log(e)
         }
     }
 
@@ -124,8 +157,8 @@ class Widget extends WidgetBase {
                     {
                         font: Font.lightSystemFont(16),
                         textColor: (
-                            this.widgetParam
-                                ? parseInt(this.widgetParam) === 1
+                            this.splitWidgetParam.length >= 1
+                                ? parseInt(this.splitWidgetParam[0]) === 1
                                 : this.currentSettings.displaySettings.listDataColorShowType.val === '随机颜色'
                         )
                             ? Utils.randomColor16()

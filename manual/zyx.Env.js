@@ -910,7 +910,6 @@ class WidgetBase {
                 row.dismissOnSelect = false
                 row.onSelect = async () => {
                     if (data.type == 'text') {
-                        console.log(extraKey)
                         await this.setAlertInput(data['title'], data['desc'], data['option'], extraKey)
                     } else if (data.type == 'menu') {
                         await this.setAlertSelect(data['title'], data['desc'], key, data['menu'], extraKey)
