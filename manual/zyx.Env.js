@@ -38,6 +38,7 @@ class WidgetBase {
     backGroundColor
     useBoxJS = true
     isNight
+    _actionsVal = {}
     _actionsIcon = {}
 
     // 组件附加设置
@@ -895,13 +896,11 @@ class WidgetBase {
                 }
                 let rowtext = row.addText(data['title'])
                 rowtext.widthWeight = 400
-                let rowNumber = row.addText(
-                    `${
-                        this.settings.hasOwnProperty(extraKey) && this.settings[extraKey].hasOwnProperty(key)
-                            ? this.settings[extraKey][key]
-                            : data.option[key]
-                    }  >`.toLowerCase()
-                )
+                let configval =
+                    this.settings.hasOwnProperty(extraKey) && this.settings[extraKey].hasOwnProperty(key)
+                        ? this.settings[extraKey][key]
+                        : data.option[key]
+                let rowNumber = row.addText(`${isEmpty(configval) ? data.defaultShowContent || '' : configval}  >`.toLowerCase())
                 rowNumber.widthWeight = 500
                 rowNumber.rightAligned()
                 rowNumber.titleColor = Color.gray()
@@ -984,8 +983,9 @@ class WidgetBase {
      * @param {string} name 操作函数名
      * @param {func} func 点击后执行的函数
      */
-    registerAction(name, func, icon = { name: 'gear', color: '#096dd9' }) {
+    registerAction(name, func, icon = { name: 'gear', color: '#096dd9' }, val = null) {
         this._actions[name] = func.bind(this)
+        this._actionsVal[name] = val
         this._actionsIcon[name] = icon
     }
 
@@ -1008,6 +1008,7 @@ class WidgetBase {
      * @param {Array} itemOpt item关联 settings 项 {settingsKey1: defaultVal1, settingsLey2: defaultVal2}
      * @param {object} itemIcon url(string) 或者 SFSymbol(Array) 默认为 SFSymbol
      * @param {Array} itemMenu item菜单选项(仅 itemType 为menu时有效) [menu1, menu2]
+     * @param {string} itemDefaultShowContent item默认显示文本当默认值以及输入值为空时
      * */
     registerExtraSettingsCategoryItem(
         category,
@@ -1016,7 +1017,8 @@ class WidgetBase {
         itemDesc,
         itemOpt = {},
         itemIcon = { name: 'gear', color: '#096dd9' },
-        itemMenu = []
+        itemMenu = [],
+        itemDefaultShowContent
     ) {
         if (this._extraSettings.hasOwnProperty(category)) {
             let extraCategory = this._extraSettings[category]
@@ -1028,7 +1030,8 @@ class WidgetBase {
                     desc: itemDesc,
                     option: itemOpt,
                     icon: itemIcon,
-                    menu: itemMenu
+                    menu: itemMenu,
+                    defaultShowContent: itemDefaultShowContent
                 })
             }
         }
@@ -1543,7 +1546,8 @@ const Runing = async (Widget, default_args = '', isDebug = true, extra) => {
                 const isUrl = typeof iconItem === 'string'
                 const actionItem = {
                     title: _,
-                    onClick: actions[_]
+                    onClick: actions[_],
+                    val: M._actionsVal[_]
                 }
                 if (isUrl) {
                     actionItem.url = iconItem

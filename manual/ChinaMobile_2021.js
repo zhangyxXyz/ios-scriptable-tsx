@@ -10,7 +10,7 @@
 
 if (typeof require === 'undefined') require = importModule;
 const {DmYY, Runing} = require('./DmYY');
-const CryptoJS = require('./crypto-js');
+const CryptoJS = require('./crypto-js.min');
 
 class Widget extends DmYY {
   constructor(arg) {

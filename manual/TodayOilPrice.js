@@ -192,7 +192,9 @@ class Widget extends WidgetBase {
                 {
                     oilPriceColorHex: ''
                 },
-                { name: 'number.square', color: '#5BD078' }
+                { name: 'number.square', color: '#5BD078' },
+                [],
+                '系统字体颜色'
             )
             this.registerExtraSettingsCategoryItem(
                 'displaySettings',

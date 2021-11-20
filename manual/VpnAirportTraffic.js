@@ -204,7 +204,8 @@ class Widget extends WidgetBase {
             this.registerAction(
                 '默认账号',
                 this.actionSettings,
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/setting.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/setting.png',
+                this.settings.account ? this.settings.account.airportName || '' : '请选择或者添加账号'
             )
             this.registerAction('清除账号', this.deletedVpn, { name: 'xmark.circle', color: '#FC011A' })
             this.registerAction('新增账号', async () => {

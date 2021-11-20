@@ -81,7 +81,9 @@ class Widget extends WidgetBase {
                 '分类',
                 '填写对应分类字母(可组合多个)\n留空代表全分类\n\na ==> 动画\nb ==> 漫画\nc ==> 游戏\nd ==> 文学\ne ==> 原创\nf ==> 来自网络\ng ==> 其他\nh ==> 影视\ni ==> 诗词\nj ==> 网易云\nk ==> 哲学\nl ==> 抖机灵\n缺省值: 全分类',
                 { filterTypeString: '' },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/flow.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/flow.png',
+                [],
+                '全分类'
             )
             this.registerExtraSettingsCategory('displaySettings', '显示设置')
             this.registerExtraSettingsCategoryItem(
