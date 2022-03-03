@@ -12,7 +12,8 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Utils } = require('./zyx.Env')
+const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./zyx.Env')
+const storage = new Storage('OneWord')
 
 class Widget extends WidgetBase {
     constructor(arg) {
@@ -48,28 +49,36 @@ class Widget extends WidgetBase {
     }
 
     async getData() {
-        this.isRequestSuccess = false
-        try {
-            let args = 'abcdefghijkl'
-            let types =
-                (this.splitWidgetParam.length >= 2
-                    ? this.splitWidgetParam[1]
-                    : this.currentSettings.basicSettings.filterTypeString.val || ''
-                )
-                    .split('')
-                    .filter(c => args.indexOf(c) > -1)
-                    .map(c => `c=${c}`)
-                    .join('&') || ''
-            types = Utils.isEmpty(types) ? '' : `?${types}`
-            let url = `https://v1.hitokoto.cn/${types}`
-            console.log(url)
-            let data = await this.$request.get(url)
-            this.httpData = data
-            this.isRequestSuccess = true
-            console.log(data)
-        } catch (error) {
-            console.log(error)
+        let storageWord = storage.getStorage('word', 1)
+        if (storageWord) {
+            console.log('[+]请求间隔时间过小，使用缓存数据')
+            this.httpData = storageWord
+        } else {
+            this.isRequestSuccess = false
+            try {
+                let args = 'abcdefghijkl'
+                let types =
+                    (this.splitWidgetParam.length >= 2
+                        ? this.splitWidgetParam[1]
+                        : this.currentSettings.basicSettings.filterTypeString.val || ''
+                    )
+                        .split('')
+                        .filter(c => args.indexOf(c) > -1)
+                        .map(c => `c=${c}`)
+                        .join('&') || ''
+                types = Utils.isEmpty(types) ? '' : `?${types}`
+                let url = `https://v1.hitokoto.cn/${types}`
+                let data = await this.$request.get(url)
+                console.log('[+]数据请求成功：' + url)
+                storage.setStorage('word', data)
+                this.httpData = data
+                this.isRequestSuccess = true
+            } catch (err) {
+                console.log(`[+]getData出错，尝试使用缓存数据：${err}`)
+                this.httpData = storage.getStorage('word')
+            }
         }
+        console.log(this.httpData)
     }
 
     Run() {

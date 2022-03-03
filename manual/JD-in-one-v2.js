@@ -4,8 +4,8 @@
 // Author: 脑瓜
 // 电报群: https://t.me/Scriptable_JS @anker1209
 // 采用了2Ya美女的京豆收支脚本及DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
-// version:2.2.5
-// update:2021/11/08
+// version:2.2.7
+// update:2022/01/04
 
 if (typeof require === 'undefined') require = importModule;
 const {DmYY, Runing} = require('./DmYY');
@@ -37,7 +37,7 @@ class Widget extends DmYY {
 
   // 请勿在此修改参数值
 
-  version = '2.2.5';
+  version = '2.2.6';
   basicSetting = {
     scale: 1.00,
     logo: 30,
@@ -784,7 +784,7 @@ class Widget extends DmYY {
       console.log(`第${page}页：${result ? '请求成功' : '请求失败'}`);
       if (response.code === '3') {
         i = 1;
-        this.notify(this.name, response.message)
+        // this.notify(this.name, response.message)
         console.log(response);
       }
       if (response && result) {
@@ -867,7 +867,7 @@ class Widget extends DmYY {
       if (response['user']) {
         this.jValue = response.user.uclass.replace(/[^0-9]/ig, '');
       } else {
-        this.notify(this.name, response.msg);
+        // this.notify(this.name, response.msg);
         console.log('微信数据：获取失败，' + response.msg)
       }
     } catch (e) {
@@ -922,7 +922,7 @@ class Widget extends DmYY {
       if (JTData.resultCode === 0) {
         this.extra.jingtie = JTData.resultData.data['balance'];
       } else {
-        this.notify(this.name, JTdata.resultMsg);
+        // this.notify(this.name, JTdata.resultMsg);
         console.log('金贴数据：获取失败，' + JTdata.resultMsg);
       };
       if (GBData.gbBalance) this.extra.gangbeng = GBData.gbBalance;
@@ -977,7 +977,7 @@ class Widget extends DmYY {
         this.redPackage.number = data.data.balance ? data.data.balance : 0;
         if (data.data.expiredBalance && data.data.expiredBalance !== '') this.redPackage.desc = `即将过期${data.data.expiredBalance}`;
       } else {
-        this.notify(this.name, data.msg);
+        // this.notify(this.name, data.msg);
         console.log('红包数据：获取失败，' + data.msg);
       }
     } catch (e) {
@@ -1017,7 +1017,8 @@ class Widget extends DmYY {
     try {
       const data = await this.httpRequest(dataName, url, true, options, 'baitiaoData', 'POST', false);
       if (data.resultCode !== 0) {
-        return this.notify(this.name, data['resultMsg']);
+        //  this.notify(this.name, data['resultMsg']);
+         return
       }
       this.baitiao.title = data['resultData']['data']['bill']['title'];
       this.baitiao.number = data['resultData']['data']['bill']['amount'].replace(/,/g, '');
@@ -1119,15 +1120,17 @@ class Widget extends DmYY {
       this.settings.CACHES = this.CACHES;
       this.saveSettings(false);
     }
-    const localCache = this.loadStringCache(cacheKey);
+    let localCache = this.loadStringCache(cacheKey);
     const lastCacheTime = this.getCacheModificationDate(cacheKey);
     const timeInterval = Math.floor((this.getCurrentTimeStamp() - lastCacheTime) / 60);
-    console.log(
-      `${dataName}：缓存${timeInterval}分钟前，有效期${this.basicSetting.interval}分钟，${localCache.length}`);
+    
+    console.log(`${dataName}：缓存${timeInterval}分钟前，有效期${this.basicSetting.interval}分钟，${localCache.length}`);
+
     if (timeInterval < this.basicSetting.interval && localCache != null && localCache.length > 0) {
       console.log(`${dataName}：读取缓存`);
       return json ? JSON.parse(localCache) : localCache;
     }
+
     let data = null;
     try {
       console.log(`${dataName}：在线请求`);
@@ -1137,14 +1140,24 @@ class Widget extends DmYY {
         req[key] = options[key];
       });
       data = await (json ? req.loadJSON() : req.loadString());
+      if (
+        data.errCode === '0' ||
+        data.msg === 'success' ||
+        data.resultCode === 0
+      ) {
+        this.saveStringCache(cacheKey, json ? JSON.stringify(data) : data)
+      }
     } catch (e) {
       console.error(`${dataName}：请求失败：${e}`);
     }
+
+    localCache = this.loadStringCache(cacheKey);
+
     if (!data && localCache != null && localCache.length > 0) {
       console.log(`${dataName}：获取失败，读取缓存`);
       return json ? JSON.parse(localCache) : localCache;
     }
-    this.saveStringCache(cacheKey, json ? JSON.stringify(data) : data);
+    
     if (logable) {
       console.log(`${dataName}：在线请求响应数据：${JSON.stringify(data)}`);
     }
@@ -1512,34 +1525,7 @@ class Widget extends DmYY {
       this.funcSetting[key] = this.settings['funcSetting'][key];
     });
 
-    let _md5 = this.md5(filename + this.en);
-
-    if (this.funcSetting.logable === '打开') console.log('当前配置内容：' + JSON.stringify(this.settings));
-
-    this.JDindex =
-      typeof args.widgetParameter === "string"
-        ? parseInt(args.widgetParameter)
-        : false;
-    try {
-      let cookieData = this.settings.cookieData ? this.settings.cookieData : [];
-      if (this.JDindex !== false && cookieData[this.JDindex]) {
-        this.cookie = cookieData[this.JDindex]["cookie"];
-        this.userName = cookieData[this.JDindex]["userName"];
-      } else {
-        this.userName = this.settings.username;
-        this.cookie = this.settings.cookie;
-      }
-      if (!this.cookie) throw "京东 CK 获取失败";
-      this.userName = decodeURI(this.userName);
-      this.CACHE_KEY = `cache_${_md5}_` + this.userName;
-      this.settings.CACHE_KEY = this.CACHE_KEY;
-      this.saveSettings(false);
-
-      return true;
-    } catch (e) {
-      this.notify("错误提示", e);
-      return false;
-    }
+   
   };
 
   jdWebView = async () => {
@@ -1579,27 +1565,11 @@ class Widget extends DmYY {
 
   _loadJDCk = async () => {
     try {
-      const CookiesData = await this.getCache('CookiesJD');
-      if (CookiesData) {
-        this.CookiesData = this.transforJSON(CookiesData);
-      }
-      const CookieJD = await this.getCache('CookieJD');
-      if (CookieJD) {
-        const userName = CookieJD.match(/pt_pin=(.+?);/)[1];
-        const ck1 = {
-          cookie: CookieJD,
-          userName,
-        };
-        this.CookiesData.push(ck1);
-      }
-      const Cookie2JD = await this.getCache('CookieJD2');
-      if (Cookie2JD) {
-        const userName = Cookie2JD.match(/pt_pin=(.+?);/)[1];
-        const ck2 = {
-          cookie: Cookie2JD,
-          userName,
-        };
-        this.CookiesData.push(ck2);
+      this.CookiesData = await this.getCache('CookiesJD', false)
+      if (this.CookiesData) {
+        this.CookiesData = this.transforJSON(this.CookiesData)
+      } else {
+        throw "未获取到数据"
       }
       return true;
     } catch (e) {
@@ -1633,16 +1603,46 @@ class Widget extends DmYY {
       this.notify(this.name, body);
       table.present(false);
     } catch (e) {
-      this.notify(
-        this.name,
-        '',
-        'BoxJS 数据读取失败，请点击通知查看教程',
-        'https://chavyleung.gitbook.io/boxjs/awesome/videos',
-      );
+      console.log(e);
+      await this.notify(
+        `${this.name} - BoxJS 数据读取失败`,
+        '请检查 BoxJS 域名是否为代理复写的域名，如（boxjs.net 或 boxjs.com）。\n若没有配置 BoxJS 相关模块，请点击通知查看教程',
+        'https://chavyleung.gitbook.io/boxjs/awesome/videos'
+      )
+    }
+  }
+
+  async getCookie() {
+    this.JDindex = typeof args.widgetParameter === 'string'
+    ? parseInt(args.widgetParameter)
+    : false;
+   let _md5 = this.md5(module.filename + this.en);
+    if (this.funcSetting.logable === '打开') console.log('当前配置内容：' + JSON.stringify(this.settings));
+    try {
+      if (this.JDindex !== false && this.JDindex + 1 > 0) {
+        
+        if (!(await this._loadJDCk())) this.CookiesData = this.settings.cookieData
+        
+        this.cookie = this.CookiesData[this.JDindex]['cookie'];
+        this.userName =this.CookiesData[this.JDindex]["userName"];
+      } else {
+        this.userName = this.settings.username;
+        this.cookie = this.settings.cookie;
+      }
+      if (!this.cookie) throw "京东 CK 获取失败";
+      this.userName = decodeURI(this.userName);
+      this.CACHE_KEY = `cache_${_md5}_` + this.userName;
+      this.settings.CACHE_KEY = this.CACHE_KEY;
+      this.saveSettings(false);
+      return true;
+    } catch (e) {
+      this.notify("错误提示", e);
+      return false;
     }
   }
 
   async render() {
+    await this.getCookie();
     if (!this.cookie || !this.userName) {
       this.notify(this.name, 'cookie或用户名未设置');
       return;
@@ -1668,4 +1668,4 @@ class Widget extends DmYY {
 
 await Runing(Widget, '', false);
 
-//version:2.2.4
+//version:2.2.7
