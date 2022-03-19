@@ -179,7 +179,7 @@ class Widget extends WidgetBase {
                 '进度条背景颜色透明度',
                 '透明度值范围[0-1]\n\n缺省值: 0.2',
                 { battCircleBackgroundColorTransparency: 0.2 },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/flow.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/flow.png'
             )
             this.registerExtraSettingsCategoryItem(
                 'displaySettings',
@@ -187,7 +187,7 @@ class Widget extends WidgetBase {
                 '进度条文本颜色',
                 '\n缺省值: #FFFFFF',
                 { battCircleTextColorHex: '#FFFFFF' },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/colorSet.png'
             )
 
             this.registerAction(
@@ -198,13 +198,13 @@ class Widget extends WidgetBase {
                     await this.renderExtraSettings(table)
                     await table.present()
                 },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/colorSet.png'
             )
 
             this.registerAction(
                 '默认账号',
                 this.actionSettings,
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/setting.png',
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/setting.png',
                 this.settings.account ? this.settings.account.airportName || '' : '请选择或者添加账号'
             )
             this.registerAction('清除账号', this.deletedVpn, { name: 'xmark.circle', color: '#FC011A' })
@@ -233,7 +233,7 @@ class Widget extends WidgetBase {
             this.registerAction(
                 '基础设置',
                 this.setWidgetConfig,
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/preferences.png'
             )
         }
 

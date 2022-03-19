@@ -239,7 +239,7 @@ class Widget extends WidgetBase {
                 '如何称呼您？',
                 '提示语内对您的称呼',
                 { userName: 'yx.zhang' },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/flow.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/flow.png'
             )
             this.registerExtraSettingsCategoryItem(
                 'accountSettings',
@@ -313,7 +313,7 @@ class Widget extends WidgetBase {
                 '数据条目颜色',
                 '\n缺省值: 组件文本颜色',
                 { listDataColorShowType: '组件文本颜色' },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png',
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/colorSet.png',
                 ['组件文本颜色', '随机颜色']
             )
 
@@ -325,7 +325,7 @@ class Widget extends WidgetBase {
                     await this.renderExtraSettings(table, { accountSettings: this._extraSettings.accountSettings || {} })
                     await table.present()
                 },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/account.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/account.png'
             )
             this.registerAction(
                 '显示设置',
@@ -335,12 +335,12 @@ class Widget extends WidgetBase {
                     await this.renderExtraSettings(table, { displaySettings: this._extraSettings.displaySettings || {} })
                     await table.present()
                 },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/colorSet.png'
             )
             this.registerAction(
                 '基础设置',
                 this.setWidgetConfig,
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/preferences.png'
             )
         }
     }

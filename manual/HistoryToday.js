@@ -12,7 +12,7 @@ class Widget extends DmYY {
         super(arg)
         this.name = '历史上的今天'
         this.en = 'historyToday'
-        this.logo = 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Application/historyToday.png'
+        this.logo = 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Application/historyToday.png'
         config.runsInApp && this.registerAction('基础设置', this.setWidgetConfig)
         this.cacheName = this.md5(`dataSouce_${this.en}`)
     }

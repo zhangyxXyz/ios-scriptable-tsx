@@ -610,7 +610,7 @@ class WidgetBase {
                 valText.titleFont = Font.mediumSystemFont(fontSize)
             } else {
                 const imgCell = UITableCell.imageAtURL(
-                    'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/more.png'
+                    'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/more.png'
                 )
                 imgCell.rightAligned()
                 imgCell.widthWeight = 500
@@ -804,7 +804,7 @@ class WidgetBase {
         leftText.onTap = async () => {
             await Safari.openInApp('https://github.com/zhangyxXyz/ios-scriptable-tsx')
         }
-        let centerRow = topRow.addImageAtURL('https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/mainLogo.png')
+        let centerRow = topRow.addImageAtURL('https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/mainLogo.png')
         centerRow.widthWeight = 0.4
         centerRow.centerAligned()
         centerRow.onTap = async () => {
@@ -1518,21 +1518,21 @@ const Runing = async (Widget, default_args = '', isDebug = true, extra) => {
             }
             const preview = [
                 {
-                    url: 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/smallSize.png',
+                    url: 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/smallSize.png',
                     title: '小尺寸',
                     val: 'small',
                     dismissOnSelect: true,
                     onClick
                 },
                 {
-                    url: 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/mediumSize.png',
+                    url: 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/mediumSize.png',
                     title: '中尺寸',
                     val: 'medium',
                     dismissOnSelect: true,
                     onClick
                 },
                 {
-                    url: 'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/largeSize.png',
+                    url: 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/largeSize.png',
                     title: '大尺寸',
                     val: 'large',
                     dismissOnSelect: true,

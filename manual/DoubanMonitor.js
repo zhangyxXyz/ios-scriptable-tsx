@@ -107,7 +107,7 @@ class Widget extends WidgetBase {
                 '数据条目颜色',
                 '\n缺省值: 随机颜色',
                 { listDataColorShowType: '随机颜色' },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/colorSet.png',
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/colorSet.png',
                 ['组件文本颜色', '随机颜色']
             )
             this.registerExtraSettingsCategoryItem(
@@ -128,12 +128,12 @@ class Widget extends WidgetBase {
                     await this.renderExtraSettings(table)
                     await table.present()
                 },
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/setting.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/setting.png'
             )
             this.registerAction(
                 '基础设置',
                 this.setWidgetConfig,
-                'https://raw.githubusercontent.com/zhangyxXyz/IconSet/master/Scriptable/Settings/preferences.png'
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/preferences.png'
             )
         }
     }
