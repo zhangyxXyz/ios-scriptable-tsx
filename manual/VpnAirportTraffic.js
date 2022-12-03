@@ -295,12 +295,16 @@ class Widget extends WidgetBase {
         w.addSpacer(null)
 
         var diffDays = -1
+        var resetCircle = 30
         if (this.account.resetDay > 0) {
             var today = new Date()
+            var curReset = new Date()
+            curReset.setDate(this.account.resetDay)
             var nextReset = new Date()
             nextReset.setDate(this.account.resetDay)
             if (today.getDate() > this.account.resetDay) nextReset = new Date(nextReset.setMonth(nextReset.getMonth() + 1))
             diffDays = Math.round(Math.abs((today - nextReset) / 86400000))
+            resetCircle = Math.round(Math.abs((curReset - nextReset) / 86400000))
         }
 
         let flowStack = w.addStack()
@@ -346,7 +350,7 @@ class Widget extends WidgetBase {
             item = w.addText(`流量自动重置还有${diffDays}天`)
             item.textColor = new Color('#9D9D9D')
             item.font = new Font('Chalkduster', 10)
-            item = w.addText(`    到期预计使用${(((this.data.total - this.data.remain) / (30 - diffDays)) * 30).toFixed(0)}\%`)
+            item = w.addText(`    到期预计使用${(((this.data.total - this.data.remain) / (resetCircle - diffDays)) * resetCircle).toFixed(0)}\%`)
             item.textColor = new Color('#9D9D9D')
             item.font = new Font('Chalkduster', 10)
         }
