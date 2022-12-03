@@ -5,8 +5,8 @@
 // 电报群：https://t.me/Scriptable_JS @anker1209
 // 该脚本小尺寸组件支持两种模式，默认为圆环进度条模式，主屏幕长按小组件-->编辑小组件-->Parameter，输入1，使用文字模式
 // 渐变进度条为试验性功能，默认关闭
-// version:2.1.2
-// update:2022/10/20
+// version:2.1.0
+// update:2021/04/02
 
 if (typeof require === 'undefined') require = importModule;
 const {DmYY, Runing} = require('./DmYY');
@@ -16,7 +16,7 @@ class Widget extends DmYY {
     super(arg);
     this.name = '中国联通';
     this.en = 'ChinaUnicom_2021';
-    this.logo = 'https://pic.imgdb.cn/item/630ec91116f2c2beb17590da.png';
+    this.logo = 'https://raw.githubusercontent.com/githubdulong/Script/master/Images/Lt.png';
     this.verticalLogo = 'https://pic.imgdb.cn/item/630ecac516f2c2beb1766cd4.png';
     this.Run();
   }
@@ -178,7 +178,7 @@ class Widget extends DmYY {
     const feeStack = stack.addStack();
     feeStack.centerAlignContent();
     feeStack.addSpacer();
-    const feeValue = feeStack.addText(`${this.fee.number}`);
+    const feeValue = feeStack.addText(`${this.fee.number}`+"元");
     feeValue.font = Font.mediumRoundedSystemFont(this.feeTextSize);
     feeValue.textColor = this.widgetColor;
     feeStack.addSpacer();
@@ -449,16 +449,18 @@ tempStack2.addSpacer()
 
   renderSmall = async (w) => {
     w.setPadding(this.smallPadding, this.smallPadding, this.smallPadding, this.smallPadding);
+    if (this.widgetParam == "1"){
     await this.smallHeader(w);
     const bodyStack = w.addStack();
     bodyStack.layoutVertically();
-    if (this.widgetParam == "1"){
       this.textLayout(bodyStack, this.flow);
       bodyStack.addSpacer(7);
       this.textLayout(bodyStack, this.voice);
       bodyStack.addSpacer(7);
       this.textLayout(bodyStack, this.point);
     } else {
+    const bodyStack = w.addStack();
+    bodyStack.layoutVertically();
       const canvas = this.makeCanvas();
       const ringStack = bodyStack.addStack();
       this.imageCell(canvas, ringStack, this.flow);
@@ -502,7 +504,7 @@ tempStack2.addSpacer()
             inner2: '语音进度条底圈颜色',
           },
           );
-      }, 'https://pic1.imgdb.cn/item/63315c1e16f2c2beb1a27363.png');
+      }, 'https://gitee.com/anker1209/image/raw/master/jd/colorSet.png');
       this.registerAction('尺寸设置', async () => {
         await this.setAlertInput(
           `${this.name}尺寸设置`,
@@ -517,18 +519,18 @@ tempStack2.addSpacer()
             padding: '中尺寸组件边距，缺省：10',
           },
           );
-      }, 'https://pic1.imgdb.cn/item/63315c2c16f2c2beb1a28726.png');
+      }, 'https://gitee.com/anker1209/image/raw/master/jd/resize.png');
       this.registerAction('账号设置', async () => {
         await this.setAlertInput(
           `${this.name}账号`,
           '读取 BoxJS 缓存信息',
             {cookie: 'cookie'},
           );
-      }, 'https://pic1.imgdb.cn/item/63315c0816f2c2beb1a25252.png');
+      }, 'https://gitee.com/anker1209/image/raw/master/jd/account.png');
       this.registerAction('代理缓存', async () => {
         await this.setCacheBoxJSData(widgetInitConfig);
-      }, 'https://pic1.imgdb.cn/item/63315c0816f2c2beb1a25272.png');
-      this.registerAction('基础设置', this.setWidgetConfig, 'https://pic1.imgdb.cn/item/63315c2c16f2c2beb1a28714.png');
+      }, 'https://gitee.com/anker1209/image/raw/master/jd/boxjs.png');
+      this.registerAction('基础设置', this.setWidgetConfig, 'https://gitee.com/anker1209/image/raw/master/jd/preferences.png');
     }
 
     try {
@@ -595,5 +597,3 @@ tempStack2.addSpacer()
 }
 
 await Runing(Widget, args.widgetParameter, false);
-
-//version:2.1.0

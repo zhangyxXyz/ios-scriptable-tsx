@@ -216,7 +216,7 @@ class Widget extends WidgetBase {
                         airportName: '机场名称',
                         url: '机场链接',
                         subUrl: '订阅链接',
-                        resetDay: '流量重置日期',
+                        resetDay: '流量重置日期(-1代表无固定重置日期)',
                         icon: '机场图标'
                     },
                     null,
@@ -294,12 +294,14 @@ class Widget extends WidgetBase {
 
         w.addSpacer(null)
 
-        var today = new Date()
-        var nextReset = new Date()
-        nextReset.setDate(this.account.resetDay)
-        if (today.getDate() > this.account.resetDay) nextReset = new Date(nextReset.setMonth(nextReset.getMonth() + 1))
-
-        var diffDays = Math.round(Math.abs((today - nextReset) / 86400000))
+        var diffDays = -1
+        if (this.account.resetDay > 0) {
+            var today = new Date()
+            var nextReset = new Date()
+            nextReset.setDate(this.account.resetDay)
+            if (today.getDate() > this.account.resetDay) nextReset = new Date(nextReset.setMonth(nextReset.getMonth() + 1))
+            diffDays = Math.round(Math.abs((today - nextReset) / 86400000))
+        }
 
         let flowStack = w.addStack()
         flowStack.layoutHorizontally()
@@ -328,7 +330,15 @@ class Widget extends WidgetBase {
 
         item = w.addSpacer(null)
 
-        if (diffDays == 0) {
+        if (diffDays < 0) {
+            item = w.addText(`当前套餐无固定重置日期`)
+            item.textColor = new Color('#9D9D9D')
+            item.font = new Font('Chalkduster', 10)
+            item = w.addText(`    需要手动重置.........`)
+            item.textColor = new Color('#9D9D9D')
+            item.font = new Font('Chalkduster', 10)
+        }
+        else if (diffDays == 0) {
             item = w.addText(`今天是您的流量重置日`)
             item.textColor = new Color('#9D9D9D')
             item.font = new Font('Chalkduster', 10)
