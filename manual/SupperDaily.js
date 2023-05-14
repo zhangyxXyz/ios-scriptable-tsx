@@ -3,7 +3,7 @@
 // icon-color: teal; icon-glyph: calendar-alt;
 
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/10/18
  * desc     :  日期助手
  * version  :  1.0.0
@@ -12,7 +12,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, Utils } = require('./zyx.Env')
+const { WidgetBase, Runing, Utils } = require('./Seiun.Env')
 
 class Widget extends WidgetBase {
     constructor(arg) {

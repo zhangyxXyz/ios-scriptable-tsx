@@ -1,6 +1,6 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
-// icon-color: red; icon-glyph: mobile-alt; share-sheet-inputs: file-url, url;
+// icon-color: pink; icon-glyph: magic;
 // Author: 脑瓜
 // 电报群：https://t.me/Scriptable_JS @anker1209
 // 该脚本小尺寸组件支持两种模式，默认为圆环进度条模式，主屏幕长按小组件-->编辑小组件-->Parameter，输入1，使用文字模式
@@ -16,8 +16,8 @@ class Widget extends DmYY {
     super(arg);
     this.name = '中国联通';
     this.en = 'ChinaUnicom_2021';
-    this.logo = 'https://pic.imgdb.cn/item/630ec91116f2c2beb17590da.png';
-    this.verticalLogo = 'https://pic.imgdb.cn/item/630ecac516f2c2beb1766cd4.png';
+    this.logo = 'https://raw.githubusercontent.com/anker1209/icon/main/zglt-big.png';
+    this.verticalLogo = 'https://raw.githubusercontent.com/anker1209/icon/main/zglt.png';
     this.Run();
   }
 
@@ -178,7 +178,7 @@ class Widget extends DmYY {
     const feeStack = stack.addStack();
     feeStack.centerAlignContent();
     feeStack.addSpacer();
-    const feeValue = feeStack.addText(`${this.fee.number}`);
+    const feeValue = feeStack.addText("¥"+`${this.fee.number}`);
     feeValue.font = Font.mediumRoundedSystemFont(this.feeTextSize);
     feeValue.textColor = this.widgetColor;
     feeStack.addSpacer();
@@ -524,11 +524,11 @@ tempStack2.addSpacer()
           '读取 BoxJS 缓存信息',
             {cookie: 'cookie'},
           );
-      }, 'https://pic1.imgdb.cn/item/63315c0816f2c2beb1a25252.png');
+      }, 'https://raw.githubusercontent.com/githubdulong/Script/master/Images/account.png');
       this.registerAction('代理缓存', async () => {
         await this.setCacheBoxJSData(widgetInitConfig);
-      }, 'https://pic1.imgdb.cn/item/63315c0816f2c2beb1a25272.png');
-      this.registerAction('基础设置', this.setWidgetConfig, 'https://pic1.imgdb.cn/item/63315c2c16f2c2beb1a28714.png');
+      }, 'https://raw.githubusercontent.com/githubdulong/Script/master/Images/boxjs.png');
+      this.registerAction('基础设置', this.setWidgetConfig, 'https://raw.githubusercontent.com/githubdulong/Script/master/Images/preferences.png');
     }
 
     try {
@@ -596,4 +596,5 @@ tempStack2.addSpacer()
 
 await Runing(Widget, args.widgetParameter, false);
 
+//version:2.1.0
 //version:2.1.0

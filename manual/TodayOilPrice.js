@@ -3,7 +3,7 @@
 // icon-color: purple; icon-glyph: car;
 
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/10/24
  * desc     :  今日油价
  * version  :  1.0.0
@@ -12,7 +12,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./zyx.Env')
+const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./Seiun.Env')
 const storage = new Storage(module.filename)
 
 class Widget extends WidgetBase {

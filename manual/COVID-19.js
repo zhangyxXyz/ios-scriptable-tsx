@@ -2,7 +2,7 @@
 // These must be at the very top of the file. Do not edit.
 // icon-color: purple; icon-glyph: bug;
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/11/10
  * desc     :  疫情日报
  * version  :  1.0.0
@@ -11,7 +11,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./zyx.Env')
+const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./Seiun.Env')
 const storage = new Storage('COVID-19')
 
 class Widget extends WidgetBase {

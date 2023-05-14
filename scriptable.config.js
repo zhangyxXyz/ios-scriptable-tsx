@@ -23,7 +23,7 @@ const encrypt = false
 
 /**往编译后的代码头部插入的代码*/
 const header = `/********************************************************
-  * author   :  yx.zhang
+  * author   :  seiun
   * date     :  ${new Date().toLocaleString('en-US', {hour12: false})}
   * desc     :
   * version  :  1.0.0

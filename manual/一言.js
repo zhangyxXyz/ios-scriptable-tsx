@@ -3,7 +3,7 @@
 // icon-color: deep-blue; icon-glyph: feather-alt;
 
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/10/21
  * desc     :  一言
  * version  :  1.0.0
@@ -12,7 +12,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./zyx.Env')
+const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./Seiun.Env')
 const storage = new Storage('OneWord')
 
 class Widget extends WidgetBase {

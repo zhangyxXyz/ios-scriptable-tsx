@@ -1,9 +1,12 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
+// icon-color: orange; icon-glyph: magic;
+// Variables used by Scriptable.
+// These must be at the very top of the file. Do not edit.
 // icon-color: yellow; icon-glyph: fire;
 
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/10/19
  * desc     :  微博热搜
  * version  :  1.0.0
@@ -12,7 +15,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Utils } = require('./zyx.Env')
+const { WidgetBase, Runing, GenrateView, h, Utils } = require('./Seiun.Env')
 
 class Widget extends WidgetBase {
     constructor(arg) {

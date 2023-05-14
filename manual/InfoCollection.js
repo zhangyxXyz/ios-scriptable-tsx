@@ -3,7 +3,7 @@
 // icon-color: deep-purple; icon-glyph: fingerprint;
 
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/10/24
  * desc     :  信息集合
  * version  :  1.0.0
@@ -12,7 +12,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./zyx.Env')
+const { WidgetBase, Runing, GenrateView, h, Utils, Storage } = require('./Seiun.Env')
 const storage = new Storage('InfoCollectionData')
 
 class Widget extends WidgetBase {
@@ -36,7 +36,7 @@ class Widget extends WidgetBase {
     // 组件当前设置
     currentSettings = {
         accountSettings: {
-            userName: { val: 'yx.zhang', type: this.settingValTypeString },
+            userName: { val: 'seiun', type: this.settingValTypeString },
             // 和风天气api-key 申请地址： https://dev.heweather.com/
             weatherKey: { val: '', type: this.settingValTypeString },
             // 腾讯位置服务apiKey，自带官方key，也可以使用自己申请的
@@ -238,7 +238,7 @@ class Widget extends WidgetBase {
                 'text',
                 '如何称呼您？',
                 '提示语内对您的称呼',
-                { userName: 'yx.zhang' },
+                { userName: 'seiun' },
                 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/flow.png'
             )
             this.registerExtraSettingsCategoryItem(

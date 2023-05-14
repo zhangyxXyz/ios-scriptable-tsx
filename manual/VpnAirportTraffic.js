@@ -3,7 +3,7 @@
 // icon-color: cyan; icon-glyph: paper-plane;
 
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/10/18
  * desc     :  机场流量
  * version  :  1.0.0
@@ -12,7 +12,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, Utils, Storage } = require('./zyx.Env')
+const { WidgetBase, Runing, Utils, Storage } = require('./Seiun.Env')
 
 const storage = new Storage('VpnAirportTrafficData')
 

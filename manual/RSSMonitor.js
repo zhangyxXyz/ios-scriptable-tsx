@@ -3,7 +3,7 @@
 // icon-color: teal; icon-glyph: rss;
 
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/10/19
  * desc     :  RSS监视器
  * version  :  1.0.0
@@ -12,7 +12,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Utils } = require('./zyx.Env')
+const { WidgetBase, Runing, GenrateView, h, Utils } = require('./Seiun.Env')
 
 class Widget extends WidgetBase {
     constructor(arg) {

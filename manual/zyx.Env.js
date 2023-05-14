@@ -3,7 +3,7 @@
 // icon-color: blue; icon-glyph: cogs;
 
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/11/13
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  1.0.0

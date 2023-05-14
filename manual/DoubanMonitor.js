@@ -3,7 +3,7 @@
 // icon-color: deep-green; icon-glyph: film;
 
 /*
- * author   :  yx.zhang
+ * author   :  seiun
  * date     :  2021/10/20
  * desc     :  豆瓣电影推荐榜单
  * version  :  1.0.0
@@ -12,7 +12,7 @@
  */
 
 if (typeof require === 'undefined') require = importModule
-const { WidgetBase, Runing, GenrateView, h, Utils } = require('./zyx.Env')
+const { WidgetBase, Runing, GenrateView, h, Utils } = require('./Seiun.Env')
 
 class Widget extends WidgetBase {
     constructor(arg) {
