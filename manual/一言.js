@@ -131,7 +131,24 @@ class Widget extends WidgetBase {
 
     renderCommon = async w => {
         if (this.httpData) {
-            const { hitokoto = '', from = '' } = this.httpData
+            var { hitokoto = '', from = ''} = this.httpData
+            const isEmpty = function (obj) {
+                if (typeof obj == "undefined" || obj == null || obj == "") {
+                    return true;
+                }
+                return false;
+            }
+            if (!isEmpty(this.httpData.from_who) || !isEmpty(this.httpData.from)) {
+                from = ""
+                if (this.widgetFamily == 'medium' && !isEmpty(this.httpData.from_who)) {
+                    from += this.httpData.from_who
+                }
+                if (!isEmpty(this.httpData.from)) {
+                    from += "「" + this.httpData.from + "」"
+                }
+            } else {
+                from = "佚名"
+            }
             GenrateView.setListWidget(w)
             return /* @__PURE__ */ h(
                 'wbox',
