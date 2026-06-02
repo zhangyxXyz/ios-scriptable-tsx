@@ -4,6 +4,8 @@
 
 用 TypeScript / TSX 编写、调试并打包 [Scriptable](https://scriptable.app/) 脚本。这个仓库把常用运行时、组件化 Widget 写法、浏览器 Playground 和本地缓存模拟放在一起，让脚本可以先在桌面浏览器里跑通，再同步到 iOS Scriptable。
 
+![Playground light preview](./docs/assets/playground-light.png)
+
 ![Playground dark preview](./docs/assets/playground-dark.png)
 
 ## 特性
@@ -58,6 +60,8 @@ npm run watch
 http://localhost:9090/playground
 ```
 
+停止 watch：回到启动 `npm run watch` 的终端，按 `Ctrl+C`。在 Windows / PowerShell 里如果出现 `Terminate batch job (Y/N)?`，输入 `Y` 后回车。
+
 Playground 默认以 `App Runtime` 运行，适合调试设置页、点击项、WebView、缓存和图片选择。切到 `Widget Preview` 时只渲染 Widget，适合确认 medium / large 等尺寸和 Appearance 下的最终显示。
 
 常用调试入口：
@@ -70,7 +74,7 @@ Playground 默认以 `App Runtime` 运行，适合调试设置页、点击项、
 - `Log / Requests`：查看脚本日志、请求响应和运行时事件。
 - `Docs`：在同一面板里查看离线 Scriptable 文档。
 
-更多细节见 [Playground 调试指南](./docs/playground.md)。
+更多细节见 [Playground 调试指南](./docs/cn/playground.md)。
 
 ## 本地缓存说明
 
@@ -90,12 +94,12 @@ Playground 会把 Scriptable 的存储行为映射到仓库根目录的 `.cache`
 
 ## 文档
 
-- [快速开始](./docs/quick-start.md)
-- [Playground 调试指南](./docs/playground.md)
-- [构建流程](./docs/build.md)
-- [运行时环境](./docs/env.md)
-- [Stack UI](./docs/stack-ui.md)
-- [架构说明](./docs/architecture.md)
+- [快速开始](./docs/cn/quick-start.md)
+- [Playground 调试指南](./docs/cn/playground.md)
+- [构建流程](./docs/cn/build.md)
+- [运行时环境](./docs/cn/env.md)
+- [Stack UI](./docs/cn/stack-ui.md)
+- [架构说明](./docs/cn/architecture.md)
 
 ## License
 

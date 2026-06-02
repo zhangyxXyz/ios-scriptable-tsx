@@ -1,6 +1,6 @@
 # Stack UI 与 TSX
 
-Stack UI 位于 `src/env/stack-ui`，用于把 TSX 标签渲染成 Scriptable widget API。实际运行时在 `src/env/stack-ui/index.ts`，TSX 注入桥在 `src/env/stack-ui/jsx-runtime.ts`，类型声明在 `src/env/stack-ui/types`。
+Stack UI 位于 `src/env/stack-ui`，用于把 TSX 标签渲染成 Scriptable widget API。
 
 ## 支持标签
 

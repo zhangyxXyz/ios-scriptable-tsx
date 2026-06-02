@@ -6,6 +6,8 @@ Write, debug, and bundle [Scriptable](https://scriptable.app/) scripts with Type
 
 ![Playground light preview](./docs/assets/playground-light.png)
 
+![Playground dark preview](./docs/assets/playground-dark.png)
+
 ## Features
 
 - Author Scriptable scripts in TypeScript / TSX. `src/index.ts` controls the active build entries.
@@ -58,6 +60,8 @@ The terminal prints a LAN URL and QR code. For desktop debugging, open:
 http://localhost:9090/playground
 ```
 
+To stop watch mode, return to the terminal running `npm run watch` and press `Ctrl+C`. On Windows / PowerShell, if it asks `Terminate batch job (Y/N)?`, type `Y` and press Enter.
+
 The Playground defaults to `App Runtime`, which is best for testing settings screens, clicks, WebView behavior, cache writes, and image selection. Switch to `Widget Preview` when you only need to verify the final widget layout for `medium`, `large`, and other families.
 
 Common controls:
@@ -70,7 +74,7 @@ Common controls:
 - `Log / Requests`: inspect logs, responses, and runtime events.
 - `Docs`: browse the offline Scriptable documentation in the same panel.
 
-See [Playground Debugging](./docs/playground.md) for details.
+See [Playground Debugging](./docs/en/playground.md) for details.
 
 ## Local Cache
 
@@ -90,12 +94,12 @@ The Playground maps Scriptable storage APIs to `.cache` in the repository root:
 
 ## Documentation
 
-- [Quick Start](./docs/quick-start.md)
-- [Playground Debugging](./docs/playground.md)
-- [Build Pipeline](./docs/build.md)
-- [Runtime Environment](./docs/env.md)
-- [Stack UI](./docs/stack-ui.md)
-- [Architecture](./docs/architecture.md)
+- [Quick Start](./docs/en/quick-start.md)
+- [Playground Debugging](./docs/en/playground.md)
+- [Build Pipeline](./docs/en/build.md)
+- [Runtime Environment](./docs/en/env.md)
+- [Stack UI](./docs/en/stack-ui.md)
+- [Architecture](./docs/en/architecture.md)
 
 ## License
 

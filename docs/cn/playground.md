@@ -16,6 +16,18 @@ http://localhost:9090/playground
 
 `npm run watch` 会监听源码、重新构建脚本，并启动 9090 本地服务。`npm run dev` 只做一次开发构建，适合只想生成 `dist` 的场景。
 
+## 停止
+
+回到启动 `npm run watch` 的终端，按 `Ctrl+C`。
+
+在 Windows / PowerShell 中，如果终端提示：
+
+```text
+Terminate batch job (Y/N)?
+```
+
+输入 `Y` 后回车即可。如果终端已经关掉但 9090 端口还被占用，可以结束对应的 Node 进程后再重新启动 watch。
+
 ## 面板
 
 - `Widget Preview / App Action Preview`：展示 Widget 或 App Runtime 过程中产生的预览内容。
