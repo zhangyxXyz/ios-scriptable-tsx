@@ -1,0 +1,2900 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Scriptable Playground</title>
+        <link rel="icon" type="image/png" href="/playground-assets/scriptable-appicon.png" />
+        <link rel="apple-touch-icon" href="/playground-assets/scriptable-appicon.png" />
+        <style>
+            :root {
+                color-scheme: light;
+                --bg: #f5f7fb;
+                --bg-soft: #eef3fb;
+                --panel: rgba(255, 255, 255, 0.82);
+                --panel-solid: #ffffff;
+                --panel-subtle: rgba(248, 250, 252, 0.9);
+                --text: #152033;
+                --muted: #64748b;
+                --line: rgba(120, 138, 163, 0.24);
+                --line-strong: rgba(94, 112, 138, 0.38);
+                --accent: #2563eb;
+                --accent-strong: #1d4ed8;
+                --accent-soft: rgba(37, 99, 235, 0.11);
+                --danger: #dc2626;
+                --ok: #16a34a;
+                --shadow: 0 18px 45px rgba(34, 50, 84, 0.12);
+                --shadow-soft: 0 10px 28px rgba(34, 50, 84, 0.09);
+                --control-bg: rgba(255, 255, 255, 0.86);
+                --control-hover: #f8fbff;
+                --log-bg: #f8fafc;
+                --log-text: #243247;
+                --syntax-attr: #0550ae;
+                --syntax-string: #0a7f52;
+                --syntax-number: #953800;
+                --syntax-keyword: #8250df;
+                --syntax-comment: #6e7781;
+                --syntax-title: #116329;
+                --syntax-section: #0969da;
+                --scroll-thumb: rgba(86, 104, 130, 0.42);
+                --scroll-track: rgba(120, 138, 163, 0.12);
+            }
+            :root[data-theme='dark'] {
+                color-scheme: dark;
+                --bg: #070b13;
+                --bg-soft: #0d1422;
+                --panel: rgba(17, 24, 39, 0.72);
+                --panel-solid: #111827;
+                --panel-subtle: rgba(15, 23, 42, 0.78);
+                --text: #e5eaf3;
+                --muted: #95a3b8;
+                --line: rgba(148, 163, 184, 0.18);
+                --line-strong: rgba(148, 163, 184, 0.28);
+                --accent: #60a5fa;
+                --accent-strong: #93c5fd;
+                --accent-soft: rgba(96, 165, 250, 0.13);
+                --danger: #fb7185;
+                --ok: #86efac;
+                --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+                --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.24);
+                --control-bg: rgba(15, 23, 42, 0.78);
+                --control-hover: rgba(30, 41, 59, 0.9);
+                --log-bg: #080d18;
+                --log-text: #dbe7f7;
+                --syntax-attr: #79c0ff;
+                --syntax-string: #a5d6ff;
+                --syntax-number: #ffa657;
+                --syntax-keyword: #d2a8ff;
+                --syntax-comment: #8b949e;
+                --syntax-title: #7ee787;
+                --syntax-section: #58a6ff;
+                --scroll-thumb: rgba(148, 163, 184, 0.38);
+                --scroll-track: rgba(148, 163, 184, 0.08);
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html {
+                height: 100%;
+                overflow: hidden;
+                background: var(--bg);
+            }
+            body {
+                margin: 0;
+                height: 100%;
+                min-height: 100vh;
+                overflow: hidden;
+                background:
+                    radial-gradient(circle at 14% -8%, rgba(96, 165, 250, 0.18), transparent 28rem),
+                    radial-gradient(circle at 88% 10%, rgba(20, 184, 166, 0.14), transparent 26rem),
+                    linear-gradient(180deg, var(--bg), var(--bg-soft));
+                color: var(--text);
+                font:
+                    14px/1.45 system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    'Segoe UI',
+                    sans-serif;
+            }
+            * {
+                scrollbar-width: thin;
+                scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+            }
+            ::selection {
+                background: var(--accent-soft);
+            }
+            ::-webkit-scrollbar {
+                width: 10px;
+                height: 10px;
+            }
+            ::-webkit-scrollbar-track {
+                background: var(--scroll-track);
+            }
+            ::-webkit-scrollbar-thumb {
+                background: var(--scroll-thumb);
+                border: 2px solid transparent;
+                border-radius: 999px;
+                background-clip: padding-box;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--line-strong);
+                background-clip: padding-box;
+            }
+            header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                min-height: 68px;
+                padding: 14px 20px;
+                border-bottom: 1px solid var(--line);
+                background: color-mix(in srgb, var(--panel) 92%, transparent);
+                backdrop-filter: blur(18px);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+            h1 {
+                margin: 0;
+                font-size: 19px;
+                font-weight: 720;
+                letter-spacing: 0;
+            }
+            a {
+                color: inherit;
+            }
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                min-width: 0;
+            }
+            .brand-mark {
+                display: grid;
+                place-items: center;
+                width: 34px;
+                height: 34px;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                background: linear-gradient(135deg, var(--accent), #14b8a6);
+                color: #ffffff;
+                font-weight: 800;
+                box-shadow: var(--shadow-soft);
+                overflow: hidden;
+            }
+            .brand-mark img {
+                display: block;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .brand-copy {
+                min-width: 0;
+            }
+            .repo-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                margin-top: 2px;
+                color: var(--muted);
+                font-size: 12px;
+                text-decoration: none;
+            }
+            .repo-link svg {
+                width: 13px;
+                height: 13px;
+                flex: 0 0 auto;
+            }
+            .repo-link:hover {
+                color: var(--accent-strong);
+            }
+            .header-actions {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 10px;
+                min-width: 0;
+            }
+            main {
+                display: grid;
+                grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+                height: calc(100vh - 68px);
+                min-height: 0;
+            }
+            aside {
+                padding: 18px;
+                border-right: 1px solid var(--line);
+                background: var(--panel);
+                backdrop-filter: blur(16px);
+                overflow: auto;
+            }
+            section {
+                min-width: 0;
+                padding: 18px;
+                overflow: auto;
+            }
+            label {
+                display: block;
+                margin: 0 0 6px;
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 650;
+            }
+            select,
+            input,
+            textarea,
+            button {
+                width: 100%;
+                font: inherit;
+            }
+            select,
+            input,
+            textarea {
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                background: var(--control-bg);
+                color: var(--text);
+                padding: 9px 11px;
+                outline: none;
+                transition:
+                    border-color 0.16s ease,
+                    background 0.16s ease,
+                    box-shadow 0.16s ease;
+            }
+            select:hover,
+            input:hover,
+            textarea:hover {
+                background: var(--control-hover);
+            }
+            select:focus,
+            input:focus,
+            textarea:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px var(--accent-soft);
+            }
+            textarea {
+                min-height: 220px;
+                resize: vertical;
+                font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+                font-size: 12px;
+            }
+            button {
+                border: 1px solid color-mix(in srgb, var(--accent) 58%, transparent);
+                border-radius: 8px;
+                padding: 9px 12px;
+                background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 78%, #000));
+                color: #ffffff;
+                font-weight: 650;
+                cursor: pointer;
+                box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 22%, transparent);
+                transition:
+                    transform 0.16s ease,
+                    box-shadow 0.16s ease,
+                    background 0.16s ease;
+            }
+            button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 14px 30px color-mix(in srgb, var(--accent) 28%, transparent);
+            }
+            button:active {
+                transform: translateY(0);
+            }
+            button.secondary {
+                border-color: var(--line);
+                background: var(--panel-subtle);
+                color: var(--text);
+                box-shadow: none;
+            }
+            .row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .field {
+                margin-bottom: 13px;
+            }
+            .actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-top: 12px;
+            }
+            .shell-pill {
+                display: inline-flex;
+                align-items: center;
+                min-height: 32px;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                background: var(--panel-subtle);
+            }
+            .status {
+                display: inline-flex;
+                align-items: center;
+                min-width: 0;
+                max-width: 150px;
+                padding: 6px 11px;
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 650;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .status::before {
+                content: '';
+                flex: 0 0 auto;
+                width: 7px;
+                height: 7px;
+                margin-right: 8px;
+                border-radius: 50%;
+                background: var(--ok);
+                box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 14%, transparent);
+            }
+            .status[data-tone='busy']::before {
+                background: var(--accent);
+                box-shadow: 0 0 0 4px var(--accent-soft);
+            }
+            .status[data-tone='error']::before {
+                background: var(--danger);
+                box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 16%, transparent);
+            }
+            .script-pill {
+                width: auto;
+                min-width: 0;
+                max-width: 220px;
+                padding: 6px 11px;
+                background: var(--panel-subtle);
+                color: var(--muted);
+                box-shadow: none;
+                border-color: var(--line);
+                font-size: 12px;
+                font-weight: 650;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .script-pill:hover {
+                transform: none;
+                border-color: var(--line-strong);
+                color: var(--accent-strong);
+                box-shadow: none;
+            }
+            .theme-toggle {
+                display: inline-grid;
+                place-items: center;
+                width: 36px;
+                min-width: 36px;
+                min-height: 36px;
+                padding: 0;
+                color: var(--accent-strong);
+                box-shadow: none;
+                border-color: transparent;
+                border-radius: 50%;
+                background: transparent;
+                transition:
+                    color 0.18s ease,
+                    box-shadow 0.18s ease,
+                    background 0.18s ease;
+            }
+            .theme-toggle:hover {
+                transform: none;
+                color: var(--accent-strong);
+                background: transparent;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            }
+            .theme-icon {
+                display: none;
+                width: 24px;
+                height: 24px;
+            }
+            .theme-toggle[data-theme-value='auto'] .theme-icon-auto,
+            .theme-toggle[data-theme-value='light'] .theme-icon-light,
+            .theme-toggle[data-theme-value='dark'] .theme-icon-dark {
+                display: block;
+            }
+            .workspace {
+                display: grid;
+                grid-template-columns: minmax(0, 390px) minmax(0, 390px) minmax(420px, 1fr);
+                gap: 16px;
+                align-items: start;
+            }
+            main[data-run-mode='widget'] .workspace {
+                grid-template-columns: minmax(0, 390px) minmax(420px, 1fr);
+            }
+            main[data-run-mode='widget'] .webview {
+                display: none;
+            }
+            .phone {
+                width: 100%;
+                max-width: 390px;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                background: var(--panel);
+                overflow: hidden;
+                box-shadow: var(--shadow);
+            }
+            .webview {
+                width: 100%;
+                max-width: 390px;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                background: var(--panel);
+                overflow: hidden;
+                box-shadow: var(--shadow);
+            }
+            .inspector-panel {
+                min-width: 0;
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                background: var(--panel);
+                overflow: hidden;
+                box-shadow: var(--shadow);
+            }
+            .inspector-title {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .inspector-switch {
+                display: inline-flex;
+                flex: 0 0 auto;
+                gap: 4px;
+                padding: 3px;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                background: var(--panel-subtle);
+            }
+            .inspector-switch button {
+                width: auto;
+                min-height: 24px;
+                padding: 0 9px;
+                border: 0;
+                border-radius: 999px;
+                background: transparent;
+                color: var(--muted);
+                box-shadow: none;
+                font-size: 12px;
+                line-height: 1;
+            }
+            .inspector-switch button:hover {
+                transform: none;
+                box-shadow: none;
+                color: var(--text);
+            }
+            .inspector-switch button.active {
+                background: var(--accent-soft);
+                color: var(--accent-strong);
+            }
+            .inspector-view[hidden] {
+                display: none;
+            }
+            .panel-toolbar {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 8px;
+                padding: 10px;
+                border-bottom: 1px solid var(--line);
+                background: var(--panel-subtle);
+            }
+            .panel-toolbar select {
+                min-width: 0;
+            }
+            select.native-select-hidden {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                opacity: 0;
+                pointer-events: none;
+            }
+            .custom-select {
+                position: relative;
+                width: 100%;
+                min-width: 0;
+            }
+            .custom-select-button {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+                min-height: 40px;
+                padding: 9px 11px;
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                background: var(--control-bg);
+                color: var(--text);
+                text-align: left;
+                box-shadow: none;
+                backdrop-filter: blur(14px) saturate(130%);
+            }
+            .custom-select-button:hover {
+                transform: none;
+                border-color: var(--line-strong);
+                background: var(--control-hover);
+                box-shadow: none;
+            }
+            .custom-select-button:focus-visible {
+                border-color: var(--accent);
+                outline: none;
+                box-shadow: 0 0 0 3px var(--accent-soft);
+            }
+            .custom-select-label {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .custom-select-chev {
+                width: 16px;
+                height: 16px;
+                color: var(--muted);
+                transition: transform 0.16s ease;
+            }
+            .custom-select.open .custom-select-chev {
+                transform: rotate(180deg);
+            }
+            .custom-select-menu {
+                position: fixed;
+                z-index: 1000;
+                max-height: 260px;
+                overflow: auto;
+                padding: 6px;
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                color: var(--text);
+                box-shadow: var(--shadow);
+                backdrop-filter: blur(18px) saturate(135%);
+                background-clip: padding-box;
+            }
+            :root[data-theme='light'] .custom-select-menu {
+                background: rgba(255, 255, 255, 0.92);
+            }
+            :root[data-theme='dark'] .custom-select-menu {
+                background: rgba(17, 24, 39, 0.94);
+            }
+            .custom-select-option {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                min-height: 34px;
+                margin: 2px 0;
+                padding: 7px 10px 7px 24px;
+                border-radius: 9px;
+                cursor: pointer;
+                white-space: nowrap;
+            }
+            .custom-select-option:hover {
+                background: color-mix(in srgb, var(--accent-soft) 58%, transparent);
+                color: var(--text);
+            }
+            .custom-select-option[aria-selected='true'] {
+                background: color-mix(in srgb, var(--accent-soft) 78%, transparent);
+                color: var(--accent-strong);
+                font-weight: 650;
+            }
+            .custom-select-option[aria-selected='true']::before {
+                content: '';
+                position: absolute;
+                left: 10px;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: currentColor;
+                box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 12%, transparent);
+            }
+            .panel-link {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 34px;
+                padding: 0 11px;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                background: var(--control-bg);
+                color: var(--text);
+                font-size: 12px;
+                font-weight: 650;
+                text-decoration: none;
+            }
+            .panel-link:hover {
+                color: var(--accent-strong);
+                border-color: var(--line-strong);
+            }
+            .phone-title {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                min-height: 42px;
+                padding: 10px 12px;
+                border-bottom: 1px solid var(--line);
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 650;
+                background: var(--panel-subtle);
+            }
+            .icon-button {
+                width: auto;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                padding: 4px 8px;
+                background: var(--control-bg);
+                color: var(--text);
+                font-size: 12px;
+                line-height: 1.2;
+                box-shadow: none;
+            }
+            .icon-button:disabled {
+                color: #98a2b3;
+                cursor: default;
+                opacity: 0.65;
+            }
+            .webview-frame {
+                width: 100%;
+                min-height: 760px;
+                border: 0;
+                background: #fff;
+            }
+            .docs-frame {
+                display: block;
+                width: 100%;
+                min-height: 760px;
+                border: 0;
+                background: #ffffff;
+            }
+            .widget {
+                margin: 14px;
+                padding: 10px 12px;
+                width: 360px;
+                height: 176px;
+                border: 1px solid #e3e7ef;
+                border-radius: 8px;
+                background: #fafafa;
+                overflow: hidden;
+            }
+            .widget.small {
+                width: 170px;
+                height: 170px;
+            }
+            .widget.large {
+                width: 360px;
+                height: 360px;
+            }
+            .stack {
+                display: flex;
+                width: 100%;
+                min-width: 0;
+            }
+            .stack-link {
+                color: inherit;
+                text-decoration: none;
+            }
+            .widget > .text,
+            .widget > .stack {
+                flex: 0 0 auto;
+            }
+            .widget > .stack:last-child {
+                margin-top: auto;
+            }
+            .status-stack {
+                align-items: center;
+                line-height: 1;
+                min-height: 14px;
+            }
+            .status-stack .text {
+                display: inline-flex;
+                align-items: center;
+                line-height: 1;
+            }
+            .status-stack .image {
+                align-self: center;
+            }
+            .stack.column {
+                flex-direction: column;
+            }
+            .text {
+                flex: 0 1 auto;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                line-height: 1.18;
+            }
+            .row-stack > .text:first-child {
+                flex: 1 1 auto;
+            }
+            .row-stack > .text:last-child {
+                flex: 0 0 34%;
+                max-width: 34%;
+                text-align: right;
+            }
+            .image {
+                display: inline-grid;
+                flex: 0 0 auto;
+                place-items: center;
+                width: 18px;
+                height: 18px;
+                border-radius: 4px;
+                color: #667085;
+                font-size: 14px;
+                line-height: 1;
+            }
+            .image svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+            .image.real-image {
+                overflow: hidden;
+            }
+            .image.real-image img {
+                display: block;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            pre {
+                margin: 0;
+                padding: 12px;
+                border: 0;
+                border-radius: 0;
+                background: var(--log-bg);
+                color: var(--log-text);
+                min-height: 760px;
+                max-height: 760px;
+                overflow: auto;
+                font-size: 12px;
+            }
+            .log-entry {
+                padding: 1px 0 1px 8px;
+                border-left: 2px solid transparent;
+                white-space: pre-wrap;
+            }
+            .log-entry + .log-entry {
+                margin-top: 4px;
+            }
+            .log-entry code {
+                font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+                white-space: pre-wrap;
+            }
+            .log-entry.log-ok {
+                border-left-color: var(--ok);
+            }
+            .log-entry.log-error {
+                border-left-color: var(--danger);
+            }
+            .log-entry.log-warn {
+                border-left-color: #f59e0b;
+            }
+            .hljs {
+                color: var(--log-text);
+                background: transparent;
+            }
+            .hljs-attr,
+            .hljs-attribute,
+            .hljs-property {
+                color: var(--syntax-attr);
+            }
+            .hljs-string,
+            .hljs-regexp {
+                color: var(--syntax-string);
+            }
+            .hljs-number,
+            .hljs-literal {
+                color: var(--syntax-number);
+            }
+            .hljs-keyword,
+            .hljs-built_in,
+            .hljs-selector-tag {
+                color: var(--syntax-keyword);
+            }
+            .hljs-comment {
+                color: var(--syntax-comment);
+            }
+            .hljs-title,
+            .hljs-function {
+                color: var(--syntax-title);
+            }
+            .hljs-section,
+            .hljs-name {
+                color: var(--syntax-section);
+            }
+            .log-ok {
+                color: #7ee787;
+            }
+            .log-error {
+                color: #ff8a8a;
+            }
+            @media (max-width: 1180px) {
+                html {
+                    height: auto;
+                    overflow: auto;
+                }
+                body {
+                    height: auto;
+                    overflow: auto;
+                }
+                main,
+                .workspace {
+                    grid-template-columns: 1fr;
+                }
+                main {
+                    height: auto;
+                    min-height: calc(100vh - 68px);
+                }
+                main[data-run-mode='widget'] .workspace,
+                main[data-run-mode='app'] .workspace {
+                    grid-template-columns: 1fr;
+                }
+                header {
+                    align-items: flex-start;
+                    flex-direction: column;
+                }
+                .header-actions {
+                    width: 100%;
+                    justify-content: space-between;
+                }
+                .status {
+                    max-width: 130px;
+                }
+                .script-pill {
+                    max-width: 180px;
+                }
+                main {
+                    justify-items: center;
+                }
+                aside {
+                    width: 100%;
+                    max-width: 390px;
+                }
+                section {
+                    width: 100%;
+                    max-width: 426px;
+                }
+                .workspace {
+                    justify-items: center;
+                }
+                .phone,
+                .webview,
+                .inspector-panel {
+                    width: 100%;
+                    max-width: 390px;
+                }
+                pre {
+                    min-height: 360px;
+                    max-height: 520px;
+                }
+                .docs-frame {
+                    min-height: 520px;
+                }
+                aside {
+                    border-right: 0;
+                    border-bottom: 1px solid var(--line);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="brand">
+                <div class="brand-mark" aria-hidden="true">
+                    <img src="/playground-assets/scriptable-appicon.png" alt="" />
+                </div>
+                <div class="brand-copy">
+                    <h1>Scriptable Playground</h1>
+                    <a class="repo-link" href="https://github.com/zhangyxXyz/ios-scriptable-tsx" target="_blank">
+                        <svg viewBox="0 0 16 16" aria-hidden="true">
+                            <path
+                                fill="currentColor"
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.67 7.67 0 0 1 8 3.87c.68 0 1.36.09 2 .26 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+                            />
+                        </svg>
+                        <span>ios-scriptable-tsx</span>
+                    </a>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="themeToggle" class="theme-toggle shell-pill" type="button" aria-label="Theme">
+                    <svg class="theme-icon theme-icon-auto" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                            d="M5.75 4.5h12.5A1.75 1.75 0 0 1 20 6.25v8.5a1.75 1.75 0 0 1-1.75 1.75H5.75A1.75 1.75 0 0 1 4 14.75v-8.5A1.75 1.75 0 0 1 5.75 4.5Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                        />
+                        <path
+                            d="M9 20h6M12 16.5V20M8.5 8.5h7M8.5 12h5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-width="2"
+                        />
+                    </svg>
+                    <svg class="theme-icon theme-icon-light" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                            d="M12 7.25a4.75 4.75 0 1 0 0 9.5 4.75 4.75 0 0 0 0-9.5ZM12 2.75v1.7M12 19.55v1.7M4.45 12h-1.7M21.25 12h-1.7M6.66 6.66 5.45 5.45M18.55 18.55l-1.21-1.21M17.34 6.66l1.21-1.21M5.45 18.55l1.21-1.21"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-width="1.8"
+                        />
+                    </svg>
+                    <svg class="theme-icon theme-icon-dark" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                            d="M20.2 14.35A7.35 7.35 0 0 1 9.65 3.8 8.4 8.4 0 1 0 20.2 14.35Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                        />
+                    </svg>
+                </button>
+                <div class="status shell-pill" id="status" data-tone="ok">Ready</div>
+                <button id="scriptPill" class="script-pill shell-pill" type="button" title="Current script">Script</button>
+            </div>
+        </header>
+        <main id="appShell" data-run-mode="app">
+            <aside>
+                <div class="field">
+                    <label for="script">Script</label>
+                    <select id="script"></select>
+                </div>
+                <div class="field">
+                    <label for="runMode">Run Mode</label>
+                    <select id="runMode">
+                        <option value="app">App Runtime</option>
+                        <option value="widget">Widget Preview</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label for="family">Widget Family</label>
+                        <select id="family">
+                            <option value="medium">medium</option>
+                            <option value="large">large</option>
+                            <option value="small">small</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="parameter">Parameter</label>
+                        <input id="parameter" placeholder="args.widgetParameter" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="appearance">Appearance</label>
+                    <select id="appearance">
+                        <option value="dark">dark</option>
+                        <option value="light">light</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="mock">Mock URL Map</label>
+                    <textarea id="mock" spellcheck="false"></textarea>
+                </div>
+                <div class="actions">
+                    <button id="run">Run</button>
+                    <button id="reload" class="secondary">Reload Scripts</button>
+                </div>
+            </aside>
+            <section>
+                <div class="workspace">
+                    <div class="phone">
+                        <div class="phone-title" id="surfaceTitle">Widget Preview</div>
+                        <div id="preview" class="widget"></div>
+                    </div>
+                    <div class="webview" id="webviewPanel" hidden>
+                        <div class="phone-title">
+                            <span>WebView</span>
+                            <button id="webviewBack" class="icon-button" type="button" disabled>Back</button>
+                        </div>
+                        <iframe
+                            id="webviewFrame"
+                            class="webview-frame"
+                            sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
+                        ></iframe>
+                    </div>
+                    <div class="inspector-panel">
+                        <div class="phone-title">
+                            <span id="inspectorTitle" class="inspector-title">Log / Requests</span>
+                            <span class="inspector-switch" aria-label="Inspector view">
+                                <button id="showLog" class="active" type="button">Log</button>
+                                <button id="showDocs" type="button">Docs</button>
+                            </span>
+                        </div>
+                        <div id="logView" class="inspector-view">
+                            <pre id="log"></pre>
+                        </div>
+                        <div id="docsView" class="inspector-view" hidden>
+                            <div class="panel-toolbar">
+                                <select id="docsSelect" aria-label="Scriptable Docs"></select>
+                                <a id="docsOpen" class="panel-link" href="/scriptable-docs/" target="_blank">Open</a>
+                            </div>
+                            <iframe
+                                id="docsFrame"
+                                class="docs-frame"
+                                title="Scriptable documentation preview"
+                                src="/scriptable-docs/"
+                            ></iframe>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <script src="/mock/scriptable-api/registry.js"></script>
+        <script src="/mock/scriptable-api/device.js"></script>
+        <script src="/mock/scriptable-api/location.js"></script>
+        <script src="/mock/scriptable-api/photos.js"></script>
+        <script src="/mock/scriptable-api/pasteboard.js"></script>
+        <script src="/mock/scriptable-api/alert.js"></script>
+        <script src="/mock/scriptable-api/web-view.js"></script>
+        <script src="/mock/scriptable-api/notification.js"></script>
+        <script src="/mock/scriptable-api/calendar.js"></script>
+        <script src="/mock/scriptable-api/calendar-event.js"></script>
+        <script src="/mock/scriptable-api/reminder.js"></script>
+        <script src="/mock/scriptable-api/contacts.js"></script>
+        <script src="/mock/scriptable-api/mail.js"></script>
+        <script src="/mock/scriptable-api/message.js"></script>
+        <script src="/mock/scriptable-api/safari.js"></script>
+        <script src="/mock/scriptable-api/speech.js"></script>
+        <script src="/mock/scriptable-api/dictation.js"></script>
+        <script src="/mock/scriptable-api/document-picker.js"></script>
+        <script src="/mock/scriptable-api/quick-look.js"></script>
+        <script src="/mock/scriptable-api/share-sheet.js"></script>
+        <script src="/mock/scriptable-api/callback-url.js"></script>
+        <script src="/mock/scriptable-api/timer.js"></script>
+        <script src="/mock/scriptable-api/ui-table.js"></script>
+        <script src="/mock/scriptable-api/url-scheme.js"></script>
+        <script src="/playground-assets/highlight.min.js"></script>
+        <script>
+            const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
+            const $ = id => document.getElementById(id)
+            const logEl = $('log')
+            const previewEl = $('preview')
+            const webviewPanelEl = $('webviewPanel')
+            const webviewFrameEl = $('webviewFrame')
+            const webviewBackEl = $('webviewBack')
+            const statusEl = $('status')
+            const scriptPillEl = $('scriptPill')
+            const themeToggleEl = $('themeToggle')
+            const appShellEl = $('appShell')
+            const inspectorTitleEl = $('inspectorTitle')
+            const logViewEl = $('logView')
+            const docsViewEl = $('docsView')
+            const showLogEl = $('showLog')
+            const showDocsEl = $('showDocs')
+            const docsSelectEl = $('docsSelect')
+            const docsFrameEl = $('docsFrame')
+            const docsOpenEl = $('docsOpen')
+            const KEYCHAIN_PATH = '/documents/storage/keychain.json'
+            const customSelects = new WeakMap()
+            let openCustomSelect = null
+
+            const state = {
+                envExports: null,
+                logs: [],
+                fileCache: new Map(),
+                activeWebView: null,
+                webviewStack: [],
+                keychain: null,
+                hasRun: false,
+                appearanceRunTimer: null,
+                outerThemePreference: 'auto',
+            }
+
+            function formatStatus(text) {
+                const raw = String(text || '').trim()
+                if (!raw) return 'Ready'
+                if (/^ready$/i.test(raw)) return 'Ready'
+                if (/^error$/i.test(raw)) return 'Error'
+                if (/^scripts reloaded$/i.test(raw)) return 'Scripts Reloaded'
+                if (/^running\b/i.test(raw)) return 'Running'
+                if (/^done\b/i.test(raw)) return 'Done'
+                if (/^app runtime active\b/i.test(raw)) return 'App Runtime Active'
+                return raw.charAt(0).toUpperCase() + raw.slice(1)
+            }
+
+            function statusTone(text) {
+                if (/error/i.test(text)) return 'error'
+                if (/running|runtime active/i.test(text)) return 'busy'
+                return 'ok'
+            }
+
+            function setStatus(text) {
+                const label = formatStatus(text)
+                statusEl.textContent = label
+                statusEl.dataset.tone = statusTone(label)
+                statusEl.title = label
+            }
+
+            function setScriptPill(file = $('script')?.value) {
+                const label = file || 'No Script'
+                const display = label.replace(/\.js$/i, '')
+                scriptPillEl.textContent = display
+                scriptPillEl.title = label
+            }
+
+            function displayScriptName(file) {
+                return String(file || '').replace(/\.js$/i, '')
+            }
+
+            function selectedOptionLabel(select) {
+                const option = select.options[select.selectedIndex]
+                return option?.textContent?.trim() || select.value || ''
+            }
+
+            function closeCustomSelect() {
+                if (!openCustomSelect) return
+                openCustomSelect.wrapper.classList.remove('open')
+                openCustomSelect.button.setAttribute('aria-expanded', 'false')
+                openCustomSelect.menu.remove()
+                openCustomSelect = null
+            }
+
+            function positionCustomSelectMenu(entry) {
+                const rect = entry.button.getBoundingClientRect()
+                const gap = 6
+                entry.menu.style.left = `${rect.left}px`
+                entry.menu.style.top = `${rect.bottom + gap}px`
+                entry.menu.style.width = `${rect.width}px`
+                const maxBottom = window.innerHeight - 10
+                const menuRect = entry.menu.getBoundingClientRect()
+                if (menuRect.bottom > maxBottom) {
+                    entry.menu.style.top = `${Math.max(10, rect.top - menuRect.height - gap)}px`
+                }
+            }
+
+            function syncCustomSelect(select) {
+                const entry = customSelects.get(select)
+                if (!entry) return
+                entry.label.textContent = selectedOptionLabel(select)
+            }
+
+            function openCustomSelectMenu(select) {
+                const entry = customSelects.get(select)
+                if (!entry) return
+                if (openCustomSelect === entry) {
+                    closeCustomSelect()
+                    return
+                }
+                closeCustomSelect()
+                entry.menu.innerHTML = ''
+                ;[...select.options].forEach(option => {
+                    const item = document.createElement('div')
+                    item.className = 'custom-select-option'
+                    item.setAttribute('role', 'option')
+                    item.setAttribute('aria-selected', String(option.value === select.value))
+                    item.dataset.value = option.value
+                    item.textContent = option.textContent
+                    item.addEventListener('click', () => {
+                        select.value = option.value
+                        select.dispatchEvent(new Event('change', {bubbles: true}))
+                        syncCustomSelect(select)
+                        closeCustomSelect()
+                    })
+                    entry.menu.appendChild(item)
+                })
+                document.body.appendChild(entry.menu)
+                entry.wrapper.classList.add('open')
+                entry.button.setAttribute('aria-expanded', 'true')
+                openCustomSelect = entry
+                positionCustomSelectMenu(entry)
+            }
+
+            function enhanceSelect(select) {
+                if (!select || customSelects.has(select)) return
+                const wrapper = document.createElement('div')
+                wrapper.className = 'custom-select'
+                const button = document.createElement('button')
+                button.className = 'custom-select-button'
+                button.type = 'button'
+                button.setAttribute('aria-haspopup', 'listbox')
+                button.setAttribute('aria-expanded', 'false')
+                const label = document.createElement('span')
+                label.className = 'custom-select-label'
+                const chev = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+                chev.classList.add('custom-select-chev')
+                chev.setAttribute('viewBox', '0 0 24 24')
+                chev.setAttribute('aria-hidden', 'true')
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+                path.setAttribute('d', 'm6 9 6 6 6-6')
+                path.setAttribute('fill', 'none')
+                path.setAttribute('stroke', 'currentColor')
+                path.setAttribute('stroke-linecap', 'round')
+                path.setAttribute('stroke-linejoin', 'round')
+                path.setAttribute('stroke-width', '2')
+                chev.appendChild(path)
+                button.append(label, chev)
+                select.parentNode.insertBefore(wrapper, select)
+                wrapper.appendChild(select)
+                wrapper.appendChild(button)
+                select.classList.add('native-select-hidden')
+                const menu = document.createElement('div')
+                menu.className = 'custom-select-menu'
+                menu.setAttribute('role', 'listbox')
+                const entry = {select, wrapper, button, label, menu}
+                customSelects.set(select, entry)
+                button.addEventListener('click', () => openCustomSelectMenu(select))
+                button.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        openCustomSelectMenu(select)
+                    }
+                    if (event.key === 'Escape') closeCustomSelect()
+                })
+                select.addEventListener('change', () => syncCustomSelect(select))
+                syncCustomSelect(select)
+            }
+
+            function enhanceSelects() {
+                ;['script', 'runMode', 'family', 'appearance', 'docsSelect'].forEach(id => enhanceSelect($(id)))
+            }
+
+            function getInitialOuterTheme() {
+                const saved = localStorage.getItem('playground.theme')
+                if (saved === 'dark' || saved === 'light' || saved === 'auto') return saved
+                return 'auto'
+            }
+
+            function resolveOuterTheme(theme) {
+                if (theme === 'light' || theme === 'dark') return theme
+                if (!window.matchMedia) return 'dark'
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            }
+
+            function setOuterTheme(theme, persist = true) {
+                const preference = theme === 'light' || theme === 'dark' ? theme : 'auto'
+                const next = resolveOuterTheme(preference)
+                state.outerThemePreference = preference
+                document.documentElement.dataset.theme = next
+                document.documentElement.dataset.themePreference = preference
+                if (persist) localStorage.setItem('playground.theme', preference)
+                themeToggleEl?.setAttribute('aria-label', `Theme: ${preference}`)
+                themeToggleEl?.setAttribute('title', `Theme: ${preference}`)
+                themeToggleEl.dataset.themeValue = preference
+                syncDocsTheme()
+            }
+
+            function cycleOuterTheme() {
+                const order = ['auto', 'light', 'dark']
+                const index = order.indexOf(state.outerThemePreference)
+                setOuterTheme(order[(index + 1) % order.length])
+            }
+
+            function updateRunModeLayout(runMode = $('runMode').value) {
+                appShellEl.dataset.runMode = runMode === 'app' ? 'app' : 'widget'
+            }
+
+            function emptyWebViewSrcdoc() {
+                const dark = isDarkPreview()
+                return `
+                    <style>
+                        :root { color-scheme: ${dark ? 'dark' : 'light'}; }
+                        html, body {
+                            margin: 0;
+                            min-height: 100%;
+                            background: ${dark ? '#000000' : '#f2f2f7'};
+                            color: ${dark ? '#8e8e93' : '#667085'};
+                            font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                        }
+                        body {
+                            display: grid;
+                            place-items: center;
+                        }
+                    </style>
+                    <body></body>
+                `
+            }
+
+            function syncRunModeSurface(runMode = $('runMode').value) {
+                updateRunModeLayout(runMode)
+                const isApp = runMode === 'app'
+                webviewPanelEl.hidden = !isApp
+                if (isApp && !state.activeWebView && !webviewFrameEl.getAttribute('srcdoc')) {
+                    webviewFrameEl.srcdoc = emptyWebViewSrcdoc()
+                }
+                if (!isApp) {
+                    webviewFrameEl.removeAttribute('srcdoc')
+                }
+                $('surfaceTitle').textContent = isApp ? 'Widget Preview / App Action Preview' : 'Widget Preview'
+                updateWebViewBackButton()
+            }
+
+            function writeLog(type, value) {
+                setInspectorView('log')
+                const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2)
+                state.logs.push({type, text})
+                logEl.innerHTML = state.logs.map(renderLogEntry).join('')
+                logEl.scrollTop = logEl.scrollHeight
+            }
+
+            function getLogLanguage(text) {
+                const trimmed = text.trim()
+                if (!trimmed) return 'plaintext'
+                if (
+                    (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+                    (trimmed.startsWith('[') && trimmed.endsWith(']'))
+                ) {
+                    try {
+                        JSON.parse(trimmed)
+                        return 'json'
+                    } catch {
+                        return 'javascript'
+                    }
+                }
+                if (/^(async\s+)?function\b|=>|const\s+|let\s+|var\s+|class\s+/.test(trimmed)) return 'javascript'
+                if (/^https?:\/\//.test(trimmed)) return 'http'
+                return 'plaintext'
+            }
+
+            function highlightText(text, language) {
+                if (!window.hljs || language === 'plaintext') return escapeHtml(text)
+                try {
+                    return window.hljs.highlight(text, {language, ignoreIllegals: true}).value
+                } catch {
+                    return escapeHtml(text)
+                }
+            }
+
+            function renderLogEntry(item) {
+                const language = getLogLanguage(item.text)
+                const tone =
+                    item.type === 'error'
+                        ? ' log-error'
+                        : item.type === 'ok'
+                          ? ' log-ok'
+                          : item.type === 'warn'
+                            ? ' log-warn'
+                            : ''
+                return `<div class="log-entry${tone}"><code class="hljs language-${language}">${highlightText(item.text, language)}</code></div>`
+            }
+
+            function setInspectorView(view) {
+                const isDocs = view === 'docs'
+                inspectorTitleEl.textContent = isDocs ? 'Scriptable Docs' : 'Log / Requests'
+                logViewEl.hidden = isDocs
+                docsViewEl.hidden = !isDocs
+                showLogEl.classList.toggle('active', !isDocs)
+                showDocsEl.classList.toggle('active', isDocs)
+            }
+
+            function applyPreviewDefaults() {
+                previewEl.style.background = isDarkPreview() ? '#000000' : '#fafafa'
+                previewEl.style.borderColor = isDarkPreview() ? '#263856' : '#e3e7ef'
+            }
+
+            function resetSurfaces(runMode) {
+                updateRunModeLayout(runMode)
+                while (state.webviewStack.length) {
+                    state.webviewStack.pop().webView?.close?.()
+                }
+                state.activeWebView = null
+                previewEl.innerHTML = ''
+                previewEl.removeAttribute('style')
+                previewEl.classList.remove('small', 'large')
+                applyPreviewDefaults()
+                webviewFrameEl.removeAttribute('srcdoc')
+                syncRunModeSurface(runMode)
+            }
+
+            function updateWebViewBackButton() {
+                webviewBackEl.disabled = state.webviewStack.length <= 1
+            }
+
+            function showWebViewEntry(entry) {
+                state.activeWebView = entry?.webView || null
+                const value = String(entry?.content || '')
+                webviewPanelEl.hidden = false
+                if (/^https?:\/\//.test(value)) {
+                    webviewFrameEl.srcdoc = `<p style="font:14px system-ui;padding:16px">WebView URL: <a href="${escapeHtml(value)}" target="_blank">${escapeHtml(value)}</a></p>`
+                } else {
+                    webviewFrameEl.srcdoc =
+                        forceWebViewAppearance(value) ||
+                        '<p style="font:14px system-ui;padding:16px;color:#667085">Empty WebView</p>'
+                }
+                entry?.webView?.attachFrame?.(webviewFrameEl)
+                updateWebViewBackButton()
+                return webviewFrameEl
+            }
+
+            function forceWebViewAppearance(html) {
+                const value = String(html || '').replace(
+                    /<style id="playground-appearance-override">[\s\S]*?<\/style>/g,
+                    '',
+                )
+                if (!value) return ''
+                const appearance = $('appearance').value
+                const darkCss = `
+                    :root {
+                        color-scheme: dark !important;
+                        --color-text: #f5f5f7 !important;
+                        --color-muted: #8e8e93 !important;
+                        --color-secondary: rgba(235,235,245,0.6) !important;
+                        --color-divider: rgba(84,84,88,0.65) !important;
+                        --card-bg: #1c1c1e !important;
+                    }
+                    html, body { background: #000 !important; color: var(--color-text) !important; }
+                    .slider-picker-wrapper { background: rgba(255,255,255,0.08) !important; }
+                    .slider-popup, .select-popup, .password-popup, .text-popup, .image-menu-popup {
+                        background: rgba(44,44,46,0.92) !important;
+                    }
+                    .slider-popup-handle, .select-popup-handle, .password-popup-handle, .text-popup-handle, .image-menu-popup-handle {
+                        background: rgba(255,255,255,0.2) !important;
+                    }
+                    .password-input-wrapper, .text-input-field-wrapper, .text-input,
+                    .select-add-input, .form-item-thumb {
+                        background: rgba(255,255,255,0.1) !important;
+                    }
+                `
+                const lightCss = `
+                    :root {
+                        color-scheme: light !important;
+                        --color-text: #000 !important;
+                        --color-muted: #86868b !important;
+                        --color-secondary: rgba(60,60,67,0.6) !important;
+                        --color-divider: rgba(60,60,67,0.16) !important;
+                        --card-bg: #fff !important;
+                    }
+                    html, body { background: #f2f2f7 !important; color: var(--color-text) !important; }
+                    .slider-picker-wrapper { background: rgba(0,0,0,0.05) !important; }
+                    .slider-popup, .select-popup, .password-popup, .text-popup, .image-menu-popup {
+                        background: rgba(255,255,255,0.92) !important;
+                    }
+                    .slider-popup-handle, .select-popup-handle, .password-popup-handle, .text-popup-handle, .image-menu-popup-handle {
+                        background: rgba(0,0,0,0.15) !important;
+                    }
+                    .password-input-wrapper, .text-input-field-wrapper, .text-input,
+                    .select-add-input, .form-item-thumb {
+                        background: rgba(0,0,0,0.05) !important;
+                    }
+                `
+                const css = `<style id="playground-appearance-override">${appearance === 'dark' ? darkCss : lightCss}</style>`
+                return /<\/head>/i.test(value) ? value.replace(/<\/head>/i, `${css}</head>`) : `${css}${value}`
+            }
+
+            function renderWebView(content, webView) {
+                const entry = {content, webView}
+                state.webviewStack.push(entry)
+                return showWebViewEntry(entry)
+            }
+
+            function goBackWebView() {
+                if (state.webviewStack.length <= 1) return
+                const current = state.webviewStack.pop()
+                current?.webView?.close?.()
+                showWebViewEntry(state.webviewStack[state.webviewStack.length - 1])
+            }
+
+            function refreshCurrentWebViewAppearance() {
+                const current = state.webviewStack[state.webviewStack.length - 1]
+                if (current) showWebViewEntry(current)
+            }
+
+            function getInitialAppearance() {
+                if (!window.matchMedia) return 'light'
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            }
+
+            function initializeAppearance() {
+                $('appearance').value = getInitialAppearance()
+            }
+
+            function handleAppearanceChange() {
+                refreshCurrentWebViewAppearance()
+                if ($('runMode').value === 'app' && !state.activeWebView) {
+                    webviewFrameEl.srcdoc = emptyWebViewSrcdoc()
+                }
+                if (!state.hasRun || !$('script').value) {
+                    applyPreviewDefaults()
+                    return
+                }
+                window.clearTimeout(state.appearanceRunTimer)
+                state.appearanceRunTimer = window.setTimeout(() => {
+                    runSelected()
+                }, 100)
+            }
+
+            function readKeychainStore() {
+                if (state.keychain) return state.keychain
+                try {
+                    const text = apiJsonSync('GET', `/api/fs/read-string?path=${encodeURIComponent(KEYCHAIN_PATH)}`)
+                        .data
+                    state.keychain = text ? normalizeKeychainStore(JSON.parse(text)) : {}
+                    if (text) {
+                        apiJsonSync('POST', '/api/fs/write-string', {
+                            path: KEYCHAIN_PATH,
+                            value: JSON.stringify(state.keychain, null, 2),
+                        })
+                    }
+                } catch (error) {
+                    writeLog('warn', `[Keychain] failed to read ${KEYCHAIN_PATH}: ${error.message}`)
+                    state.keychain = {}
+                }
+                mirrorKeychainDebug()
+                return state.keychain
+            }
+
+            function normalizeKeychainStore(store) {
+                const normalized = {}
+                Object.keys(store || {}).forEach(key => {
+                    normalized[key] = parseKeychainValue(store[key])
+                })
+                return normalized
+            }
+
+            function parseKeychainValue(value) {
+                if (typeof value !== 'string') return value
+                const trimmed = value.trim()
+                if (!trimmed || !/^[\[{]/.test(trimmed)) return value
+                try {
+                    return JSON.parse(trimmed)
+                } catch (error) {
+                    return value
+                }
+            }
+
+            function serializeKeychainValue(value) {
+                return typeof value === 'string' ? value : JSON.stringify(value)
+            }
+
+            function writeKeychainStore() {
+                const value = JSON.stringify(readKeychainStore(), null, 2)
+                apiJsonSync('POST', '/api/fs/write-string', {path: KEYCHAIN_PATH, value})
+                mirrorKeychainDebug()
+            }
+
+            function mirrorKeychainDebug() {
+                let el = document.getElementById('keychain-debug')
+                if (!el) {
+                    el = document.createElement('pre')
+                    el.id = 'keychain-debug'
+                    el.hidden = true
+                    document.body.appendChild(el)
+                }
+                el.textContent = JSON.stringify(readKeychainStore())
+            }
+
+            function md5(text) {
+                function add32(a, b) {
+                    return (a + b) & 0xffffffff
+                }
+                function cmn(q, a, b, x, s, t) {
+                    return add32(((add32(add32(a, q), add32(x, t)) << s) | (add32(add32(a, q), add32(x, t)) >>> (32 - s))), b)
+                }
+                function ff(a, b, c, d, x, s, t) {
+                    return cmn((b & c) | (~b & d), a, b, x, s, t)
+                }
+                function gg(a, b, c, d, x, s, t) {
+                    return cmn((b & d) | (c & ~d), a, b, x, s, t)
+                }
+                function hh(a, b, c, d, x, s, t) {
+                    return cmn(b ^ c ^ d, a, b, x, s, t)
+                }
+                function ii(a, b, c, d, x, s, t) {
+                    return cmn(c ^ (b | ~d), a, b, x, s, t)
+                }
+                function md5cycle(x, k) {
+                    let [a, b, c, d] = x
+                    a = ff(a, b, c, d, k[0], 7, -680876936)
+                    d = ff(d, a, b, c, k[1], 12, -389564586)
+                    c = ff(c, d, a, b, k[2], 17, 606105819)
+                    b = ff(b, c, d, a, k[3], 22, -1044525330)
+                    a = ff(a, b, c, d, k[4], 7, -176418897)
+                    d = ff(d, a, b, c, k[5], 12, 1200080426)
+                    c = ff(c, d, a, b, k[6], 17, -1473231341)
+                    b = ff(b, c, d, a, k[7], 22, -45705983)
+                    a = ff(a, b, c, d, k[8], 7, 1770035416)
+                    d = ff(d, a, b, c, k[9], 12, -1958414417)
+                    c = ff(c, d, a, b, k[10], 17, -42063)
+                    b = ff(b, c, d, a, k[11], 22, -1990404162)
+                    a = ff(a, b, c, d, k[12], 7, 1804603682)
+                    d = ff(d, a, b, c, k[13], 12, -40341101)
+                    c = ff(c, d, a, b, k[14], 17, -1502002290)
+                    b = ff(b, c, d, a, k[15], 22, 1236535329)
+                    a = gg(a, b, c, d, k[1], 5, -165796510)
+                    d = gg(d, a, b, c, k[6], 9, -1069501632)
+                    c = gg(c, d, a, b, k[11], 14, 643717713)
+                    b = gg(b, c, d, a, k[0], 20, -373897302)
+                    a = gg(a, b, c, d, k[5], 5, -701558691)
+                    d = gg(d, a, b, c, k[10], 9, 38016083)
+                    c = gg(c, d, a, b, k[15], 14, -660478335)
+                    b = gg(b, c, d, a, k[4], 20, -405537848)
+                    a = gg(a, b, c, d, k[9], 5, 568446438)
+                    d = gg(d, a, b, c, k[14], 9, -1019803690)
+                    c = gg(c, d, a, b, k[3], 14, -187363961)
+                    b = gg(b, c, d, a, k[8], 20, 1163531501)
+                    a = gg(a, b, c, d, k[13], 5, -1444681467)
+                    d = gg(d, a, b, c, k[2], 9, -51403784)
+                    c = gg(c, d, a, b, k[7], 14, 1735328473)
+                    b = gg(b, c, d, a, k[12], 20, -1926607734)
+                    a = hh(a, b, c, d, k[5], 4, -378558)
+                    d = hh(d, a, b, c, k[8], 11, -2022574463)
+                    c = hh(c, d, a, b, k[11], 16, 1839030562)
+                    b = hh(b, c, d, a, k[14], 23, -35309556)
+                    a = hh(a, b, c, d, k[1], 4, -1530992060)
+                    d = hh(d, a, b, c, k[4], 11, 1272893353)
+                    c = hh(c, d, a, b, k[7], 16, -155497632)
+                    b = hh(b, c, d, a, k[10], 23, -1094730640)
+                    a = hh(a, b, c, d, k[13], 4, 681279174)
+                    d = hh(d, a, b, c, k[0], 11, -358537222)
+                    c = hh(c, d, a, b, k[3], 16, -722521979)
+                    b = hh(b, c, d, a, k[6], 23, 76029189)
+                    a = hh(a, b, c, d, k[9], 4, -640364487)
+                    d = hh(d, a, b, c, k[12], 11, -421815835)
+                    c = hh(c, d, a, b, k[15], 16, 530742520)
+                    b = hh(b, c, d, a, k[2], 23, -995338651)
+                    a = ii(a, b, c, d, k[0], 6, -198630844)
+                    d = ii(d, a, b, c, k[7], 10, 1126891415)
+                    c = ii(c, d, a, b, k[14], 15, -1416354905)
+                    b = ii(b, c, d, a, k[5], 21, -57434055)
+                    a = ii(a, b, c, d, k[12], 6, 1700485571)
+                    d = ii(d, a, b, c, k[3], 10, -1894986606)
+                    c = ii(c, d, a, b, k[10], 15, -1051523)
+                    b = ii(b, c, d, a, k[1], 21, -2054922799)
+                    a = ii(a, b, c, d, k[8], 6, 1873313359)
+                    d = ii(d, a, b, c, k[15], 10, -30611744)
+                    c = ii(c, d, a, b, k[6], 15, -1560198380)
+                    b = ii(b, c, d, a, k[13], 21, 1309151649)
+                    a = ii(a, b, c, d, k[4], 6, -145523070)
+                    d = ii(d, a, b, c, k[11], 10, -1120210379)
+                    c = ii(c, d, a, b, k[2], 15, 718787259)
+                    b = ii(b, c, d, a, k[9], 21, -343485551)
+                    x[0] = add32(a, x[0])
+                    x[1] = add32(b, x[1])
+                    x[2] = add32(c, x[2])
+                    x[3] = add32(d, x[3])
+                }
+                function md5blk(s) {
+                    const md5blks = []
+                    for (let i = 0; i < 64; i += 4) {
+                        md5blks[i >> 2] =
+                            s.charCodeAt(i) +
+                            (s.charCodeAt(i + 1) << 8) +
+                            (s.charCodeAt(i + 2) << 16) +
+                            (s.charCodeAt(i + 3) << 24)
+                    }
+                    return md5blks
+                }
+                function md51(s) {
+                    let n = s.length
+                    const state = [1732584193, -271733879, -1732584194, 271733878]
+                    let i
+                    for (i = 64; i <= n; i += 64) md5cycle(state, md5blk(s.substring(i - 64, i)))
+                    s = s.substring(i - 64)
+                    const tail = Array(16).fill(0)
+                    for (i = 0; i < s.length; i++) tail[i >> 2] |= s.charCodeAt(i) << (i % 4 << 3)
+                    tail[i >> 2] |= 0x80 << (i % 4 << 3)
+                    if (i > 55) {
+                        md5cycle(state, tail)
+                        tail.fill(0)
+                    }
+                    tail[14] = n * 8
+                    md5cycle(state, tail)
+                    return state
+                }
+                function rhex(n) {
+                    let s = ''
+                    for (let j = 0; j < 4; j++) s += ((n >> (j * 8 + 4)) & 0x0f).toString(16) + ((n >> (j * 8)) & 0x0f).toString(16)
+                    return s
+                }
+                return md51(unescape(encodeURIComponent(String(text)))).map(rhex).join('')
+            }
+
+            function warnDuplicateScriptNames(scripts) {
+                const names = new Map()
+                for (const file of scripts) {
+                    const name = file.replace(/\.js$/, '')
+                    const existing = names.get(name)
+                    if (existing) {
+                        writeLog('warn', `[Keychain] script name conflict: "${name}" is shared by ${existing} and ${file}`)
+                    } else {
+                        names.set(name, file)
+                    }
+                }
+            }
+
+            function escapeHtml(value) {
+                return String(value).replace(
+                    /[&<>"']/g,
+                    ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[ch],
+                )
+            }
+
+            function safeJson(value) {
+                try {
+                    return JSON.parse(value)
+                } catch (error) {
+                    throw new Error(`Mock JSON parse failed: ${error.message}`)
+                }
+            }
+
+            function apiJsonSync(method, url, body) {
+                const xhr = new XMLHttpRequest()
+                xhr.open(method, url, false)
+                xhr.setRequestHeader('content-type', 'application/json')
+                xhr.send(body === undefined ? null : JSON.stringify(body))
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    throw new Error(`Playground API failed ${xhr.status}: ${url}`)
+                }
+                return JSON.parse(xhr.responseText)
+            }
+
+            function stringToBase64(value) {
+                return btoa(unescape(encodeURIComponent(String(value))))
+            }
+
+            function base64ToString(value) {
+                return decodeURIComponent(escape(atob(String(value || ''))))
+            }
+
+            function dataUrlToBase64(value) {
+                return String(value || '').split(',')[1] || ''
+            }
+
+            function dataUrlContentType(value) {
+                const match = String(value || '').match(/^data:([^;,]+)[;,]/)
+                return match ? match[1] : 'application/octet-stream'
+            }
+
+            function base64ToDataUrl(base64, contentType = 'application/octet-stream') {
+                return `data:${contentType};base64,${base64 || ''}`
+            }
+
+            function chooseBrowserFile(accept = '*/*') {
+                return new Promise(resolve => {
+                    const input = document.createElement('input')
+                    input.type = 'file'
+                    input.accept = accept
+                    input.style.position = 'fixed'
+                    input.style.left = '-9999px'
+                    input.style.top = '0'
+                    document.body.appendChild(input)
+                    input.addEventListener(
+                        'change',
+                        () => {
+                            const file = input.files?.[0] || null
+                            input.remove()
+                            resolve(file)
+                        },
+                        {once: true},
+                    )
+                    input.addEventListener(
+                        'cancel',
+                        () => {
+                            input.remove()
+                            resolve(null)
+                        },
+                        {once: true},
+                    )
+                    input.click()
+                })
+            }
+
+            async function pickImageFromBrowser() {
+                const file = await chooseBrowserFile('image/*')
+                if (!file) return null
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader()
+                    reader.onload = () => resolve(String(reader.result || ''))
+                    reader.onerror = () => reject(reader.error || new Error('Failed to read image file'))
+                    reader.readAsDataURL(file)
+                })
+                return MockImage.fromSrc(file.name || 'picked-image', 'picked-image', dataUrl)
+            }
+
+            function createSymbolPngDataUrl(name = 'square.grid.2x2') {
+                const canvas = document.createElement('canvas')
+                canvas.width = 64
+                canvas.height = 64
+                const ctx = canvas.getContext('2d')
+                ctx.clearRect(0, 0, 64, 64)
+                ctx.strokeStyle = '#000000'
+                ctx.fillStyle = '#000000'
+                ctx.lineWidth = 5
+                ctx.lineCap = 'round'
+                ctx.lineJoin = 'round'
+
+                const roundedRect = (x, y, w, h, r = 6) => {
+                    ctx.beginPath()
+                    ctx.moveTo(x + r, y)
+                    ctx.lineTo(x + w - r, y)
+                    ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+                    ctx.lineTo(x + w, y + h - r)
+                    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+                    ctx.lineTo(x + r, y + h)
+                    ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+                    ctx.lineTo(x, y + r)
+                    ctx.quadraticCurveTo(x, y, x + r, y)
+                    ctx.stroke()
+                }
+
+                if (name.includes('chevron.right')) {
+                    ctx.beginPath()
+                    ctx.moveTo(24, 16)
+                    ctx.lineTo(40, 32)
+                    ctx.lineTo(24, 48)
+                    ctx.stroke()
+                } else if (name.includes('chevron.up.chevron.down')) {
+                    ctx.beginPath()
+                    ctx.moveTo(22, 27)
+                    ctx.lineTo(32, 17)
+                    ctx.lineTo(42, 27)
+                    ctx.moveTo(22, 37)
+                    ctx.lineTo(32, 47)
+                    ctx.lineTo(42, 37)
+                    ctx.stroke()
+                } else if (name.includes('arrow.clockwise')) {
+                    ctx.beginPath()
+                    ctx.arc(32, 34, 18, Math.PI * 0.2, Math.PI * 1.8)
+                    ctx.stroke()
+                    ctx.beginPath()
+                    ctx.moveTo(47, 17)
+                    ctx.lineTo(49, 34)
+                    ctx.lineTo(35, 27)
+                    ctx.fill()
+                } else if (name.includes('trash')) {
+                    roundedRect(20, 24, 24, 28, 3)
+                    ctx.beginPath()
+                    ctx.moveTo(18, 20)
+                    ctx.lineTo(46, 20)
+                    ctx.moveTo(27, 15)
+                    ctx.lineTo(37, 15)
+                    ctx.stroke()
+                } else if (name.includes('person')) {
+                    ctx.beginPath()
+                    ctx.arc(32, 24, 10, 0, Math.PI * 2)
+                    ctx.stroke()
+                    ctx.beginPath()
+                    ctx.arc(32, 48, 17, Math.PI, Math.PI * 2)
+                    ctx.stroke()
+                } else if (name.includes('link')) {
+                    roundedRect(13, 26, 24, 14, 7)
+                    roundedRect(27, 24, 24, 14, 7)
+                } else if (name.includes('number')) {
+                    roundedRect(13, 13, 38, 38, 7)
+                    ctx.font = 'bold 28px system-ui'
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText('1', 32, 34)
+                } else if (name.includes('list') || name.includes('gear')) {
+                    ;[20, 32, 44].forEach(y => {
+                        ctx.beginPath()
+                        ctx.moveTo(20, y)
+                        ctx.lineTo(46, y)
+                        ctx.stroke()
+                    })
+                    ;[20, 32, 44].forEach(y => {
+                        ctx.beginPath()
+                        ctx.arc(15, y, 2.5, 0, Math.PI * 2)
+                        ctx.fill()
+                    })
+                } else {
+                    roundedRect(16, 16, 32, 32, 7)
+                }
+
+                return canvas.toDataURL('image/png')
+            }
+
+            class MockColor {
+                constructor(hex = '#000000', alpha = 1) {
+                    this.hex = hex
+                    this.alpha = alpha
+                }
+                static red() {
+                    return new MockColor('#ff3b30')
+                }
+                static white() {
+                    return new MockColor('#ffffff')
+                }
+                static black() {
+                    return new MockColor('#000000')
+                }
+                static dynamic(light, dark) {
+                    return light || dark
+                }
+                toString() {
+                    return this.hex
+                }
+            }
+
+            class MockFont {
+                constructor(name = 'system', size = 12) {
+                    this.name = name
+                    this.size = size
+                }
+                static systemFont(size) {
+                    return new MockFont('system', size)
+                }
+                static semiboldSystemFont(size) {
+                    return new MockFont('semibold', size)
+                }
+                static mediumSystemFont(size) {
+                    return new MockFont('medium', size)
+                }
+            }
+
+            class MockSize {
+                constructor(width = 0, height = 0) {
+                    this.width = width
+                    this.height = height
+                }
+            }
+
+            class MockRect {
+                constructor(x = 0, y = 0, width = 0, height = 0) {
+                    this.x = x
+                    this.y = y
+                    this.width = width
+                    this.height = height
+                }
+            }
+
+            class MockPoint {
+                constructor(x = 0, y = 0) {
+                    this.x = x
+                    this.y = y
+                }
+            }
+
+            class MockPath {
+                constructor() {
+                    this.commands = []
+                }
+                addRoundedRect(rect, cornerWidth = 0, cornerHeight = cornerWidth) {
+                    this.commands.push(['roundedRect', rect, cornerWidth, cornerHeight])
+                }
+                addEllipse(rect) {
+                    this.commands.push(['ellipse', rect])
+                }
+                move(point) {
+                    this.commands.push(['move', point])
+                }
+                addLine(point) {
+                    this.commands.push(['line', point])
+                }
+                closeSubpath() {
+                    this.commands.push(['close'])
+                }
+            }
+
+            class MockImage {
+                constructor(label = 'image', kind = 'image', src = '', filePath = '', element = null) {
+                    this.label = label
+                    this.kind = kind
+                    this.src = src
+                    this.filePath = filePath
+                    this.element = element
+                    this.size = {width: 100, height: 100}
+                }
+                static async fromSrc(label, kind, src, filePath = '') {
+                    const element = document.createElement('img')
+                    element.crossOrigin = 'anonymous'
+                    element.src = src
+                    await new Promise(resolve => {
+                        element.onload = resolve
+                        element.onerror = resolve
+                    })
+                    const image = new MockImage(label, kind, src, filePath, element)
+                    image.size = {
+                        width: element.naturalWidth || element.width || 100,
+                        height: element.naturalHeight || element.height || 100,
+                    }
+                    return image
+                }
+                static fromData(data) {
+                    return new MockImage('data', 'data-image', data?.toDataUrl?.() || '')
+                }
+                static fromFile(file) {
+                    const cached = state.fileCache.get(file)
+                    if (cached instanceof MockImage) return cached
+                    const result = apiJsonSync('GET', `/api/fs/read-data?path=${encodeURIComponent(file)}`)
+                    const base64 = result.data?.base64 || ''
+                    return new MockImage(file, 'file-image', base64ToDataUrl(base64, result.data?.contentType), file)
+                }
+            }
+
+            class MockData {
+                constructor(value = '', contentType = 'text/plain; charset=utf-8') {
+                    this.value = value
+                    this.contentType = contentType
+                }
+                static fromString(value) {
+                    return new MockData(stringToBase64(value), 'text/plain; charset=utf-8')
+                }
+                static fromBase64String(value) {
+                    return new MockData(value)
+                }
+                static fromPNG(image) {
+                    return new MockData(dataUrlToBase64(image?.src), 'image/png')
+                }
+                static fromJPEG(image) {
+                    return new MockData(dataUrlToBase64(image?.src), 'image/jpeg')
+                }
+                static fromFile(file) {
+                    const result = apiJsonSync('GET', `/api/fs/read-data?path=${encodeURIComponent(file)}`)
+                    return new MockData(result.data?.base64 || '', result.data?.contentType)
+                }
+                toRawString() {
+                    return base64ToString(this.value)
+                }
+                toBase64String() {
+                    return this.value
+                }
+                toDataUrl() {
+                    return base64ToDataUrl(this.value, this.contentType)
+                }
+            }
+
+            class WidgetNode {
+                constructor(type, props = {}) {
+                    this.type = type
+                    this.props = props
+                    this.children = []
+                    this.spacing = 0
+                }
+                addText(text) {
+                    const node = new WidgetNode('text', {text})
+                    this.children.push(node)
+                    return node
+                }
+                addStack() {
+                    const node = new WidgetNode('stack')
+                    this.children.push(node)
+                    return node
+                }
+                addSpacer(length = null) {
+                    const node = new WidgetNode('spacer', {length})
+                    this.children.push(node)
+                    return node
+                }
+                addImage(image) {
+                    const node = new WidgetNode('image', {image})
+                    this.children.push(node)
+                    return node
+                }
+                addDate(date) {
+                    const node = new WidgetNode('date', {date})
+                    this.children.push(node)
+                    return node
+                }
+                setPadding(top, left, bottom, right) {
+                    this.props.padding = [top, left, bottom, right]
+                }
+                layoutHorizontally() {
+                    this.props.direction = 'row'
+                }
+                layoutVertically() {
+                    this.props.direction = 'column'
+                }
+                centerAlignContent() {
+                    this.props.align = 'center'
+                }
+                topAlignContent() {
+                    this.props.align = 'top'
+                }
+                bottomAlignContent() {
+                    this.props.align = 'bottom'
+                }
+                centerAlignText() {
+                    this.props.textAlign = 'center'
+                }
+                rightAlignText() {
+                    this.props.textAlign = 'right'
+                }
+                leftAlignText() {
+                    this.props.textAlign = 'left'
+                }
+                applyFillingContentMode() {
+                    this.props.contentMode = 'fill'
+                }
+                applyFittingContentMode() {
+                    this.props.contentMode = 'fit'
+                }
+                presentSmall() {
+                    renderWidget(this, 'small')
+                }
+                presentMedium() {
+                    renderWidget(this, 'medium')
+                }
+                presentLarge() {
+                    renderWidget(this, 'large')
+                }
+            }
+
+            class MockListWidget extends WidgetNode {
+                constructor() {
+                    super('widget')
+                    this.props.direction = 'column'
+                }
+            }
+
+            function renderWidget(widget, family = $('family').value) {
+                if (family && $('family').value !== family) $('family').value = family
+                previewEl.classList.toggle('small', family === 'small')
+                previewEl.classList.toggle('large', family === 'large')
+                applyRootWidgetStyle(widget)
+                const direction = readProp(widget, 'direction') || 'column'
+                previewEl.innerHTML = (widget.children || []).map(child => renderNode(child, direction)).join('')
+            }
+
+            function readProp(node, key) {
+                return node?.[key] ?? node?.props?.[key]
+            }
+
+            function colorToCss(value) {
+                if (!value) return ''
+                if (typeof value === 'string') return value
+                if (typeof value.toString === 'function') return value.toString()
+                return ''
+            }
+
+            function isDarkPreview() {
+                return $('appearance').value === 'dark'
+            }
+
+            function normalizeTextColor(color) {
+                const cssColor = colorToCss(color)
+                if (!isDarkPreview()) return cssColor
+                if (!cssColor || cssColor === '#000000' || cssColor === 'rgb(0, 0, 0)' || cssColor === 'black') {
+                    return '#ffffff'
+                }
+                return cssColor
+            }
+
+            function styleFromNode(node) {
+                const styles = []
+                const textColor = readProp(node, 'textColor')
+                const opacity = readProp(node, 'textOpacity') ?? readProp(node, 'opacity')
+                const font = readProp(node, 'font')
+                const textAlign = readProp(node, 'textAlign')
+                const lineLimit = readProp(node, 'lineLimit')
+                const padding = readProp(node, 'padding')
+                const backgroundColor = readProp(node, 'backgroundColor')
+                const cornerRadius = readProp(node, 'cornerRadius')
+                const size = readProp(node, 'size')
+                styles.push(`color:${normalizeTextColor(textColor)}`)
+                if (opacity !== undefined) styles.push(`opacity:${opacity}`)
+                if (font?.size) styles.push(`font-size:${font.size}px`)
+                if (textAlign) styles.push(`text-align:${textAlign}`)
+                if (lineLimit === 1) styles.push('white-space:nowrap')
+                if (padding) styles.push(`padding:${padding[0]}px ${padding[3]}px ${padding[2]}px ${padding[1]}px`)
+                if (backgroundColor) styles.push(`background:${colorToCss(backgroundColor)}`)
+                if (cornerRadius !== undefined) styles.push(`border-radius:${cornerRadius}px`)
+                if (size?.width) styles.push(`width:${size.width}px`)
+                if (size?.height) styles.push(`height:${size.height}px`)
+                return styles.length ? ` style="${styles.join(';')}"` : ''
+            }
+
+            function applyRootWidgetStyle(widget) {
+                const backgroundImage = readProp(widget, 'backgroundImage')
+                previewEl.style.background =
+                    colorToCss(readProp(widget, 'backgroundColor')) || (isDarkPreview() ? '#000000' : '#fafafa')
+                previewEl.style.backgroundImage = backgroundImage?.src ? `url("${backgroundImage.src}")` : ''
+                previewEl.style.backgroundSize = backgroundImage?.src ? 'cover' : ''
+                previewEl.style.backgroundPosition = backgroundImage?.src ? 'center' : ''
+                previewEl.style.gap = `${Number(readProp(widget, 'spacing') || 0)}px`
+                previewEl.style.display = 'flex'
+                previewEl.style.flexDirection = readProp(widget, 'direction') === 'row' ? 'row' : 'column'
+                previewEl.style.borderColor =
+                    colorToCss(readProp(widget, 'borderColor')) || (isDarkPreview() ? '#263856' : '#e3e7ef')
+                const padding = readProp(widget, 'padding')
+                if (padding) {
+                    previewEl.style.padding = `${padding[0]}px ${padding[3]}px ${padding[2]}px ${padding[1]}px`
+                } else {
+                    previewEl.style.padding = '10px 12px'
+                }
+            }
+
+            function renderSymbol(label) {
+                const symbols = {
+                    'arrow.clockwise': '↻',
+                    photo: '▧',
+                    gear: '⚙',
+                    checkmark: '✓',
+                    xmark: '×',
+                    plus: '+',
+                    minus: '-',
+                    bell: '◉',
+                    star: '★',
+                    heart: '♥',
+                    flame: '▲',
+                    play: '▶',
+                    pause: 'Ⅱ',
+                }
+                return symbols[label] || label || 'img'
+            }
+
+            function renderSfSymbol(label) {
+                if (label === 'arrow.clockwise') {
+                    return `
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M19 7.2V3h-1.8v2.2A8 8 0 1 0 20 11.2h-1.9A6.1 6.1 0 1 1 16 6.5h-3.1v1.7H19Z" fill="currentColor"></path>
+                        </svg>
+                    `
+                }
+                return escapeHtml(renderSymbol(label))
+            }
+
+            function renderImageNode(node) {
+                const image = readProp(node, 'image')
+                const imageSize = readProp(node, 'imageSize') || image?.size || {}
+                const width = Number(imageSize.width || 18)
+                const height = Number(imageSize.height || 18)
+                const styles = [`width:${width}px`, `height:${height}px`]
+                const opacity = readProp(node, 'imageOpacity') ?? readProp(node, 'opacity')
+                const tintColor = readProp(node, 'tintColor')
+                if (opacity !== undefined) styles.push(`opacity:${opacity}`)
+                if (tintColor) styles.push(`color:${colorToCss(tintColor)}`)
+
+                if (image?.kind === 'sf-symbol') {
+                    return `<span class="image sf-symbol" title="${escapeHtml(image.label)}" style="${styles.join(';')}">${renderSfSymbol(image.label)}</span>`
+                }
+
+                if (image?.src) {
+                    return `<span class="image real-image" title="${escapeHtml(image.label || 'image')}" style="${styles.join(';')}"><img alt="" src="${escapeHtml(image.src)}"></span>`
+                }
+
+                return `<span class="image" title="${escapeHtml(image?.label || 'image')}" style="${styles.join(';')}">${escapeHtml(renderSymbol(image?.label))}</span>`
+            }
+
+            function mergeInlineStyle(styleAttr, extraStyles) {
+                const extra = extraStyles.filter(Boolean).join(';')
+                if (!extra) return styleAttr
+                if (!styleAttr) return ` style="${extra}"`
+                return styleAttr.replace(/^ style="/, ` style="${extra};`)
+            }
+
+            function renderNode(node, parentDirection = 'column') {
+                if (!node) return ''
+                if (node.type === 'text')
+                    return `<div class="text"${styleFromNode(node)}>${escapeHtml(readProp(node, 'text') || '')}</div>`
+                if (node.type === 'image') return renderImageNode(node)
+                if (node.type === 'date')
+                    return `<div class="text">${escapeHtml(new Date(readProp(node, 'date')).toLocaleString())}</div>`
+                if (node.type === 'spacer') {
+                    const length = readProp(node, 'length')
+                    if (length === null || length === undefined) return '<div style="flex:1 1 auto"></div>'
+                    const prop = parentDirection === 'row' ? 'width' : 'height'
+                    return `<div style="flex:0 0 auto;${prop}:${Number(length)}px"></div>`
+                }
+                const direction = readProp(node, 'direction') || 'row'
+                const textChildren = (node.children || []).filter(child => child?.type === 'text').length
+                const imageChildren = (node.children || []).filter(child => child?.type === 'image').length
+                const hasFlexibleSpacer = (node.children || []).some(
+                    child =>
+                        child?.type === 'spacer' &&
+                        (readProp(child, 'length') === null || readProp(child, 'length') === undefined),
+                )
+                const isStatusStack = direction === 'row' && imageChildren > 0 && textChildren > 0
+                const className =
+                    direction === 'row'
+                        ? `stack${textChildren >= 2 && hasFlexibleSpacer ? ' row-stack' : ''}${isStatusStack ? ' status-stack' : ''}`
+                        : 'stack column'
+                const align = readProp(node, 'align')
+                const gap = Number(readProp(node, 'spacing') || 0)
+                const alignItems = align === 'center' ? 'center' : align === 'bottom' ? 'flex-end' : 'flex-start'
+                const style = mergeInlineStyle(styleFromNode(node), [
+                    gap ? `gap:${gap}px` : '',
+                    direction === 'row' ? `align-items:${alignItems}` : '',
+                ])
+                const content = (node.children || [])
+                    .map(child => renderNode(child, direction))
+                    .join('')
+                const href = readProp(node, 'href') || readProp(node, 'url')
+                if (href) {
+                    return `<a class="${className} stack-link" href="${escapeHtml(href)}" title="${escapeHtml(href)}"${style}>${content}</a>`
+                }
+                return `<div class="${className}"${style}>${content}</div>`
+            }
+
+            function makeFileManager(documentsRoot = '/documents', libraryRoot = '/library') {
+                return {
+                    documentsDirectory: () => documentsRoot,
+                    libraryDirectory: () => libraryRoot,
+                    temporaryDirectory: () => '/tmp',
+                    joinPath: (base, file) => `${base}/${file}`.replace(/\/+/g, '/'),
+                    fileExists: file =>
+                        Boolean(apiJsonSync('GET', `/api/fs/exists?path=${encodeURIComponent(file)}`).data),
+                    createDirectory: (file, recursive = true) =>
+                        apiJsonSync('POST', '/api/fs/mkdir', {path: file, recursive}),
+                    writeString: (file, value) =>
+                        apiJsonSync('POST', '/api/fs/write-string', {path: file, value: String(value)}),
+                    readString: file =>
+                        String(apiJsonSync('GET', `/api/fs/read-string?path=${encodeURIComponent(file)}`).data || ''),
+                    write: (file, value) => {
+                        const data = value instanceof MockData ? value : MockData.fromString(String(value || ''))
+                        state.fileCache.set(file, data)
+                        apiJsonSync('POST', '/api/fs/write-data', {path: file, base64: data.toBase64String()})
+                    },
+                    writeImage: (file, value) => {
+                        state.fileCache.set(file, value)
+                        apiJsonSync('POST', '/api/fs/write-data', {
+                            path: file,
+                            base64: dataUrlToBase64(value?.src) || stringToBase64(value?.label || 'image'),
+                        })
+                    },
+                    read: file => {
+                        const cached = state.fileCache.get(file)
+                        if (cached instanceof MockData) return cached
+                        return MockData.fromFile(file)
+                    },
+                    remove: file => {
+                        state.fileCache.delete(file)
+                        apiJsonSync('POST', '/api/fs/remove', {path: file})
+                    },
+                    creationDate: file => {
+                        const stat = apiJsonSync('GET', `/api/fs/stat?path=${encodeURIComponent(file)}`).data
+                        return stat?.createdAt ? new Date(stat.createdAt) : new Date()
+                    },
+                    modificationDate: file => {
+                        const stat = apiJsonSync('GET', `/api/fs/stat?path=${encodeURIComponent(file)}`).data
+                        return stat?.modifiedAt ? new Date(stat.modifiedAt) : new Date()
+                    },
+                    listContents: file =>
+                        apiJsonSync('GET', `/api/fs/list?path=${encodeURIComponent(file)}`).data || [],
+                }
+            }
+
+            function findMockResponse(mockMap, url) {
+                if (!mockMap || typeof mockMap !== 'object') return undefined
+                if (Object.prototype.hasOwnProperty.call(mockMap, url)) return mockMap[url]
+                const matchKey = Object.keys(mockMap).find(key => key && url.includes(key))
+                return matchKey ? mockMap[matchKey] : undefined
+            }
+
+            async function proxyFetch(url) {
+                const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`)
+                if (!response.ok) throw new Error(`Request failed ${response.status}: ${url}`)
+                return response
+            }
+
+            function createSandbox(mockMap, family, parameter, scriptName, appearance, runMode) {
+                const fm = makeFileManager()
+                const iCloudFm = makeFileManager('/icloud', '/icloud/Library')
+                const isDarkAppearance = appearance === 'dark'
+                let currentScriptName = scriptName
+                const moduleExports = {}
+                const moduleInfo = {
+                    exports: moduleExports,
+                    filename: `/documents/${scriptName}`,
+                }
+                function currentScriptBaseName() {
+                    return currentScriptName.replace(/\.js$/, '')
+                }
+                function resolveKeychainKey(key) {
+                    const readableKey = currentScriptBaseName()
+                    const hashedSettingsKey = md5(readableKey)
+                    if (key !== hashedSettingsKey) return key
+
+                    const store = readKeychainStore()
+                    if (
+                        Object.prototype.hasOwnProperty.call(store, key) &&
+                        Object.prototype.hasOwnProperty.call(store, readableKey)
+                    ) {
+                        writeLog(
+                            'warn',
+                            `[Keychain] conflict for ${readableKey}: both hashed key ${key} and readable key exist; using readable key`,
+                        )
+                    } else if (Object.prototype.hasOwnProperty.call(store, key)) {
+                        store[readableKey] = store[key]
+                        delete store[key]
+                        writeKeychainStore()
+                        writeLog('warn', `[Keychain] migrated ${key} to readable key ${readableKey}`)
+                    }
+                    return readableKey
+                }
+                const consoleProxy = {
+                    log: (...args) => writeLog('log', args.length === 1 ? args[0] : args),
+                    warn: (...args) => writeLog('warn', args.length === 1 ? args[0] : args),
+                    error: (...args) => writeLog('error', args.length === 1 ? args[0] : args),
+                }
+                MockColor.dynamic = (light, dark) => (isDarkAppearance ? dark || light : light || dark)
+
+                class Request {
+                    constructor(url) {
+                        this.url = url
+                        this.headers = {}
+                        this.method = 'GET'
+                    }
+                    async loadJSON() {
+                        const mockResponse = findMockResponse(mockMap, this.url)
+                        if (mockResponse !== undefined) return mockResponse
+                        return proxyFetch(this.url).then(res => res.json())
+                    }
+                    async loadString() {
+                        const mockResponse = findMockResponse(mockMap, this.url)
+                        if (mockResponse !== undefined)
+                            return typeof mockResponse === 'string' ? mockResponse : JSON.stringify(mockResponse)
+                        return proxyFetch(this.url).then(res => res.text())
+                    }
+                    async load() {
+                        const mockResponse = findMockResponse(mockMap, this.url)
+                        if (mockResponse !== undefined) {
+                            return MockData.fromString(
+                                typeof mockResponse === 'string' ? mockResponse : JSON.stringify(mockResponse),
+                            )
+                        }
+                        if (String(this.url).startsWith('data:')) {
+                            return new MockData(dataUrlToBase64(this.url), dataUrlContentType(this.url))
+                        }
+                        const response = await proxyFetch(this.url)
+                        const contentType = response.headers.get('content-type') || 'application/octet-stream'
+                        const buffer = await response.arrayBuffer()
+                        const bytes = new Uint8Array(buffer)
+                        let binary = ''
+                        bytes.forEach(byte => {
+                            binary += String.fromCharCode(byte)
+                        })
+                        return new MockData(btoa(binary), contentType)
+                    }
+                    async loadImage() {
+                        const data = await this.load()
+                        return MockImage.fromSrc(this.url, 'remote-image', data.toDataUrl())
+                    }
+                }
+                const hostMocks = window.createScriptableHostMocks({
+                    MockImage,
+                    MockSize,
+                    writeLog,
+                    renderWebView,
+                    isDarkAppearance,
+                    scriptName,
+                    parameter,
+                    family,
+                    appearance,
+                    runMode,
+                    queryParameters: runMode === 'app' ? {__arg: parameter || '', __size: family} : {},
+                    makeFileManager,
+                    pickImageFromBrowser,
+                })
+                const sandbox = {
+                    console: consoleProxy,
+                    __setScriptFile: (file, runtimeScriptName = file) => {
+                        currentScriptName = runtimeScriptName
+                        moduleInfo.filename = `/documents/${file}`
+                    },
+                    __setEnvExports: exports => {
+                        sandbox.__envExports = exports
+                    },
+                    module: moduleInfo,
+                    exports: moduleExports,
+                    config: hostMocks.config,
+                    args: hostMocks.args,
+                    Script: {
+                        name: () => currentScriptName.replace(/\.js$/, ''),
+                        setWidget: widget => {
+                            renderWidget(widget)
+                            writeLog('ok', 'Script.setWidget called')
+                        },
+                        complete: () => writeLog('ok', 'Script.complete called'),
+                    },
+                    Device: hostMocks.Device,
+                    Location: hostMocks.Location,
+                    FileManager: {
+                        local: () => fm,
+                        iCloud: () => iCloudFm,
+                    },
+                    Keychain: {
+                        set: (key, value) => {
+                            readKeychainStore()[resolveKeychainKey(key)] = parseKeychainValue(String(value))
+                            writeKeychainStore()
+                        },
+                        get: key => serializeKeychainValue(readKeychainStore()[resolveKeychainKey(key)]),
+                        contains: key =>
+                            Object.prototype.hasOwnProperty.call(readKeychainStore(), resolveKeychainKey(key)),
+                        remove: key => {
+                            delete readKeychainStore()[resolveKeychainKey(key)]
+                            writeKeychainStore()
+                        },
+                    },
+                    Request,
+                    WebView: hostMocks.WebView,
+                    Alert: hostMocks.Alert,
+                    CallbackURL: hostMocks.CallbackURL,
+                    Notification: hostMocks.Notification,
+                    Photos: hostMocks.Photos,
+                    Pasteboard: hostMocks.Pasteboard,
+                    Calendar: hostMocks.Calendar,
+                    CalendarEvent: hostMocks.CalendarEvent,
+                    Reminder: hostMocks.Reminder,
+                    Contacts: hostMocks.Contacts,
+                    Mail: hostMocks.Mail,
+                    Message: hostMocks.Message,
+                    Safari: hostMocks.Safari,
+                    Speech: hostMocks.Speech,
+                    Dictation: hostMocks.Dictation,
+                    DocumentPicker: hostMocks.DocumentPicker,
+                    QuickLook: hostMocks.QuickLook,
+                    ShareSheet: hostMocks.ShareSheet,
+                    Timer: hostMocks.Timer,
+                    UITable: hostMocks.UITable,
+                    URLScheme: hostMocks.URLScheme,
+                    ListWidget: MockListWidget,
+                    Color: MockColor,
+                    Font: MockFont,
+                    Size: MockSize,
+                    Rect: MockRect,
+                    Point: MockPoint,
+                    Path: MockPath,
+                    Image: MockImage,
+                    Data: MockData,
+                    DrawContext: class {
+                        constructor() {
+                            this.canvas = document.createElement('canvas')
+                            this.ctx = this.canvas.getContext('2d')
+                            this._size = new MockSize(100, 100)
+                            this.canvas.width = this._size.width
+                            this.canvas.height = this._size.height
+                            this.opaque = false
+                            this.respectScreenScale = true
+                            this.fillColor = '#000000'
+                            this.strokeColor = '#000000'
+                            this.currentPath = null
+                        }
+                        set size(value) {
+                            this._size = value || new MockSize(100, 100)
+                            this.canvas.width = Math.max(1, Number(this._size.width || 100))
+                            this.canvas.height = Math.max(1, Number(this._size.height || 100))
+                        }
+                        get size() {
+                            return this._size
+                        }
+                        applyPath(path) {
+                            this.ctx.beginPath()
+                            for (const command of path?.commands || []) {
+                                const [type, ...args] = command
+                                if (type === 'roundedRect') {
+                                    const [rect, cornerWidth = 0] = args
+                                    const x = Number(rect.x || 0)
+                                    const y = Number(rect.y || 0)
+                                    const w = Number(rect.width || 0)
+                                    const h = Number(rect.height || 0)
+                                    const r = Math.min(Number(cornerWidth || 0), w / 2, h / 2)
+                                    this.ctx.moveTo(x + r, y)
+                                    this.ctx.lineTo(x + w - r, y)
+                                    this.ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+                                    this.ctx.lineTo(x + w, y + h - r)
+                                    this.ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+                                    this.ctx.lineTo(x + r, y + h)
+                                    this.ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+                                    this.ctx.lineTo(x, y + r)
+                                    this.ctx.quadraticCurveTo(x, y, x + r, y)
+                                }
+                                if (type === 'ellipse') {
+                                    const [rect] = args
+                                    this.ctx.ellipse(
+                                        Number(rect.x || 0) + Number(rect.width || 0) / 2,
+                                        Number(rect.y || 0) + Number(rect.height || 0) / 2,
+                                        Math.max(1, Number(rect.width || 0) / 2),
+                                        Math.max(1, Number(rect.height || 0) / 2),
+                                        0,
+                                        0,
+                                        Math.PI * 2,
+                                    )
+                                }
+                                if (type === 'move') this.ctx.moveTo(Number(args[0].x || 0), Number(args[0].y || 0))
+                                if (type === 'line') this.ctx.lineTo(Number(args[0].x || 0), Number(args[0].y || 0))
+                                if (type === 'close') this.ctx.closePath()
+                            }
+                        }
+                        drawImageInRect(image, rect) {
+                            if (image?.element?.complete && image.element.naturalWidth > 0) {
+                                this.ctx.drawImage(
+                                    image.element,
+                                    Number(rect.x || 0),
+                                    Number(rect.y || 0),
+                                    Number(rect.width || image.size?.width || 0),
+                                    Number(rect.height || image.size?.height || 0),
+                                )
+                            }
+                        }
+                        drawImageAtPoint(image, point) {
+                            if (image?.element?.complete && image.element.naturalWidth > 0) {
+                                this.ctx.drawImage(image.element, Number(point.x || 0), Number(point.y || 0))
+                            }
+                        }
+                        setFillColor(color) {
+                            this.fillColor = colorToCss(color) || '#000000'
+                            this.ctx.fillStyle = this.fillColor
+                        }
+                        setStrokeColor(color) {
+                            this.strokeColor = colorToCss(color) || '#000000'
+                            this.ctx.strokeStyle = this.strokeColor
+                        }
+                        setLineWidth(width) {
+                            this.ctx.lineWidth = Number(width || 1)
+                        }
+                        addPath(path) {
+                            this.currentPath = path
+                        }
+                        fillPath() {
+                            this.applyPath(this.currentPath)
+                            this.ctx.fillStyle = this.fillColor
+                            this.ctx.fill()
+                        }
+                        strokePath() {
+                            this.applyPath(this.currentPath)
+                            this.ctx.strokeStyle = this.strokeColor
+                            this.ctx.stroke()
+                        }
+                        fillRect(rect) {
+                            this.ctx.fillStyle = this.fillColor
+                            this.ctx.fillRect(
+                                Number(rect.x || 0),
+                                Number(rect.y || 0),
+                                Number(rect.width || 0),
+                                Number(rect.height || 0),
+                            )
+                        }
+                        getImage() {
+                            return new MockImage('draw-context', 'draw-context', this.canvas.toDataURL('image/png'))
+                        }
+                    },
+                    LinearGradient: class {
+                        constructor() {
+                            this.colors = []
+                            this.locations = []
+                        }
+                    },
+                    SFSymbol: {
+                        named: name => ({
+                            image: new MockImage(name, 'sf-symbol', createSymbolPngDataUrl(name)),
+                            applyFont: () => {},
+                        }),
+                    },
+                    importModule: name => sandbox.require(name),
+                    require: name => {
+                        if (name === 'Seiun.Env.js' || name === './Seiun.Env' || name === './Seiun.Env.js')
+                            return sandbox.__envExports || state.envExports
+                        throw new Error(`Unsupported require: ${name}`)
+                    },
+                    setTimeout,
+                    clearTimeout,
+                    Promise,
+                    Date,
+                    Math,
+                    JSON,
+                    Array,
+                    Object,
+                    String,
+                    Number,
+                    Boolean,
+                    RegExp,
+                    Error,
+                    URL,
+                    encodeURIComponent,
+                    decodeURIComponent,
+                    escape,
+                    unescape,
+                    btoa,
+                    atob,
+                }
+                sandbox.globalThis = sandbox
+                return sandbox
+            }
+
+            async function executeScript(file, sandbox, runtimeScriptName = file) {
+                sandbox.__setScriptFile?.(file, runtimeScriptName)
+                const code = await fetch(`/${file}?t=${Date.now()}`).then(res => res.text())
+                const runner = new AsyncFunction('sandbox', `with (sandbox) { ${code}\n }`)
+                return runner(sandbox)
+            }
+
+            async function loadScripts() {
+                const result = await fetch('/api/scripts').then(res => res.json())
+                const scripts = (result.data || []).filter(name => name !== 'Seiun.Env.js')
+                warnDuplicateScriptNames(scripts)
+                $('script').innerHTML = scripts
+                    .map(name => `<option value="${escapeHtml(name)}">${escapeHtml(displayScriptName(name))}</option>`)
+                    .join('')
+                setScriptPill()
+                syncCustomSelect($('script'))
+            }
+
+            function docsPathFor(slug) {
+                return slug ? `/scriptable-docs/${encodeURIComponent(slug)}/` : '/scriptable-docs/'
+            }
+
+            function setDocsPreview(slug) {
+                const path = docsPathFor(slug)
+                docsFrameEl.src = path
+                docsOpenEl.href = path
+            }
+
+            function syncDocsTheme() {
+                const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
+                docsFrameEl.style.background = theme === 'dark' ? '#0b1020' : '#ffffff'
+                let doc
+                try {
+                    doc = docsFrameEl.contentDocument || docsFrameEl.contentWindow?.document
+                } catch {
+                    return
+                }
+                if (!doc?.head || !doc.body) return
+                doc.documentElement.dataset.playgroundTheme = theme
+                doc.body.dataset.mdColorScheme = theme === 'dark' ? 'slate' : 'default'
+                let style = doc.getElementById('playground-docs-theme')
+                if (!style) {
+                    style = doc.createElement('style')
+                    style.id = 'playground-docs-theme'
+                    doc.head.appendChild(style)
+                }
+                style.textContent =
+                    theme === 'dark'
+                        ? `
+                            :root {
+                                color-scheme: dark;
+                                --md-default-bg-color: #0b1020;
+                                --md-default-fg-color: #e5eaf3;
+                                --md-default-fg-color--light: #b8c3d6;
+                                --md-accent-fg-color: #60a5fa;
+                                --md-primary-fg-color: #050914;
+                                --md-code-bg-color: #111827;
+                                --md-code-fg-color: #dbe7f7;
+                            }
+                            html, body, .md-container, .md-main, .md-main__inner, .md-content, .md-content__inner, .md-sidebar, .md-nav {
+                                background: #0b1020 !important;
+                                color: #e5eaf3 !important;
+                            }
+                            .md-header, .md-tabs {
+                                background: #050914 !important;
+                                color: #f8fafc !important;
+                            }
+                            .md-header {
+                                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32) !important;
+                            }
+                            .md-typeset, .md-typeset h1, .md-typeset h2, .md-typeset h3, .md-typeset h4 {
+                                color: #e5eaf3 !important;
+                            }
+                            .md-typeset a, .md-nav__link--active, .md-nav__link:focus, .md-nav__link:hover {
+                                color: #93c5fd !important;
+                            }
+                            .md-typeset code, .md-typeset pre, .highlight, .highlight pre {
+                                background: #111827 !important;
+                                color: #dbe7f7 !important;
+                            }
+                            .md-typeset hr, .md-typeset table:not([class]) td, .md-typeset table:not([class]) th {
+                                border-color: rgba(148, 163, 184, 0.24) !important;
+                            }
+                            .md-search__form, .md-search__input {
+                                background: #111827 !important;
+                                color: #e5eaf3 !important;
+                            }
+                        `
+                        : `
+                            :root {
+                                color-scheme: light;
+                                --md-default-bg-color: #ffffff;
+                                --md-default-fg-color: #1f2937;
+                                --md-default-fg-color--light: #5f6f86;
+                                --md-accent-fg-color: #2563eb;
+                                --md-primary-fg-color: #000000;
+                                --md-code-bg-color: #f3f4f6;
+                                --md-code-fg-color: #1f2937;
+                            }
+                            html, body, .md-container, .md-main, .md-main__inner, .md-content, .md-content__inner {
+                                background: #ffffff !important;
+                                color: #1f2937 !important;
+                            }
+                            .md-header, .md-tabs {
+                                background: #000000 !important;
+                                color: #ffffff !important;
+                            }
+                            .md-typeset, .md-typeset h1, .md-typeset h2, .md-typeset h3, .md-typeset h4 {
+                                color: #1f2937 !important;
+                            }
+                            .md-typeset a, .md-nav__link--active, .md-nav__link:focus, .md-nav__link:hover {
+                                color: #2563eb !important;
+                            }
+                            .md-typeset code, .md-typeset pre, .highlight, .highlight pre {
+                                background: #f3f4f6 !important;
+                                color: #1f2937 !important;
+                            }
+                        `
+            }
+
+            async function loadScriptableDocs() {
+                try {
+                    const result = await fetch('/api/scriptable-docs').then(res => res.json())
+                    const docs = result.data || []
+                    const preferred = ['listwidget', 'webview', 'request', 'filemanager', 'keychain', 'photos']
+                    const ordered = [
+                        '',
+                        ...preferred.filter(item => docs.includes(item)),
+                        ...docs.filter(item => !preferred.includes(item)),
+                    ]
+                    docsSelectEl.innerHTML = ordered
+                        .map(slug => {
+                            const label = slug ? slug.replace(/(^|-)([a-z])/g, (_, dash, ch) => `${dash ? ' ' : ''}${ch.toUpperCase()}`) : 'Frontpage'
+                            return `<option value="${escapeHtml(slug)}">${escapeHtml(label)}</option>`
+                        })
+                        .join('')
+                    const initial = docs.includes('listwidget') ? 'listwidget' : ''
+                    docsSelectEl.value = initial
+                    syncCustomSelect(docsSelectEl)
+                    setDocsPreview(initial)
+                } catch (error) {
+                    docsSelectEl.innerHTML = '<option value="">Docs unavailable</option>'
+                    syncCustomSelect(docsSelectEl)
+                    setDocsPreview('')
+                    writeLog('warn', `[Docs] failed to load Scriptable docs: ${error.message}`)
+                }
+            }
+
+            async function runSelected() {
+                state.logs = []
+                logEl.textContent = ''
+                const script = $('script').value
+                const family = $('family').value
+                const parameter = $('parameter').value
+                const appearance = $('appearance').value
+                const runMode = $('runMode').value
+                state.hasRun = true
+                setStatus(`running ${script}`)
+                try {
+                    resetSurfaces(runMode)
+                    const mockMap = safeJson($('mock').value)
+                    const scriptSandbox = createSandbox(mockMap, family, parameter, script, appearance, runMode)
+                    await executeScript('Seiun.Env.js', scriptSandbox, script)
+                    state.envExports = scriptSandbox.module.exports
+                    scriptSandbox.__setEnvExports(state.envExports)
+                    if (runMode === 'app') {
+                        executeScript(script, scriptSandbox)
+                            .then(() => setStatus(`done ${script}`))
+                            .catch(error => {
+                                writeLog('error', error.stack || error.message || error)
+                                setStatus('error')
+                            })
+                        setStatus(`app runtime active ${script}`)
+                    } else {
+                        await executeScript(script, scriptSandbox)
+                        setStatus(`done ${script}`)
+                    }
+                } catch (error) {
+                    writeLog('error', error.stack || error.message || error)
+                    setStatus('error')
+                }
+            }
+
+            $('run').addEventListener('click', runSelected)
+            $('webviewBack').addEventListener('click', goBackWebView)
+            $('runMode').addEventListener('change', event => syncRunModeSurface(event.target.value))
+            $('appearance').addEventListener('change', handleAppearanceChange)
+            $('themeToggle').addEventListener('click', cycleOuterTheme)
+            $('scriptPill').addEventListener('click', () => openCustomSelectMenu($('script')))
+            $('script').addEventListener('change', () => setScriptPill())
+            $('showLog').addEventListener('click', () => setInspectorView('log'))
+            $('showDocs').addEventListener('click', () => setInspectorView('docs'))
+            $('docsSelect').addEventListener('change', event => setDocsPreview(event.target.value))
+            docsFrameEl.addEventListener('load', syncDocsTheme)
+            document.addEventListener('click', event => {
+                if (!openCustomSelect) return
+                if (openCustomSelect.wrapper.contains(event.target) || openCustomSelect.menu.contains(event.target)) return
+                closeCustomSelect()
+            })
+            window.addEventListener('resize', closeCustomSelect)
+            window.addEventListener('scroll', closeCustomSelect, true)
+            window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
+                if (state.outerThemePreference === 'auto') setOuterTheme('auto', false)
+            })
+            $('reload').addEventListener('click', async () => {
+                await loadScripts()
+                setStatus('scripts reloaded')
+            })
+
+            $('mock').value = '{}'
+            setOuterTheme(getInitialOuterTheme(), false)
+            syncRunModeSurface()
+            initializeAppearance()
+            applyPreviewDefaults()
+            enhanceSelects()
+            readKeychainStore()
+            loadScriptableDocs()
+            loadScripts().then(() => setStatus('ready'))
+        </script>
+    </body>
+</html>

@@ -1,0 +1,4296 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Scriptable, an automation app for iOS.">
+      
+      
+      
+        <link rel="canonical" href="https://docs.scriptable.app/reminder/">
+      
+      
+        <link rel="prev" href="../relativedatetimeformatter/">
+      
+      
+        <link rel="next" href="../request/">
+      
+      
+      <link rel="icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.46">
+    
+    
+      
+        <title>Reminder - Scriptable Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6f8fc17f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../css/extra_material.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#reminder" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Scriptable Docs" class="md-header__button md-logo" aria-label="Scriptable Docs" data-md-component="logo">
+      
+  <img src="../img/glyph.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Scriptable Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Reminder
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Scriptable Docs" class="md-nav__button md-logo" aria-label="Scriptable Docs" data-md-component="logo">
+      
+  <img src="../img/glyph.png" alt="logo">
+
+    </a>
+    Scriptable Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scriptable Docs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alert/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Alert
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../args/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    args
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../calendar/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Calendar
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../calendarevent/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CalendarEvent
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../callbackurl/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CallbackURL
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../color/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Color
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    config
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../console/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    console
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contact/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contact
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contactscontainer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ContactsContainer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contactsgroup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ContactsGroup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dateformatter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DateFormatter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datepicker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DatePicker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../device/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dictation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dictation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentpicker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DocumentPicker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drawcontext/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DrawContext
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filemanager/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    FileManager
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../font/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Font
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../importmodule/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    importModule
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keychain/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Keychain
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lineargradient/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LinearGradient
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../listwidget/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ListWidget
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../location/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Location
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mail/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    module
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pasteboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pasteboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../path/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Path
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../photos/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../point/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Point
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quicklook/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    QuickLook
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rect/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rect
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recurrencerule/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RecurrenceRule
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../relativedatetimeformatter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RelativeDateTimeFormatter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Reminder
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Reminder
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#identifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      identifier
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#title" class="md-nav__link">
+    <span class="md-ellipsis">
+      title
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      notes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#iscompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      isCompleted
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#isoverdue" class="md-nav__link">
+    <span class="md-ellipsis">
+      isOverdue
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      priority
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#duedate" class="md-nav__link">
+    <span class="md-ellipsis">
+      dueDate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#duedateincludestime" class="md-nav__link">
+    <span class="md-ellipsis">
+      dueDateIncludesTime
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completiondate" class="md-nav__link">
+    <span class="md-ellipsis">
+      completionDate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creationdate" class="md-nav__link">
+    <span class="md-ellipsis">
+      creationDate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calendar" class="md-nav__link">
+    <span class="md-ellipsis">
+      calendar
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-new-reminder" class="md-nav__link">
+    <span class="md-ellipsis">
+      -new Reminder
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-addrecurrencerule" class="md-nav__link">
+    <span class="md-ellipsis">
+      -addRecurrenceRule
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-addRecurrenceRule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-removeallrecurrencerules" class="md-nav__link">
+    <span class="md-ellipsis">
+      -removeAllRecurrenceRules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      -save
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      -remove
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scheduled" class="md-nav__link">
+    <span class="md-ellipsis">
+      +scheduled
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+scheduled">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#all" class="md-nav__link">
+    <span class="md-ellipsis">
+      +all
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+all">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allcompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allCompleted
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allCompleted">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allincomplete" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allIncomplete
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allIncomplete">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduetoday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueToday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueToday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduetoday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueToday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueToday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduetoday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueToday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueToday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduetomorrow" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueTomorrow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueTomorrow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduetomorrow" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueTomorrow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueTomorrow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduetomorrow" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueTomorrow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueTomorrow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alldueyesterday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueYesterday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueYesterday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completeddueyesterday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueYesterday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueYesterday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompletedueyesterday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueYesterday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueYesterday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduethisweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueThisWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueThisWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduethisweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueThisWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueThisWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduethisweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueThisWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueThisWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduenextweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueNextWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueNextWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduenextweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueNextWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueNextWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduenextweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueNextWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueNextWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduelastweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueLastWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueLastWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduelastweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueLastWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueLastWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduelastweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueLastWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueLastWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedtoday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedToday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedToday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedthisweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedThisWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedThisWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedlastweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedLastWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedLastWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduebetween" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueBetween
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueBetween">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduebetween" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueBetween
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueBetween">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduebetween" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueBetween
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueBetween">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedbetween" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedBetween
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedBetween">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../request/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Request
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../safari/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Safari
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../script/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sfsymbol/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SFSymbol
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sharesheet/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ShareSheet
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../size/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Size
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../speech/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../textfield/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    TextField
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitable/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITable
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitablecell/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITableCell
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitablerow/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITableRow
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../urlscheme/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URLScheme
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uuid/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UUID
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../webview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WebView
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetdate/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetDate
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetimage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetImage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetspacer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetSpacer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetstack/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetStack
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgettext/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetText
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xmlparser/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    XMLParser
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#identifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      identifier
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#title" class="md-nav__link">
+    <span class="md-ellipsis">
+      title
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      notes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#iscompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      isCompleted
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#isoverdue" class="md-nav__link">
+    <span class="md-ellipsis">
+      isOverdue
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      priority
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#duedate" class="md-nav__link">
+    <span class="md-ellipsis">
+      dueDate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#duedateincludestime" class="md-nav__link">
+    <span class="md-ellipsis">
+      dueDateIncludesTime
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completiondate" class="md-nav__link">
+    <span class="md-ellipsis">
+      completionDate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creationdate" class="md-nav__link">
+    <span class="md-ellipsis">
+      creationDate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calendar" class="md-nav__link">
+    <span class="md-ellipsis">
+      calendar
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-new-reminder" class="md-nav__link">
+    <span class="md-ellipsis">
+      -new Reminder
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-addrecurrencerule" class="md-nav__link">
+    <span class="md-ellipsis">
+      -addRecurrenceRule
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-addRecurrenceRule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-removeallrecurrencerules" class="md-nav__link">
+    <span class="md-ellipsis">
+      -removeAllRecurrenceRules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      -save
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      -remove
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scheduled" class="md-nav__link">
+    <span class="md-ellipsis">
+      +scheduled
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+scheduled">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#all" class="md-nav__link">
+    <span class="md-ellipsis">
+      +all
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+all">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allcompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allCompleted
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allCompleted">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allincomplete" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allIncomplete
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allIncomplete">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduetoday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueToday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueToday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduetoday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueToday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueToday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduetoday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueToday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueToday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduetomorrow" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueTomorrow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueTomorrow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduetomorrow" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueTomorrow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueTomorrow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduetomorrow" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueTomorrow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueTomorrow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alldueyesterday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueYesterday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueYesterday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completeddueyesterday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueYesterday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueYesterday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompletedueyesterday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueYesterday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueYesterday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduethisweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueThisWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueThisWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduethisweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueThisWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueThisWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduethisweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueThisWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueThisWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduenextweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueNextWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueNextWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduenextweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueNextWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueNextWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduenextweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueNextWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueNextWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduelastweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueLastWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueLastWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduelastweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueLastWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueLastWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduelastweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueLastWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueLastWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedtoday" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedToday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedToday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedthisweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedThisWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedThisWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedlastweek" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedLastWeek
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedLastWeek">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allduebetween" class="md-nav__link">
+    <span class="md-ellipsis">
+      +allDueBetween
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+allDueBetween">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedduebetween" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedDueBetween
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedDueBetween">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incompleteduebetween" class="md-nav__link">
+    <span class="md-ellipsis">
+      +incompleteDueBetween
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+incompleteDueBetween">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completedbetween" class="md-nav__link">
+    <span class="md-ellipsis">
+      +completedBetween
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+completedBetween">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="reminder">Reminder<a class="headerlink" href="#reminder" title="Permanent link">&para;</a></h1>
+<p>Manages reminders in calendars.</p>
+<p>Used for creating, fetching and removing reminders from your calendars.</p>
+<h2 id="identifier">identifier<a class="headerlink" href="#identifier" title="Permanent link">&para;</a></h2>
+<p>Identifier of reminder.</p>
+<p><em>Read-only.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="nx">identifier</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<hr />
+<h2 id="title">title<a class="headerlink" href="#title" title="Permanent link">&para;</a></h2>
+<p>Title of reminder.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<hr />
+<h2 id="notes">notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<p>Notes associated with reminder.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">notes</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<hr />
+<h2 id="iscompleted">isCompleted<a class="headerlink" href="#iscompleted" title="Permanent link">&para;</a></h2>
+<p>Whether the reminder is completed.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">isCompleted</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<hr />
+<h2 id="isoverdue">isOverdue<a class="headerlink" href="#isoverdue" title="Permanent link">&para;</a></h2>
+<p>Whether the reminder is overdue.</p>
+<p><em>Read-only.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="nx">isOverdue</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<hr />
+<h2 id="priority">priority<a class="headerlink" href="#priority" title="Permanent link">&para;</a></h2>
+<p>Priority of reminder.</p>
+<p>Specifies the prirority of the reminder with 0 representing an undefined priority, 1 the highest priority, and 9 the lowest priority.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">priority</span><span class="o">:</span><span class="w"> </span><span class="nx">number</span>
+</code></pre></div>
+
+<hr />
+<h2 id="duedate">dueDate<a class="headerlink" href="#duedate" title="Permanent link">&para;</a></h2>
+<p>Due date of reminder.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">dueDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span>
+</code></pre></div>
+
+<hr />
+<h2 id="duedateincludestime">dueDateIncludesTime<a class="headerlink" href="#duedateincludestime" title="Permanent link">&para;</a></h2>
+<p>Whether the due date includes a time.</p>
+<p>When this is true, assignments to the <code>dueDate</code> property will include a time, when this is false, the time component of the date will be ignored. Defaults to true.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">dueDateIncludesTime</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<hr />
+<h2 id="completiondate">completionDate<a class="headerlink" href="#completiondate" title="Permanent link">&para;</a></h2>
+<p>Completion date of reminder.</p>
+<p><em>Read-only.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="nx">completionDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span>
+</code></pre></div>
+
+<hr />
+<h2 id="creationdate">creationDate<a class="headerlink" href="#creationdate" title="Permanent link">&para;</a></h2>
+<p>Creation date of reminder.</p>
+<p><em>Read-only.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="nx">creationDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span>
+</code></pre></div>
+
+<hr />
+<h2 id="calendar">calendar<a class="headerlink" href="#calendar" title="Permanent link">&para;</a></h2>
+<p>Calendar the reminder is stored in.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">calendar</span><span class="o">:</span><span class="w"> </span><span class="nx">Calendar</span>
+</code></pre></div>
+
+<hr />
+<h2 id="-new-reminder">-new Reminder<a class="headerlink" href="#-new-reminder" title="Permanent link">&para;</a></h2>
+<p>Constructs a reminder.</p>
+<div class="codehilite"><pre><span></span><code><span class="ow">new</span><span class="w"> </span><span class="nx">Reminder</span><span class="p">()</span>
+</code></pre></div>
+
+<p>In order to add the reminder to your calendar, you must call the save() function.</p>
+<hr />
+<h2 id="-addrecurrencerule">-addRecurrenceRule<a class="headerlink" href="#-addrecurrencerule" title="Permanent link">&para;</a></h2>
+<p>Adds a recurrence rule.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">addRecurrenceRule</span><span class="p">(</span><span class="nx">recurrenceRule</span><span class="o">:</span><span class="w"> </span><span class="nx">RecurrenceRule</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Recurrence rules specify when the reminder should be repeated. See the documentation of RecurrenceRule for more information on creating rules.</p>
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
+<p><strong>recurrenceRule</strong><br />
+<em>RecurrenceRule</em><br />
+Recurrence rule to add to the reminder.</p>
+<hr />
+<h2 id="-removeallrecurrencerules">-removeAllRecurrenceRules<a class="headerlink" href="#-removeallrecurrencerules" title="Permanent link">&para;</a></h2>
+<p>Removes all recurrence rules.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">removeAllRecurrenceRules</span><span class="p">()</span>
+</code></pre></div>
+
+<hr />
+<h2 id="-save">-save<a class="headerlink" href="#-save" title="Permanent link">&para;</a></h2>
+<p>Saves reminder.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">save</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Saves changes to a reminder, inserting it into the calendar if it is newly created.</p>
+<hr />
+<h2 id="-remove">-remove<a class="headerlink" href="#-remove" title="Permanent link">&para;</a></h2>
+<p>Removes reminder from calendar.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">remove</span><span class="p">()</span>
+</code></pre></div>
+
+<hr />
+<h2 id="scheduled">+scheduled<a class="headerlink" href="#scheduled" title="Permanent link">&para;</a></h2>
+<p>Fetches the schedule of reminders.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">scheduled</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>The fetched result contains reminders that are due today and reminders that are overdue. This is similar to the reminders shown in the Reminders apps "Scheduled" list.
+For performance reasons iOS limits fetched results to events within a four year timespan.</p>
+<h3 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value">Return value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="all">+all<a class="headerlink" href="#all" title="Permanent link">&para;</a></h2>
+<p>Fetches all reminders.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">all</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>For performance reasons iOS limits fetched results to events within a four year timespan.</p>
+<h3 id="parameters_2">Parameters<a class="headerlink" href="#parameters_2" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_1">Return value<a class="headerlink" href="#return-value_1" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="allcompleted">+allCompleted<a class="headerlink" href="#allcompleted" title="Permanent link">&para;</a></h2>
+<p>Fetches all completed reminders.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">allCompleted</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>For performance reasons iOS limits fetched results to events within a four year timespan.</p>
+<h3 id="parameters_3">Parameters<a class="headerlink" href="#parameters_3" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_2">Return value<a class="headerlink" href="#return-value_2" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="allincomplete">+allIncomplete<a class="headerlink" href="#allincomplete" title="Permanent link">&para;</a></h2>
+<p>Fetches all incomplete reminders.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">allIncomplete</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>For performance reasons iOS limits fetched results to events within a four year timespan.</p>
+<h3 id="parameters_4">Parameters<a class="headerlink" href="#parameters_4" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_3">Return value<a class="headerlink" href="#return-value_3" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="allduetoday">+allDueToday<a class="headerlink" href="#allduetoday" title="Permanent link">&para;</a></h2>
+<p>Fetches all reminders due today.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">allDueToday</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_5">Parameters<a class="headerlink" href="#parameters_5" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_4">Return value<a class="headerlink" href="#return-value_4" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedduetoday">+completedDueToday<a class="headerlink" href="#completedduetoday" title="Permanent link">&para;</a></h2>
+<p>Fetches completed reminders due today.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedDueToday</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_6">Parameters<a class="headerlink" href="#parameters_6" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_5">Return value<a class="headerlink" href="#return-value_5" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="incompleteduetoday">+incompleteDueToday<a class="headerlink" href="#incompleteduetoday" title="Permanent link">&para;</a></h2>
+<p>Fetches incomplete reminders due today.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">incompleteDueToday</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_7">Parameters<a class="headerlink" href="#parameters_7" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_6">Return value<a class="headerlink" href="#return-value_6" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="allduetomorrow">+allDueTomorrow<a class="headerlink" href="#allduetomorrow" title="Permanent link">&para;</a></h2>
+<p>Fetches all reminders due tomorrow.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">allDueTomorrow</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_8">Parameters<a class="headerlink" href="#parameters_8" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_7">Return value<a class="headerlink" href="#return-value_7" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedduetomorrow">+completedDueTomorrow<a class="headerlink" href="#completedduetomorrow" title="Permanent link">&para;</a></h2>
+<p>Fetches completed reminders due tomorrow.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedDueTomorrow</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_9">Parameters<a class="headerlink" href="#parameters_9" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_8">Return value<a class="headerlink" href="#return-value_8" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="incompleteduetomorrow">+incompleteDueTomorrow<a class="headerlink" href="#incompleteduetomorrow" title="Permanent link">&para;</a></h2>
+<p>Fetches incomplete reminders due tomorrow.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">incompleteDueTomorrow</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_10">Parameters<a class="headerlink" href="#parameters_10" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_9">Return value<a class="headerlink" href="#return-value_9" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="alldueyesterday">+allDueYesterday<a class="headerlink" href="#alldueyesterday" title="Permanent link">&para;</a></h2>
+<p>Fetches all reminders due yesterday.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">allDueYesterday</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_11">Parameters<a class="headerlink" href="#parameters_11" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_10">Return value<a class="headerlink" href="#return-value_10" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completeddueyesterday">+completedDueYesterday<a class="headerlink" href="#completeddueyesterday" title="Permanent link">&para;</a></h2>
+<p>Fetches completed reminders due yesterday.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedDueYesterday</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_12">Parameters<a class="headerlink" href="#parameters_12" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_11">Return value<a class="headerlink" href="#return-value_11" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="incompletedueyesterday">+incompleteDueYesterday<a class="headerlink" href="#incompletedueyesterday" title="Permanent link">&para;</a></h2>
+<p>Fetches incomplete reminders due yesterday.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">incompleteDueYesterday</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_13">Parameters<a class="headerlink" href="#parameters_13" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_12">Return value<a class="headerlink" href="#return-value_12" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="allduethisweek">+allDueThisWeek<a class="headerlink" href="#allduethisweek" title="Permanent link">&para;</a></h2>
+<p>Fetches all reminders due this week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">allDueThisWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_14">Parameters<a class="headerlink" href="#parameters_14" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_13">Return value<a class="headerlink" href="#return-value_13" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedduethisweek">+completedDueThisWeek<a class="headerlink" href="#completedduethisweek" title="Permanent link">&para;</a></h2>
+<p>Fetches completed reminders due this week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedDueThisWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_15">Parameters<a class="headerlink" href="#parameters_15" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_14">Return value<a class="headerlink" href="#return-value_14" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="incompleteduethisweek">+incompleteDueThisWeek<a class="headerlink" href="#incompleteduethisweek" title="Permanent link">&para;</a></h2>
+<p>Fetches incomplete reminders due this week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">incompleteDueThisWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_16">Parameters<a class="headerlink" href="#parameters_16" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_15">Return value<a class="headerlink" href="#return-value_15" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="allduenextweek">+allDueNextWeek<a class="headerlink" href="#allduenextweek" title="Permanent link">&para;</a></h2>
+<p>Fetches all reminders due next week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">allDueNextWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_17">Parameters<a class="headerlink" href="#parameters_17" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_16">Return value<a class="headerlink" href="#return-value_16" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedduenextweek">+completedDueNextWeek<a class="headerlink" href="#completedduenextweek" title="Permanent link">&para;</a></h2>
+<p>Fetches completed reminders due next week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedDueNextWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_18">Parameters<a class="headerlink" href="#parameters_18" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_17">Return value<a class="headerlink" href="#return-value_17" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="incompleteduenextweek">+incompleteDueNextWeek<a class="headerlink" href="#incompleteduenextweek" title="Permanent link">&para;</a></h2>
+<p>Fetches incomplete reminders due next week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">incompleteDueNextWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_19">Parameters<a class="headerlink" href="#parameters_19" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_18">Return value<a class="headerlink" href="#return-value_18" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="allduelastweek">+allDueLastWeek<a class="headerlink" href="#allduelastweek" title="Permanent link">&para;</a></h2>
+<p>Fetches all reminders due last week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">allDueLastWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_20">Parameters<a class="headerlink" href="#parameters_20" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_19">Return value<a class="headerlink" href="#return-value_19" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedduelastweek">+completedDueLastWeek<a class="headerlink" href="#completedduelastweek" title="Permanent link">&para;</a></h2>
+<p>Fetches completed reminders due last week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedDueLastWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_21">Parameters<a class="headerlink" href="#parameters_21" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_20">Return value<a class="headerlink" href="#return-value_20" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="incompleteduelastweek">+incompleteDueLastWeek<a class="headerlink" href="#incompleteduelastweek" title="Permanent link">&para;</a></h2>
+<p>Fetches incomplete reminders due last week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">incompleteDueLastWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="parameters_22">Parameters<a class="headerlink" href="#parameters_22" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_21">Return value<a class="headerlink" href="#return-value_21" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedtoday">+completedToday<a class="headerlink" href="#completedtoday" title="Permanent link">&para;</a></h2>
+<p>Fetches reminders completed today.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedToday</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>Note that this does not take the due date into account. This will return all reminders that you have completed today.</p>
+<h3 id="parameters_23">Parameters<a class="headerlink" href="#parameters_23" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_22">Return value<a class="headerlink" href="#return-value_22" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedthisweek">+completedThisWeek<a class="headerlink" href="#completedthisweek" title="Permanent link">&para;</a></h2>
+<p>Fetches reminders completed this week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedThisWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>Note that this does not take the due date into account. This will return all reminders that you have completed this week.</p>
+<h3 id="parameters_24">Parameters<a class="headerlink" href="#parameters_24" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_23">Return value<a class="headerlink" href="#return-value_23" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedlastweek">+completedLastWeek<a class="headerlink" href="#completedlastweek" title="Permanent link">&para;</a></h2>
+<p>Fetches reminders completed last week.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedLastWeek</span><span class="p">(</span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>Note that this does not take the due date into account. This will return all reminders that you have completed last week.</p>
+<h3 id="parameters_25">Parameters<a class="headerlink" href="#parameters_25" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_24">Return value<a class="headerlink" href="#return-value_24" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="allduebetween">+allDueBetween<a class="headerlink" href="#allduebetween" title="Permanent link">&para;</a></h2>
+<p>Fetches due reminders.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">allDueBetween</span><span class="p">(</span><span class="nx">startDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">,</span><span class="w"> </span><span class="nx">endDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">,</span><span class="w"> </span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>Fetches reminders that are due within the time interval constituted by
+the start and end dates.</p>
+<h3 id="parameters_26">Parameters<a class="headerlink" href="#parameters_26" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_25">Return value<a class="headerlink" href="#return-value_25" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedduebetween">+completedDueBetween<a class="headerlink" href="#completedduebetween" title="Permanent link">&para;</a></h2>
+<p>Fetches completed reminders.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedDueBetween</span><span class="p">(</span><span class="nx">startDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">,</span><span class="w"> </span><span class="nx">endDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">,</span><span class="w"> </span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>Fetches reminders that are completed and that were due within the time interval constituted by the start and end dates.</p>
+<h3 id="parameters_27">Parameters<a class="headerlink" href="#parameters_27" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_26">Return value<a class="headerlink" href="#return-value_26" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="incompleteduebetween">+incompleteDueBetween<a class="headerlink" href="#incompleteduebetween" title="Permanent link">&para;</a></h2>
+<p>Fetches incomplete reminders.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">incompleteDueBetween</span><span class="p">(</span><span class="nx">startDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">,</span><span class="w"> </span><span class="nx">endDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">,</span><span class="w"> </span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>Fetches reminders that are incomplete and that were due within the time interval constituted by the start and end dates.</p>
+<h3 id="parameters_28">Parameters<a class="headerlink" href="#parameters_28" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_27">Return value<a class="headerlink" href="#return-value_27" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+<h2 id="completedbetween">+completedBetween<a class="headerlink" href="#completedbetween" title="Permanent link">&para;</a></h2>
+<p>Fetches completed reminders.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">completedBetween</span><span class="p">(</span><span class="nx">startDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">,</span><span class="w"> </span><span class="nx">endDate</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">,</span><span class="w"> </span><span class="nx">calendars</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">Calendar</span><span class="p">])</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="p">[</span><span class="nx">Reminder</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>Fetches reminders that were completed within the time interval constituted by the start and end dates.</p>
+<h3 id="parameters_29">Parameters<a class="headerlink" href="#parameters_29" title="Permanent link">&para;</a></h3>
+<p><strong>calendars</strong><br />
+<em>[Calendar]</em><br />
+Calendars to fetch reminders for. Defaults to all calendars.</p>
+<h3 id="return-value_28">Return value<a class="headerlink" href="#return-value_28" title="Permanent link">&para;</a></h3>
+<p><em>Promise&lt;[Reminder]&gt;</em><br />
+Promise that provides the reminders when fulfilled.</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+<footer class="md-footer">
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            © 2023 Simon B. Støvring. All rights reserved.
+          </div>
+        
+        <div>
+          <a href="https://scriptable.app/scriptable-press-kit.zip">Press Kit</a>
+          &nbsp;
+          <a href="https://scriptable.app/privacy-policy/">Privacy Policy</a>
+          &nbsp;
+          <a href="mailto:mail@scriptable.app">Contact</a>
+        </div>
+        powered by
+        <a href="https://www.mkdocs.org">MkDocs</a>
+        and
+        <a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a>
+      </div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/scriptableapp" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>

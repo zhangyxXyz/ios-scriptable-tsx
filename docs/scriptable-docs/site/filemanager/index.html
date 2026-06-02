@@ -1,0 +1,4341 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Scriptable, an automation app for iOS.">
+      
+      
+      
+        <link rel="canonical" href="https://docs.scriptable.app/filemanager/">
+      
+      
+        <link rel="prev" href="../drawcontext/">
+      
+      
+        <link rel="next" href="../font/">
+      
+      
+      <link rel="icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.46">
+    
+    
+      
+        <title>FileManager - Scriptable Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6f8fc17f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../css/extra_material.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#filemanager" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Scriptable Docs" class="md-header__button md-logo" aria-label="Scriptable Docs" data-md-component="logo">
+      
+  <img src="../img/glyph.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Scriptable Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FileManager
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Scriptable Docs" class="md-nav__button md-logo" aria-label="Scriptable Docs" data-md-component="logo">
+      
+  <img src="../img/glyph.png" alt="logo">
+
+    </a>
+    Scriptable Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scriptable Docs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alert/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Alert
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../args/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    args
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../calendar/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Calendar
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../calendarevent/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CalendarEvent
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../callbackurl/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CallbackURL
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../color/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Color
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    config
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../console/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    console
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contact/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contact
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contactscontainer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ContactsContainer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contactsgroup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ContactsGroup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dateformatter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DateFormatter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datepicker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DatePicker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../device/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dictation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dictation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentpicker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DocumentPicker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drawcontext/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DrawContext
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    FileManager
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    FileManager
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#local" class="md-nav__link">
+    <span class="md-ellipsis">
+      +local
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+local">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#icloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      +iCloud
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+iCloud">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      -read
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-read">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-readstring" class="md-nav__link">
+    <span class="md-ellipsis">
+      -readString
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-readString">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-readimage" class="md-nav__link">
+    <span class="md-ellipsis">
+      -readImage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-readImage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      -write
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-write">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-writestring" class="md-nav__link">
+    <span class="md-ellipsis">
+      -writeString
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-writeString">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-writeimage" class="md-nav__link">
+    <span class="md-ellipsis">
+      -writeImage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-writeImage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      -remove
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-remove">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-move" class="md-nav__link">
+    <span class="md-ellipsis">
+      -move
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-move">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-copy" class="md-nav__link">
+    <span class="md-ellipsis">
+      -copy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-copy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fileexists" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fileExists
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fileExists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-isdirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -isDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-isDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-createdirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -createDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-createDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-temporarydirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -temporaryDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-temporaryDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-cachedirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -cacheDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-cacheDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-documentsdirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -documentsDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-documentsDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-librarydirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -libraryDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-libraryDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-joinpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -joinPath
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-joinPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-alltags" class="md-nav__link">
+    <span class="md-ellipsis">
+      -allTags
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-allTags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-addtag" class="md-nav__link">
+    <span class="md-ellipsis">
+      -addTag
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-addTag">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-removetag" class="md-nav__link">
+    <span class="md-ellipsis">
+      -removeTag
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-removeTag">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-readextendedattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      -readExtendedAttribute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-readExtendedAttribute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-writeextendedattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      -writeExtendedAttribute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-writeExtendedAttribute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-removeextendedattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      -removeExtendedAttribute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-removeExtendedAttribute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-allextendedattributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      -allExtendedAttributes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-allExtendedAttributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-getuti" class="md-nav__link">
+    <span class="md-ellipsis">
+      -getUTI
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-getUTI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-listcontents" class="md-nav__link">
+    <span class="md-ellipsis">
+      -listContents
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-listContents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-filename" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fileName
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fileName">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fileextension" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fileExtension
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fileExtension">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-bookmarkedpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -bookmarkedPath
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-bookmarkedPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-bookmarkexists" class="md-nav__link">
+    <span class="md-ellipsis">
+      -bookmarkExists
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-bookmarkExists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-downloadfilefromicloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      -downloadFileFromiCloud
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-downloadFileFromiCloud">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-isfilestoredinicloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      -isFileStoredIniCloud
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-isFileStoredIniCloud">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-isfiledownloaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      -isFileDownloaded
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-isFileDownloaded">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-creationdate" class="md-nav__link">
+    <span class="md-ellipsis">
+      -creationDate
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-creationDate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-modificationdate" class="md-nav__link">
+    <span class="md-ellipsis">
+      -modificationDate
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-modificationDate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-filesize" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fileSize
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fileSize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-allfilebookmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      -allFileBookmarks
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../font/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Font
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../importmodule/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    importModule
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keychain/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Keychain
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lineargradient/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LinearGradient
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../listwidget/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ListWidget
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../location/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Location
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mail/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    module
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pasteboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pasteboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../path/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Path
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../photos/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../point/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Point
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quicklook/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    QuickLook
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rect/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rect
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recurrencerule/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RecurrenceRule
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../relativedatetimeformatter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RelativeDateTimeFormatter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reminder/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reminder
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../request/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Request
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../safari/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Safari
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../script/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sfsymbol/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SFSymbol
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sharesheet/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ShareSheet
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../size/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Size
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../speech/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../textfield/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    TextField
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitable/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITable
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitablecell/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITableCell
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitablerow/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITableRow
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../urlscheme/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URLScheme
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uuid/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UUID
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../webview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WebView
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetdate/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetDate
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetimage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetImage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetspacer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetSpacer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetstack/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetStack
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgettext/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetText
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xmlparser/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    XMLParser
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#local" class="md-nav__link">
+    <span class="md-ellipsis">
+      +local
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+local">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#icloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      +iCloud
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+iCloud">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      -read
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-read">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-readstring" class="md-nav__link">
+    <span class="md-ellipsis">
+      -readString
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-readString">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-readimage" class="md-nav__link">
+    <span class="md-ellipsis">
+      -readImage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-readImage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      -write
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-write">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-writestring" class="md-nav__link">
+    <span class="md-ellipsis">
+      -writeString
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-writeString">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-writeimage" class="md-nav__link">
+    <span class="md-ellipsis">
+      -writeImage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-writeImage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      -remove
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-remove">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-move" class="md-nav__link">
+    <span class="md-ellipsis">
+      -move
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-move">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-copy" class="md-nav__link">
+    <span class="md-ellipsis">
+      -copy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-copy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fileexists" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fileExists
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fileExists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-isdirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -isDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-isDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-createdirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -createDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-createDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-temporarydirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -temporaryDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-temporaryDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-cachedirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -cacheDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-cacheDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-documentsdirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -documentsDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-documentsDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-librarydirectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      -libraryDirectory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-libraryDirectory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-joinpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -joinPath
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-joinPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-alltags" class="md-nav__link">
+    <span class="md-ellipsis">
+      -allTags
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-allTags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-addtag" class="md-nav__link">
+    <span class="md-ellipsis">
+      -addTag
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-addTag">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-removetag" class="md-nav__link">
+    <span class="md-ellipsis">
+      -removeTag
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-removeTag">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-readextendedattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      -readExtendedAttribute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-readExtendedAttribute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-writeextendedattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      -writeExtendedAttribute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-writeExtendedAttribute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-removeextendedattribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      -removeExtendedAttribute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-removeExtendedAttribute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-allextendedattributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      -allExtendedAttributes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-allExtendedAttributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-getuti" class="md-nav__link">
+    <span class="md-ellipsis">
+      -getUTI
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-getUTI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-listcontents" class="md-nav__link">
+    <span class="md-ellipsis">
+      -listContents
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-listContents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-filename" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fileName
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fileName">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fileextension" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fileExtension
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fileExtension">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-bookmarkedpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -bookmarkedPath
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-bookmarkedPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-bookmarkexists" class="md-nav__link">
+    <span class="md-ellipsis">
+      -bookmarkExists
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-bookmarkExists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-downloadfilefromicloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      -downloadFileFromiCloud
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-downloadFileFromiCloud">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-isfilestoredinicloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      -isFileStoredIniCloud
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-isFileStoredIniCloud">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-isfiledownloaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      -isFileDownloaded
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-isFileDownloaded">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-creationdate" class="md-nav__link">
+    <span class="md-ellipsis">
+      -creationDate
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-creationDate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-modificationdate" class="md-nav__link">
+    <span class="md-ellipsis">
+      -modificationDate
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-modificationDate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-filesize" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fileSize
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fileSize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-allfilebookmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      -allFileBookmarks
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="filemanager">FileManager<a class="headerlink" href="#filemanager" title="Permanent link">&para;</a></h1>
+<p>Read and write files on disk.</p>
+<p>A FileManager lets you read files stored on the disk and make changes to them. Paths to files are supplied as strings.</p>
+<h2 id="local">+local<a class="headerlink" href="#local" title="Permanent link">&para;</a></h2>
+<p>Creates a local FileManager.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">local</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">FileManager</span>
+</code></pre></div>
+
+<p>Creates a file manager for operating with files stored locally.</p>
+<h3 id="return-value">Return value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h3>
+<p><em>FileManager</em><br />
+Local FileManager.</p>
+<hr />
+<h2 id="icloud">+iCloud<a class="headerlink" href="#icloud" title="Permanent link">&para;</a></h2>
+<p>Creates an iCloud FileManager.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">iCloud</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">FileManager</span>
+</code></pre></div>
+
+<p>Creates a file manager for operating with files stored in iCloud. iCloud must be enabled on the device in order to use this.</p>
+<h3 id="return-value_1">Return value<a class="headerlink" href="#return-value_1" title="Permanent link">&para;</a></h3>
+<p><em>FileManager</em><br />
+iCloud FileManager.</p>
+<hr />
+<h2 id="-read">-read<a class="headerlink" href="#-read" title="Permanent link">&para;</a></h2>
+<p>Read contents of a file as data.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">read</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">Data</span>
+</code></pre></div>
+
+<p>Reads the contents of the file specified by the file path as raw data. To read the file as a string see <code>readString(filePath)</code> and to read it as an image see <code>readImage(filePath)</code>.</p>
+<p>The function will error if the file does not exist or if it exists in iCloud but has not been download. Use <code>fileExists(filePath)</code> to check if a file exists and <code>downloadFileFromiCloud(filePath)</code> to download the file. Note that it is always safe to call <code>downloadFileFromiCloud(filePath)</code>, even if the file is stored locally on the device.</p>
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of the file to read.</p>
+<h3 id="return-value_2">Return value<a class="headerlink" href="#return-value_2" title="Permanent link">&para;</a></h3>
+<p><em>Data</em><br />
+Contents of the file as a data or null if the file could not be read.</p>
+<hr />
+<h2 id="-readstring">-readString<a class="headerlink" href="#-readstring" title="Permanent link">&para;</a></h2>
+<p>Read contents of a file as string.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">readString</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>The function will error if the file does not exist or if it exists in iCloud but has not been download. Use <code>fileExists(filePath)</code> to check if a file exists and <code>downloadFileFromiCloud(filePath)</code> to download the file. Note that it is always safe to call <code>downloadFileFromiCloud(filePath)</code>, even if the file is stored locally on the device.</p>
+<h3 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of the file to read.</p>
+<h3 id="return-value_3">Return value<a class="headerlink" href="#return-value_3" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Contents of the file as a string or null if the file could not be read.</p>
+<hr />
+<h2 id="-readimage">-readImage<a class="headerlink" href="#-readimage" title="Permanent link">&para;</a></h2>
+<p>Read contents of a file as an image.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">readImage</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">Image</span>
+</code></pre></div>
+
+<p>Reads the contents of the file specified by the file path and converts it to an image.</p>
+<p>The function will error if the file does not exist or if it exists in iCloud but has not been download. Use <code>fileExists(filePath)</code> to check if a file exists and <code>downloadFileFromiCloud(filePath)</code> to download the file. Note that it is always safe to call <code>downloadFileFromiCloud(filePath)</code>, even if the file is stored locally on the device.</p>
+<h3 id="parameters_2">Parameters<a class="headerlink" href="#parameters_2" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of the file to read.</p>
+<h3 id="return-value_4">Return value<a class="headerlink" href="#return-value_4" title="Permanent link">&para;</a></h3>
+<p><em>Image</em><br />
+Contents of the file as an image or null if the file could not be read.</p>
+<hr />
+<h2 id="-write">-write<a class="headerlink" href="#-write" title="Permanent link">&para;</a></h2>
+<p>Write data to a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">write</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="nx">Data</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="parameters_3">Parameters<a class="headerlink" href="#parameters_3" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to write to.</p>
+<p><strong>content</strong><br />
+<em>Data</em><br />
+Data to write to disk.</p>
+<hr />
+<h2 id="-writestring">-writeString<a class="headerlink" href="#-writestring" title="Permanent link">&para;</a></h2>
+<p>Write a string to a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">writeString</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Writes the content to the specified file path on disk. If the file does not already exist, it will be created. If the file already exists the contents of the file will be overwritten with the new content.</p>
+<h3 id="parameters_4">Parameters<a class="headerlink" href="#parameters_4" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to write to.</p>
+<p><strong>content</strong><br />
+<em>string</em><br />
+Content to write to disk.</p>
+<hr />
+<h2 id="-writeimage">-writeImage<a class="headerlink" href="#-writeimage" title="Permanent link">&para;</a></h2>
+<p>Write an image to a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">writeImage</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">image</span><span class="o">:</span><span class="w"> </span><span class="nx">Image</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Writes the image to the specified file path on disk. If the file does not already exist, it will be created. If the file already exists the contents of the file will be overwritten with the new content.</p>
+<h3 id="parameters_5">Parameters<a class="headerlink" href="#parameters_5" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to write to.</p>
+<p><strong>image</strong><br />
+<em>Image</em><br />
+Image to write to disk.</p>
+<hr />
+<h2 id="-remove">-remove<a class="headerlink" href="#-remove" title="Permanent link">&para;</a></h2>
+<p>Removes a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">remove</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Removes the file at the specified path. Use with caution. Removed files cannot be restored.</p>
+<h3 id="parameters_6">Parameters<a class="headerlink" href="#parameters_6" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to remove.</p>
+<hr />
+<h2 id="-move">-move<a class="headerlink" href="#-move" title="Permanent link">&para;</a></h2>
+<p>Moves a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">move</span><span class="p">(</span><span class="nx">sourceFilePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">destinationFilePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Moves the file from the source path to the destination path.
+Caution: This operation will replace any existing file at the the destination.</p>
+<h3 id="parameters_7">Parameters<a class="headerlink" href="#parameters_7" title="Permanent link">&para;</a></h3>
+<p><strong>sourceFilePath</strong><br />
+<em>string</em><br />
+Path of the file to move.</p>
+<p><strong>destinationFilePath</strong><br />
+<em>string</em><br />
+Path to move the file to.</p>
+<hr />
+<h2 id="-copy">-copy<a class="headerlink" href="#-copy" title="Permanent link">&para;</a></h2>
+<p>Copies a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">copy</span><span class="p">(</span><span class="nx">sourceFilePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">destinationFilePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Copies the file from the source path to the destination path.
+If a file already exists at the destination file path, the operation will fail and the file will not be copied.</p>
+<h3 id="parameters_8">Parameters<a class="headerlink" href="#parameters_8" title="Permanent link">&para;</a></h3>
+<p><strong>sourceFilePath</strong><br />
+<em>string</em><br />
+Path of the file to copy.</p>
+<p><strong>destinationFilePath</strong><br />
+<em>string</em><br />
+Path to copy the file to.</p>
+<hr />
+<h2 id="-fileexists">-fileExists<a class="headerlink" href="#-fileexists" title="Permanent link">&para;</a></h2>
+<p>Checks if the file exists.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">fileExists</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<p>Checks if the file exists at the specified file path. Checking this before moving or copying to a destination can be a good idea as those operations will replace any existing file at the destination file path.</p>
+<h3 id="parameters_9">Parameters<a class="headerlink" href="#parameters_9" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+File path to examine.</p>
+<h3 id="return-value_5">Return value<a class="headerlink" href="#return-value_5" title="Permanent link">&para;</a></h3>
+<p><em>bool</em><br />
+True if the file exists otherwise false.</p>
+<hr />
+<h2 id="-isdirectory">-isDirectory<a class="headerlink" href="#-isdirectory" title="Permanent link">&para;</a></h2>
+<p>Checks if a path points to a directory.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">isDirectory</span><span class="p">(</span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<h3 id="parameters_10">Parameters<a class="headerlink" href="#parameters_10" title="Permanent link">&para;</a></h3>
+<p><strong>path</strong><br />
+<em>string</em><br />
+Path to examine.</p>
+<h3 id="return-value_6">Return value<a class="headerlink" href="#return-value_6" title="Permanent link">&para;</a></h3>
+<p><em>bool</em><br />
+True if the path points to a directory otherwise false.</p>
+<hr />
+<h2 id="-createdirectory">-createDirectory<a class="headerlink" href="#-createdirectory" title="Permanent link">&para;</a></h2>
+<p>Creates a directory at the specified path.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">createDirectory</span><span class="p">(</span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">intermediateDirectories</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span><span class="p">)</span>
+</code></pre></div>
+
+<p>You can optionally create all intermediate directories.</p>
+<h3 id="parameters_11">Parameters<a class="headerlink" href="#parameters_11" title="Permanent link">&para;</a></h3>
+<p><strong>path</strong><br />
+<em>string</em><br />
+Path of directory to create.</p>
+<p><strong>intermediateDirectories</strong><br />
+<em>bool</em><br />
+Whether to create all intermediate directories. Defaults to false.</p>
+<hr />
+<h2 id="-temporarydirectory">-temporaryDirectory<a class="headerlink" href="#-temporarydirectory" title="Permanent link">&para;</a></h2>
+<p>Path of temporary directory.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">temporaryDirectory</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>Used to retrieve the path of a temporary directory on disk. 
+Data persisted in a temporary directory will generally live shorter than data persisted in the cache directory.</p>
+<p>The operating system may at any time delete files stored in this directory
+and therefore you should not rely on it for long time storage.
+If you need long time storage, see documentsDirectory() or libraryDirectory(). This directory is not shared between the app, the action extension and Siri.</p>
+<h3 id="return-value_7">Return value<a class="headerlink" href="#return-value_7" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Path to temporary directory.</p>
+<hr />
+<h2 id="-cachedirectory">-cacheDirectory<a class="headerlink" href="#-cachedirectory" title="Permanent link">&para;</a></h2>
+<p>Path of cache directory.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">cacheDirectory</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>Used to retrieve the path of a cache directory on disk. 
+The operating system may at any time delete files stored in this directory
+and therefore you should not rely on it for long time storage.</p>
+<p>Data persisted in the cache directory will generally live longer than data persisted in a temporary directory.</p>
+<p>If you need long time storage, see documentsDirectory() or libraryDirectory(). This directory is not shared between the app, the action extension and Siri.</p>
+<h3 id="return-value_8">Return value<a class="headerlink" href="#return-value_8" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Path to temporary directory.</p>
+<hr />
+<h2 id="-documentsdirectory">-documentsDirectory<a class="headerlink" href="#-documentsdirectory" title="Permanent link">&para;</a></h2>
+<p>Path of documents directory.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">documentsDirectory</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>Used to retrieve the path to the documents directory. Your scripts are stored in this directory. If you have iCloud enabled, your scripts will be stored in the documents directory in iCloud otherwise they will be stored in the local documents directory. The directory can be used for long time storage. Documents stored in this directory can be accessed using the Files app. Files stored in the local documents directory will not appear in the Files app.</p>
+<h3 id="return-value_9">Return value<a class="headerlink" href="#return-value_9" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Path to documents directory.</p>
+<hr />
+<h2 id="-librarydirectory">-libraryDirectory<a class="headerlink" href="#-librarydirectory" title="Permanent link">&para;</a></h2>
+<p>Path of library directory.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">libraryDirectory</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>Used to retrieve the path to the library directory. The directory can be used for long time storage. Documents stored in this directory cannot be accessed using the Files app.</p>
+<h3 id="return-value_10">Return value<a class="headerlink" href="#return-value_10" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Path to library directory.</p>
+<hr />
+<h2 id="-joinpath">-joinPath<a class="headerlink" href="#-joinpath" title="Permanent link">&para;</a></h2>
+<p>Joins two path components.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">joinPath</span><span class="p">(</span><span class="nx">lhsPath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">rhsPath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>Joins two paths to created one path. For example to join the path to a directory with the name of a file. This is the suggested approach for creating new file paths passed to the read and write functions of a FileManager.</p>
+<h3 id="parameters_12">Parameters<a class="headerlink" href="#parameters_12" title="Permanent link">&para;</a></h3>
+<p><strong>lhsPath</strong><br />
+<em>string</em><br />
+Left-hand side part of the new path.</p>
+<p><strong>rhsPath</strong><br />
+<em>string</em><br />
+Right-hand side part of the new path.</p>
+<h3 id="return-value_11">Return value<a class="headerlink" href="#return-value_11" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Path with the two path components joined.</p>
+<hr />
+<h2 id="-alltags">-allTags<a class="headerlink" href="#-alltags" title="Permanent link">&para;</a></h2>
+<p>Reads all tags from a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">allTags</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">string</span><span class="p">]</span>
+</code></pre></div>
+
+<p>The tags are read from the file at the specified path. Tags can either be read, added and removed using the Files app by using the APIs provided by a FileManager.</p>
+<p>The function will error if the file does not exist or if it exists in iCloud but has not been download. Use <code>fileExists(filePath)</code> to check if a file exists and <code>downloadFileFromiCloud(filePath)</code> to download the file. Note that it is always safe to call <code>downloadFileFromiCloud(filePath)</code>, even if the file is stored locally on the device.</p>
+<h3 id="parameters_13">Parameters<a class="headerlink" href="#parameters_13" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to read tags from.</p>
+<h3 id="return-value_12">Return value<a class="headerlink" href="#return-value_12" title="Permanent link">&para;</a></h3>
+<p><em>[string]</em><br />
+Read tags.</p>
+<hr />
+<h2 id="-addtag">-addTag<a class="headerlink" href="#-addtag" title="Permanent link">&para;</a></h2>
+<p>Adds a tag to a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">addTag</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">tag</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span>
+</code></pre></div>
+
+<p>A tag can only be added to a file once. It is not possible to specify a color for the tag. You can create the tags using the Files app to specify the color and then add them to files afterwards using the FileManager API.</p>
+<p>The function will error if the file does not exist or if it exists in iCloud but has not been download. Use <code>fileExists(filePath)</code> to check if a file exists and <code>downloadFileFromiCloud(filePath)</code> to download the file. Note that it is always safe to call <code>downloadFileFromiCloud(filePath)</code>, even if the file is stored locally on the device.</p>
+<h3 id="parameters_14">Parameters<a class="headerlink" href="#parameters_14" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to add the tag to.</p>
+<p><strong>tag</strong><br />
+<em>string</em><br />
+Tag to add. This can be an existing tag or a new tag.</p>
+<hr />
+<h2 id="-removetag">-removeTag<a class="headerlink" href="#-removetag" title="Permanent link">&para;</a></h2>
+<p>Removes a tag from a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">removeTag</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">tag</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span>
+</code></pre></div>
+
+<p>The function will error if the file does not exist or if it exists in iCloud but has not been download. Use <code>fileExists(filePath)</code> to check if a file exists and <code>downloadFileFromiCloud(filePath)</code> to download the file. Note that it is always safe to call <code>downloadFileFromiCloud(filePath)</code>, even if the file is stored locally on the device.</p>
+<h3 id="parameters_15">Parameters<a class="headerlink" href="#parameters_15" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to remove the tag from.</p>
+<p><strong>tag</strong><br />
+<em>string</em><br />
+Tag to remove.</p>
+<hr />
+<h2 id="-readextendedattribute">-readExtendedAttribute<a class="headerlink" href="#-readextendedattribute" title="Permanent link">&para;</a></h2>
+<p>Reads an extended attribute from a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">readExtendedAttribute</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>Extended attributes are metadata that can be stored on a file. Note that extended attributes are not synced with iCloud.</p>
+<p>The function will return <code>null</code> if the attribute does not exist.</p>
+<p>The function will error if the file does not exist or if it exists in iCloud but has not been download. Use <code>fileExists(filePath)</code> to check if a file exists and <code>downloadFileFromiCloud(filePath)</code> to download the file. Note that it is always safe to call <code>downloadFileFromiCloud(filePath)</code>, even if the file is stored locally on the device.</p>
+<h3 id="parameters_16">Parameters<a class="headerlink" href="#parameters_16" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to read extended attribute from.</p>
+<p><strong>name</strong><br />
+<em>string</em><br />
+Name of the extended attribute to read.</p>
+<h3 id="return-value_13">Return value<a class="headerlink" href="#return-value_13" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Value of the extended attribute.</p>
+<hr />
+<h2 id="-writeextendedattribute">-writeExtendedAttribute<a class="headerlink" href="#-writeextendedattribute" title="Permanent link">&para;</a></h2>
+<p>Writes an extended attribute to a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">writeExtendedAttribute</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Extended attributes are metadata that can be stored on a file. Note that extended attributes are not synced with iCloud.</p>
+<p>The function will error if the file does not exist or if it exists in iCloud but has not been download. Use <code>fileExists(filePath)</code> to check if a file exists and <code>downloadFileFromiCloud(filePath)</code> to download the file. Note that it is always safe to call <code>downloadFileFromiCloud(filePath)</code>, even if the file is stored locally on the device.</p>
+<h3 id="parameters_17">Parameters<a class="headerlink" href="#parameters_17" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to add an extended attribute to.</p>
+<p><strong>value</strong><br />
+<em>string</em><br />
+Value of the extended attribute.</p>
+<p><strong>name</strong><br />
+<em>string</em><br />
+Name of the extended attribute. This is used to retrieve the value at a later point.</p>
+<hr />
+<h2 id="-removeextendedattribute">-removeExtendedAttribute<a class="headerlink" href="#-removeextendedattribute" title="Permanent link">&para;</a></h2>
+<p>Removes an extended attribute from a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">removeExtendedAttribute</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Extended attributes are metadata that can be stored on a file. Note that extended attributes are not synced with iCloud.</p>
+<p>The function will error if the file does not exist or if it exists in iCloud but has not been download. Use <code>fileExists(filePath)</code> to check if a file exists and <code>downloadFileFromiCloud(filePath)</code> to download the file. Note that it is always safe to call <code>downloadFileFromiCloud(filePath)</code>, even if the file is stored locally on the device.</p>
+<h3 id="parameters_18">Parameters<a class="headerlink" href="#parameters_18" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to add an extended attribute to.</p>
+<p><strong>name</strong><br />
+<em>string</em><br />
+Name of the extended attribute to remove.</p>
+<hr />
+<h2 id="-allextendedattributes">-allExtendedAttributes<a class="headerlink" href="#-allextendedattributes" title="Permanent link">&para;</a></h2>
+<p>Reads all extended attributes on a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">allExtendedAttributes</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">string</span><span class="p">]</span>
+</code></pre></div>
+
+<p>Extended attributes are metadata that can be stored on a file. Note that extended attributes are not synced with iCloud.</p>
+<h3 id="parameters_19">Parameters<a class="headerlink" href="#parameters_19" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to read extended attributes from.</p>
+<h3 id="return-value_14">Return value<a class="headerlink" href="#return-value_14" title="Permanent link">&para;</a></h3>
+<p><em>[string]</em><br />
+An array of all extended attributes.</p>
+<hr />
+<h2 id="-getuti">-getUTI<a class="headerlink" href="#-getuti" title="Permanent link">&para;</a></h2>
+<p>Gets the UTI of the specified file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">getUTI</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>The Uniform Type Identifier is a string that identifies the type of file.</p>
+<h3 id="parameters_20">Parameters<a class="headerlink" href="#parameters_20" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to get UTI of.</p>
+<h3 id="return-value_15">Return value<a class="headerlink" href="#return-value_15" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+The UTI of the file.</p>
+<hr />
+<h2 id="-listcontents">-listContents<a class="headerlink" href="#-listcontents" title="Permanent link">&para;</a></h2>
+<p>Lists content of directory.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">listContents</span><span class="p">(</span><span class="nx">directoryPath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">string</span><span class="p">]</span>
+</code></pre></div>
+
+<p>Lists all the contents in the specified directory. The returned array contains filenames to all files and directories in the specified directory.</p>
+<h3 id="parameters_21">Parameters<a class="headerlink" href="#parameters_21" title="Permanent link">&para;</a></h3>
+<p><strong>directoryPath</strong><br />
+<em>string</em><br />
+Path to directory.</p>
+<h3 id="return-value_16">Return value<a class="headerlink" href="#return-value_16" title="Permanent link">&para;</a></h3>
+<p><em>[string]</em><br />
+Names of all the files and directories in the specified directory.</p>
+<hr />
+<h2 id="-filename">-fileName<a class="headerlink" href="#-filename" title="Permanent link">&para;</a></h2>
+<p>Get name of a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">fileName</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">includeFileExtension</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>Takes a file path and returns the name of the file. Also supports getting the name of a directory.
+The returned file name optionally includes the extension of the file.</p>
+<h3 id="parameters_22">Parameters<a class="headerlink" href="#parameters_22" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+path of file to get name of.</p>
+<p><strong>includeFileExtension</strong><br />
+<em>bool</em><br />
+Whether or not the file extension should be included. Defaults to false.</p>
+<h3 id="return-value_17">Return value<a class="headerlink" href="#return-value_17" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Name of the file.</p>
+<hr />
+<h2 id="-fileextension">-fileExtension<a class="headerlink" href="#-fileextension" title="Permanent link">&para;</a></h2>
+<p>Get extension of a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">fileExtension</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>Takes a file path and returns the extension of the file, e.g. ".jpg" or ".js". Returns en empty string for directories.</p>
+<h3 id="parameters_23">Parameters<a class="headerlink" href="#parameters_23" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to get extension from.</p>
+<h3 id="return-value_18">Return value<a class="headerlink" href="#return-value_18" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Extension of the file.</p>
+<hr />
+<h2 id="-bookmarkedpath">-bookmarkedPath<a class="headerlink" href="#-bookmarkedpath" title="Permanent link">&para;</a></h2>
+<p>Get path to a bookmarked file or folder.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">bookmarkedPath</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span>
+</code></pre></div>
+
+<p>Gets the path to a bookmarked file or filder. Use file bookmarks to access files and folders outside Scriptables documents directory.</p>
+<p>You can edit your file bookmarks from Scriptables settings.</p>
+<p>The function will throw an error if the bookmark doesn't exist.</p>
+<p>Please beware that bookmarks created from Scriptables settings only can be used when running a script in the app and not from the Share Sheet, Siri and Shortcuts. If you wish to use a bookmark from Siri or the Shortcuts app, the bookmark must be created using Scriptables "Create File Bookmark" shortcut action using the Shortcuts app.</p>
+<h3 id="parameters_24">Parameters<a class="headerlink" href="#parameters_24" title="Permanent link">&para;</a></h3>
+<p><strong>name</strong><br />
+<em>string</em><br />
+Name of bookmark to create path for.</p>
+<h3 id="return-value_19">Return value<a class="headerlink" href="#return-value_19" title="Permanent link">&para;</a></h3>
+<p><em>string</em><br />
+Path to the bookmarked file or folder.</p>
+<hr />
+<h2 id="-bookmarkexists">-bookmarkExists<a class="headerlink" href="#-bookmarkexists" title="Permanent link">&para;</a></h2>
+<p>Check if a bookmark exists.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">bookmarkExists</span><span class="p">(</span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<p>Checks if a file bookmark exists with the specified name.</p>
+<p>You can edit your file bookmarks from Scriptables settings.</p>
+<p>Please beware that bookmarks created from Scriptables settings only can be used when running a script in the app and not from the Share Sheet, Siri and Shortcuts. If you wish to use a bookmark from Siri or the Shortcuts app, the bookmark must be created using Scriptables "Create File Bookmark" shortcut action using the Shortcuts app.</p>
+<h3 id="parameters_25">Parameters<a class="headerlink" href="#parameters_25" title="Permanent link">&para;</a></h3>
+<p><strong>name</strong><br />
+<em>string</em><br />
+Name of bookmark.</p>
+<h3 id="return-value_20">Return value<a class="headerlink" href="#return-value_20" title="Permanent link">&para;</a></h3>
+<p><em>bool</em><br />
+True of a bookmark exists for the specified name, otherwise false.</p>
+<hr />
+<h2 id="-downloadfilefromicloud">-downloadFileFromiCloud<a class="headerlink" href="#-downloadfilefromicloud" title="Permanent link">&para;</a></h2>
+<p>Download file from iCloud if necessary.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">downloadFileFromiCloud</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span>
+</code></pre></div>
+
+<p>Downloads the file from iCloud if it have not already been downloaded. If you pass in a path to a file that is not stored in iCloud, the returned promise will be resolved immediately making it safe to pass in any file path.</p>
+<h3 id="parameters_26">Parameters<a class="headerlink" href="#parameters_26" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file to download from iCloud.</p>
+<h3 id="return-value_21">Return value<a class="headerlink" href="#return-value_21" title="Permanent link">&para;</a></h3>
+<p><em>Promise</em><br />
+Promise that is fulfilled when the file have been downloaded.</p>
+<hr />
+<h2 id="-isfilestoredinicloud">-isFileStoredIniCloud<a class="headerlink" href="#-isfilestoredinicloud" title="Permanent link">&para;</a></h2>
+<p>Checks if a file is stored in iCloud.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">isFileStoredIniCloud</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<p>Checks if a file is stored in iCloud or locally on the device. 
+The function returns false if the file does not exist. Check if a file exists using <code>fileExists(filePath)</code></p>
+<h3 id="parameters_27">Parameters<a class="headerlink" href="#parameters_27" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file.</p>
+<h3 id="return-value_22">Return value<a class="headerlink" href="#return-value_22" title="Permanent link">&para;</a></h3>
+<p><em>bool</em><br />
+True if the file is stored in iCloud otherwise false.</p>
+<hr />
+<h2 id="-isfiledownloaded">-isFileDownloaded<a class="headerlink" href="#-isfiledownloaded" title="Permanent link">&para;</a></h2>
+<p>Checks if a file have been downloaded.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">isFileDownloaded</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<p>If a file is stored in iCloud and it has not been downloaded, this function returns false. In that case, the file can be downloaded using <code>downloadFileFromiCloud(filePath</code>. If the file is not stored in iCloud but rather locally on the device, this function returns true.</p>
+<p>The function returns false if the file does not exist. Check if a file exists using <code>fileExists(filePath)</code></p>
+<h3 id="parameters_28">Parameters<a class="headerlink" href="#parameters_28" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file.</p>
+<h3 id="return-value_23">Return value<a class="headerlink" href="#return-value_23" title="Permanent link">&para;</a></h3>
+<p><em>bool</em><br />
+True if the file have been downloaded otherwise false.</p>
+<hr />
+<h2 id="-creationdate">-creationDate<a class="headerlink" href="#-creationdate" title="Permanent link">&para;</a></h2>
+<p>Reads the creation date of a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">creationDate</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span>
+</code></pre></div>
+
+<p>The returned value will be null if the creation date cannot be read.</p>
+<h3 id="parameters_29">Parameters<a class="headerlink" href="#parameters_29" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file.</p>
+<h3 id="return-value_24">Return value<a class="headerlink" href="#return-value_24" title="Permanent link">&para;</a></h3>
+<p><em>Date</em><br />
+The date the file was created.</p>
+<hr />
+<h2 id="-modificationdate">-modificationDate<a class="headerlink" href="#-modificationdate" title="Permanent link">&para;</a></h2>
+<p>Reads the modification date of a file.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">modificationDate</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span>
+</code></pre></div>
+
+<p>The returned value will be null if the modification date cannot be read.</p>
+<h3 id="parameters_30">Parameters<a class="headerlink" href="#parameters_30" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file.</p>
+<h3 id="return-value_25">Return value<a class="headerlink" href="#return-value_25" title="Permanent link">&para;</a></h3>
+<p><em>Date</em><br />
+The date the file was last modified.</p>
+<hr />
+<h2 id="-filesize">-fileSize<a class="headerlink" href="#-filesize" title="Permanent link">&para;</a></h2>
+<p>Size of the file in kilobytes.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">fileSize</span><span class="p">(</span><span class="nx">filePath</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">number</span>
+</code></pre></div>
+
+<p>The returned value will be null if the file size cannot be read.</p>
+<h3 id="parameters_31">Parameters<a class="headerlink" href="#parameters_31" title="Permanent link">&para;</a></h3>
+<p><strong>filePath</strong><br />
+<em>string</em><br />
+Path of file.</p>
+<h3 id="return-value_26">Return value<a class="headerlink" href="#return-value_26" title="Permanent link">&para;</a></h3>
+<p><em>number</em><br />
+The file size measured in kilobytes.</p>
+<hr />
+<h2 id="-allfilebookmarks">-allFileBookmarks<a class="headerlink" href="#-allfilebookmarks" title="Permanent link">&para;</a></h2>
+<p>Reads all file bookmarks created in settings.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">allFileBookmarks</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="p">[{</span><span class="nx">string</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">}]</span>
+</code></pre></div>
+
+<p>File bookmarks are used to bookmark a file or a folder and read or write to it later. File bookmarks are created from Scriptables settings.</p>
+<p>This function returns all file bookmarks as an array of objects that take the following form.</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="s2">&quot;name&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;My Bookmark&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">&quot;source&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;host&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>The source can either be <code>host</code> for file bookmarks that can be used in the app or <code>siri_shortcuts</code> for file bookmarks that can be used in Siri and Shortcuts.</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+<footer class="md-footer">
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            © 2023 Simon B. Støvring. All rights reserved.
+          </div>
+        
+        <div>
+          <a href="https://scriptable.app/scriptable-press-kit.zip">Press Kit</a>
+          &nbsp;
+          <a href="https://scriptable.app/privacy-policy/">Privacy Policy</a>
+          &nbsp;
+          <a href="mailto:mail@scriptable.app">Contact</a>
+        </div>
+        powered by
+        <a href="https://www.mkdocs.org">MkDocs</a>
+        and
+        <a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a>
+      </div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/scriptableapp" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>

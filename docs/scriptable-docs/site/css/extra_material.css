@@ -1,0 +1,111 @@
+/* Background color of navigation */
+.md-header {
+  background-color: #000;
+}
+
+/* Background color of navigation on mobile */
+@media screen and (max-width: 76.1875em) {
+  .md-nav--primary .md-nav__title[for=__drawer] {
+    background-color: black;
+  }
+}
+
+/* Links */
+.md-typeset a {
+	color: #2A71F5;
+}
+
+/* Hovering links */
+.md-typeset a:hover {
+	color: #2A71F5;
+	text-decoration: underline;
+}
+
+/* Active links */
+.md-typeset a:active {
+	color: #2A71F5;
+	text-decoration: underline;
+}
+
+/* Active link */
+.md-nav__link:active, .md-nav__link--active {
+	color: #2A71F5;
+}
+
+/* Hovering link */
+.md-nav__link:focus, .md-nav__link:hover {
+	color: #2A71F5;
+}
+
+/* Hide Scriptable Docs title from link menu */
+label.md-nav__title {
+  display: none;
+}
+
+/* Hide Scriptable Docs ("Frontpage") link from menu */
+div.md-sidebar--primary ul.md-nav__list li.md-nav__item:first-child {
+  display: none;
+}
+
+/* Code snippet */
+.md-typeset code, .md-typeset pre {
+  font-family: "Menlo", "Courier New", Courier, monospace;
+  font-size: 85%;
+  background-color: #E7E7E7;
+  color: black;
+}
+
+/* Color of warnings, e.g. deprecated APIs */
+.warning {
+  color: #CE9023;
+}
+
+/* Remove shadow from tables */
+.md-typeset table:not([class]) {
+  -webkit-box-shadow: none;
+	-moz-box-shadow: none;
+  box-shadow: none;
+  border: 0.1rem solid rgba(0, 0, 0, 0.07);
+  border: none;
+}
+
+/* Remove table headers */
+.md-typeset thead {
+  display: none;
+}
+
+/* Cells in a table */
+.md-typeset table:not([class]) tr td {
+  font-size: 1.6rem;
+  padding: 0.5em;
+}
+
+/* First cell in every row of a table */
+.md-typeset table:not([class]) tr td:nth-child(1) {
+  white-space: nowrap;
+}
+
+/* Second cell in every row of a table */
+.md-typeset table:not([class]) tr td:nth-child(2) {
+  white-space: nowrap;
+}
+
+/* Cells in the first row of a table */
+.md-typeset table:not([class]) tr:first-child td {
+  padding-top: 0em;
+}
+
+/* Cells in the last row of a table */
+.md-typeset table:not([class]) tr:last-child td {
+  padding-bottom: 0em;
+}
+
+/* First cell in a table row */
+.md-typeset table:not([class]) tr td:first-child {
+  padding-left: 0em;
+}
+
+/* Last cell in a table row */
+.md-typeset table:not([class]) tr td:last-child {
+  padding-right: 0em;
+}

@@ -1,0 +1,2866 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Scriptable, an automation app for iOS.">
+      
+      
+      
+        <link rel="canonical" href="https://docs.scriptable.app/drawcontext/">
+      
+      
+        <link rel="prev" href="../documentpicker/">
+      
+      
+        <link rel="next" href="../filemanager/">
+      
+      
+      <link rel="icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.46">
+    
+    
+      
+        <title>DrawContext - Scriptable Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6f8fc17f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../css/extra_material.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#drawcontext" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Scriptable Docs" class="md-header__button md-logo" aria-label="Scriptable Docs" data-md-component="logo">
+      
+  <img src="../img/glyph.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Scriptable Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DrawContext
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Scriptable Docs" class="md-nav__button md-logo" aria-label="Scriptable Docs" data-md-component="logo">
+      
+  <img src="../img/glyph.png" alt="logo">
+
+    </a>
+    Scriptable Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scriptable Docs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alert/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Alert
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../args/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    args
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../calendar/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Calendar
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../calendarevent/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CalendarEvent
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../callbackurl/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CallbackURL
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../color/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Color
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    config
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../console/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    console
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contact/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contact
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contactscontainer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ContactsContainer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contactsgroup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ContactsGroup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dateformatter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DateFormatter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datepicker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DatePicker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../device/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dictation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dictation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentpicker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DocumentPicker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    DrawContext
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    DrawContext
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#size" class="md-nav__link">
+    <span class="md-ellipsis">
+      size
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#respectscreenscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      respectScreenScale
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opaque" class="md-nav__link">
+    <span class="md-ellipsis">
+      opaque
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-new-drawcontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      -new DrawContext
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-getimage" class="md-nav__link">
+    <span class="md-ellipsis">
+      -getImage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-getImage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drawimageinrect" class="md-nav__link">
+    <span class="md-ellipsis">
+      -drawImageInRect
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-drawImageInRect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drawimageatpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      -drawImageAtPoint
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-drawImageAtPoint">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setfillcolor" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setFillColor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setFillColor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setstrokecolor" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setStrokeColor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setStrokeColor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setlinewidth" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setLineWidth
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setLineWidth">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fill" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fill
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fill">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fillrect" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fillRect
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fillRect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fillellipse" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fillEllipse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fillEllipse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-stroke" class="md-nav__link">
+    <span class="md-ellipsis">
+      -stroke
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-stroke">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-strokerect" class="md-nav__link">
+    <span class="md-ellipsis">
+      -strokeRect
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-strokeRect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-strokeellipse" class="md-nav__link">
+    <span class="md-ellipsis">
+      -strokeEllipse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-strokeEllipse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-addpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -addPath
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-addPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-strokepath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -strokePath
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fillpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fillPath
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drawtext" class="md-nav__link">
+    <span class="md-ellipsis">
+      -drawText
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-drawText">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drawtextinrect" class="md-nav__link">
+    <span class="md-ellipsis">
+      -drawTextInRect
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-drawTextInRect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setfontsize" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setFontSize
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setFontSize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setfont" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setFont
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setFont">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-settextcolor" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setTextColor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setTextColor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-settextalignedleft" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setTextAlignedLeft
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-settextalignedcenter" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setTextAlignedCenter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-settextalignedright" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setTextAlignedRight
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filemanager/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    FileManager
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../font/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Font
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../importmodule/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    importModule
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keychain/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Keychain
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lineargradient/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LinearGradient
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../listwidget/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ListWidget
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../location/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Location
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mail/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    module
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pasteboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pasteboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../path/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Path
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../photos/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../point/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Point
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quicklook/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    QuickLook
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rect/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rect
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recurrencerule/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RecurrenceRule
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../relativedatetimeformatter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RelativeDateTimeFormatter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reminder/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reminder
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../request/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Request
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../safari/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Safari
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../script/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sfsymbol/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SFSymbol
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sharesheet/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ShareSheet
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../size/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Size
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../speech/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../textfield/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    TextField
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitable/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITable
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitablecell/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITableCell
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitablerow/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITableRow
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../urlscheme/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URLScheme
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uuid/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UUID
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../webview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WebView
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetdate/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetDate
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetimage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetImage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetspacer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetSpacer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetstack/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetStack
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgettext/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetText
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xmlparser/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    XMLParser
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#size" class="md-nav__link">
+    <span class="md-ellipsis">
+      size
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#respectscreenscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      respectScreenScale
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opaque" class="md-nav__link">
+    <span class="md-ellipsis">
+      opaque
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-new-drawcontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      -new DrawContext
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-getimage" class="md-nav__link">
+    <span class="md-ellipsis">
+      -getImage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-getImage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drawimageinrect" class="md-nav__link">
+    <span class="md-ellipsis">
+      -drawImageInRect
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-drawImageInRect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drawimageatpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      -drawImageAtPoint
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-drawImageAtPoint">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setfillcolor" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setFillColor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setFillColor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setstrokecolor" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setStrokeColor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setStrokeColor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setlinewidth" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setLineWidth
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setLineWidth">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fill" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fill
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fill">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fillrect" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fillRect
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fillRect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fillellipse" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fillEllipse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-fillEllipse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-stroke" class="md-nav__link">
+    <span class="md-ellipsis">
+      -stroke
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-stroke">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-strokerect" class="md-nav__link">
+    <span class="md-ellipsis">
+      -strokeRect
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-strokeRect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-strokeellipse" class="md-nav__link">
+    <span class="md-ellipsis">
+      -strokeEllipse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-strokeEllipse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-addpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -addPath
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-addPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-strokepath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -strokePath
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-fillpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      -fillPath
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drawtext" class="md-nav__link">
+    <span class="md-ellipsis">
+      -drawText
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-drawText">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-drawtextinrect" class="md-nav__link">
+    <span class="md-ellipsis">
+      -drawTextInRect
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-drawTextInRect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setfontsize" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setFontSize
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setFontSize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-setfont" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setFont
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setFont">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-settextcolor" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setTextColor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-setTextColor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-settextalignedleft" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setTextAlignedLeft
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-settextalignedcenter" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setTextAlignedCenter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-settextalignedright" class="md-nav__link">
+    <span class="md-ellipsis">
+      -setTextAlignedRight
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="drawcontext">DrawContext<a class="headerlink" href="#drawcontext" title="Permanent link">&para;</a></h1>
+<p>Context for drawing images.</p>
+<p>An instance of DrawContext is a canvas on which you can draw an image using shapes, texts and other images. You must specify the size of your canvas by setting the size property. At any point after beginning your drawing and before ending your drawing can you call getImage() to get an image object of your drawing.</p>
+<h2 id="size">size<a class="headerlink" href="#size" title="Permanent link">&para;</a></h2>
+<p>Size of canvas.</p>
+<p>Specifies the size of the canvas on which you are drawing. The image returned by getImage() will have this exact size,
+except if respectScreenScale is true.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">size</span><span class="o">:</span><span class="w"> </span><span class="nx">Size</span>
+</code></pre></div>
+
+<hr />
+<h2 id="respectscreenscale">respectScreenScale<a class="headerlink" href="#respectscreenscale" title="Permanent link">&para;</a></h2>
+<p>Enable to respect the scale of the screen.</p>
+<p>Devices have a screen scale that is used to convert between the logical coordinate space and the device coordinate space. For example, retina screens have a screen scale of 2 or 3 meaning that one point in the logical coordinate space is represented by four or nine pixels. Respecting the screen scale will multiply the specified size of the canvas by the screen scale. For example a canvas of size 200 by 200 will be 600 by 600 when the image is rendered on a retina screen with a screen scale of 3.
+When respecting the screen scale is disabled, you may experience that your images looks blurry because essentially the size you have specified will be stretched when rendered on the screen. Default is false.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">respectScreenScale</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<hr />
+<h2 id="opaque">opaque<a class="headerlink" href="#opaque" title="Permanent link">&para;</a></h2>
+<p>Determines whether the context is opaque.</p>
+<p>When enabled your image will be rendered opaque. Default is true.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">opaque</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<hr />
+<h2 id="-new-drawcontext">-new DrawContext<a class="headerlink" href="#-new-drawcontext" title="Permanent link">&para;</a></h2>
+<p>Constructs a canvas to draw on.</p>
+<div class="codehilite"><pre><span></span><code><span class="ow">new</span><span class="w"> </span><span class="nx">DrawContext</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Constructs a new canvas to draw images, shapes and texts on.</p>
+<hr />
+<h2 id="-getimage">-getImage<a class="headerlink" href="#-getimage" title="Permanent link">&para;</a></h2>
+<p>Retrieves the image.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">getImage</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">Image</span>
+</code></pre></div>
+
+<p>Call this to retrieve the image you have drawn to the context.</p>
+<h3 id="return-value">Return value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h3>
+<p><em>Image</em><br />
+The image drawn to the context.</p>
+<hr />
+<h2 id="-drawimageinrect">-drawImageInRect<a class="headerlink" href="#-drawimageinrect" title="Permanent link">&para;</a></h2>
+<p>Draws an image in the specified rect.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">drawImageInRect</span><span class="p">(</span><span class="nx">image</span><span class="o">:</span><span class="w"> </span><span class="nx">Image</span><span class="p">,</span><span class="w"> </span><span class="nx">rect</span><span class="o">:</span><span class="w"> </span><span class="nx">Rect</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Draws the image in the rectangle. The image will be scaled to fit within the rectangle.</p>
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
+<p><strong>image</strong><br />
+<em>Image</em><br />
+Image to draw.</p>
+<p><strong>rect</strong><br />
+<em>Rect</em><br />
+Rectangle to draw the image in.</p>
+<hr />
+<h2 id="-drawimageatpoint">-drawImageAtPoint<a class="headerlink" href="#-drawimageatpoint" title="Permanent link">&para;</a></h2>
+<p>Draws an image at the specified point.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">drawImageAtPoint</span><span class="p">(</span><span class="nx">image</span><span class="o">:</span><span class="w"> </span><span class="nx">Image</span><span class="p">,</span><span class="w"> </span><span class="nx">point</span><span class="o">:</span><span class="w"> </span><span class="nx">Point</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Draws the image at the point. The top-left corner of the image will be drawn at the specified point.</p>
+<h3 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">&para;</a></h3>
+<p><strong>image</strong><br />
+<em>Image</em><br />
+Image to draw.</p>
+<p><strong>point</strong><br />
+<em>Point</em><br />
+Point at which to draw top-left corner of the image.</p>
+<hr />
+<h2 id="-setfillcolor">-setFillColor<a class="headerlink" href="#-setfillcolor" title="Permanent link">&para;</a></h2>
+<p>Sets the fill color.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">setFillColor</span><span class="p">(</span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="nx">Color</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Sets the fill color to be used when performing a fill operation. Any fill operation performed afterwards will fill with the specified color until another call to setFillColor is made.</p>
+<h3 id="parameters_2">Parameters<a class="headerlink" href="#parameters_2" title="Permanent link">&para;</a></h3>
+<p><strong>color</strong><br />
+<em>Color</em><br />
+Color to set for filling.</p>
+<hr />
+<h2 id="-setstrokecolor">-setStrokeColor<a class="headerlink" href="#-setstrokecolor" title="Permanent link">&para;</a></h2>
+<p>Sets the stroke color.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">setStrokeColor</span><span class="p">(</span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="nx">Color</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Sets the stroke color to be used when performing a stroke operation. Any stroke operation performed afterwards will stroke with the specified color until another call to setStrokeColor is made.</p>
+<h3 id="parameters_3">Parameters<a class="headerlink" href="#parameters_3" title="Permanent link">&para;</a></h3>
+<p><strong>color</strong><br />
+<em>Color</em><br />
+Color to set for stroking.</p>
+<hr />
+<h2 id="-setlinewidth">-setLineWidth<a class="headerlink" href="#-setlinewidth" title="Permanent link">&para;</a></h2>
+<p>Sets the line width for stroking.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">setLineWidth</span><span class="p">(</span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="nx">number</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Sets the line width to be used when performing a stroke operation.</p>
+<h3 id="parameters_4">Parameters<a class="headerlink" href="#parameters_4" title="Permanent link">&para;</a></h3>
+<p><strong>width</strong><br />
+<em>number</em><br />
+Line width to use for stroking.</p>
+<hr />
+<h2 id="-fill">-fill<a class="headerlink" href="#-fill" title="Permanent link">&para;</a></h2>
+<p>Fills a rectangle.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">fill</span><span class="p">(</span><span class="nx">rect</span><span class="o">:</span><span class="w"> </span><span class="nx">Rect</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Fills the rectangle with the color set when calling setFillColor.</p>
+<h3 id="parameters_5">Parameters<a class="headerlink" href="#parameters_5" title="Permanent link">&para;</a></h3>
+<p><strong>rect</strong><br />
+<em>Rect</em><br />
+Rectangle to fill.</p>
+<hr />
+<h2 id="-fillrect">-fillRect<a class="headerlink" href="#-fillrect" title="Permanent link">&para;</a></h2>
+<p>Fills a rectangle.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">fillRect</span><span class="p">(</span><span class="nx">rect</span><span class="o">:</span><span class="w"> </span><span class="nx">Rect</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Fills the rectangle with the color set when calling setFillColor.</p>
+<h3 id="parameters_6">Parameters<a class="headerlink" href="#parameters_6" title="Permanent link">&para;</a></h3>
+<p><strong>rect</strong><br />
+<em>Rect</em><br />
+Rectangle to fill.</p>
+<hr />
+<h2 id="-fillellipse">-fillEllipse<a class="headerlink" href="#-fillellipse" title="Permanent link">&para;</a></h2>
+<p>Fills an ellipse.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">fillEllipse</span><span class="p">(</span><span class="nx">rect</span><span class="o">:</span><span class="w"> </span><span class="nx">Rect</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Fills the ellipse that fits within the supplied rectangle with the color set when calling setFillColor.</p>
+<h3 id="parameters_7">Parameters<a class="headerlink" href="#parameters_7" title="Permanent link">&para;</a></h3>
+<p><strong>rect</strong><br />
+<em>Rect</em><br />
+Rectangle incapsulating the ellipse to fill.</p>
+<hr />
+<h2 id="-stroke">-stroke<a class="headerlink" href="#-stroke" title="Permanent link">&para;</a></h2>
+<p>Strokes a rectangle.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">stroke</span><span class="p">(</span><span class="nx">rect</span><span class="o">:</span><span class="w"> </span><span class="nx">Rect</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Draws a line around the rectangle using the color set when calling setStrokeColor. The line will have the width set when calling setLineWidth.</p>
+<h3 id="parameters_8">Parameters<a class="headerlink" href="#parameters_8" title="Permanent link">&para;</a></h3>
+<p><strong>rect</strong><br />
+<em>Rect</em><br />
+Rectangle to stroke.</p>
+<hr />
+<h2 id="-strokerect">-strokeRect<a class="headerlink" href="#-strokerect" title="Permanent link">&para;</a></h2>
+<p>Strokes a rectangle.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">strokeRect</span><span class="p">(</span><span class="nx">rect</span><span class="o">:</span><span class="w"> </span><span class="nx">Rect</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Draws a line around the rectangle using the color set when calling setStrokeColor. The line will have the width set when calling setLineWidth.</p>
+<h3 id="parameters_9">Parameters<a class="headerlink" href="#parameters_9" title="Permanent link">&para;</a></h3>
+<p><strong>rect</strong><br />
+<em>Rect</em><br />
+Rectangle to stroke.</p>
+<hr />
+<h2 id="-strokeellipse">-strokeEllipse<a class="headerlink" href="#-strokeellipse" title="Permanent link">&para;</a></h2>
+<p>Strokes an ellipse.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">strokeEllipse</span><span class="p">(</span><span class="nx">rect</span><span class="o">:</span><span class="w"> </span><span class="nx">Rect</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Draws a line around the ellipse that fits within the supplied rectangle. The line will have the color set when calling setStrokeColor and the width set when calling setLineWidth.</p>
+<h3 id="parameters_10">Parameters<a class="headerlink" href="#parameters_10" title="Permanent link">&para;</a></h3>
+<p><strong>rect</strong><br />
+<em>Rect</em><br />
+Rectangle incapsulating the ellipse to stroke.</p>
+<hr />
+<h2 id="-addpath">-addPath<a class="headerlink" href="#-addpath" title="Permanent link">&para;</a></h2>
+<p>Adds a path to the context.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">addPath</span><span class="p">(</span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="nx">Path</span><span class="p">)</span>
+</code></pre></div>
+
+<p>After adding a path to the context, the path can be stroked or filled by calling strokePath and fillPath. Note that only the path that was added latest will be affected by calls to strokePath and fillPath.</p>
+<h3 id="parameters_11">Parameters<a class="headerlink" href="#parameters_11" title="Permanent link">&para;</a></h3>
+<p><strong>path</strong><br />
+<em>Path</em><br />
+Path to add to the context.</p>
+<hr />
+<h2 id="-strokepath">-strokePath<a class="headerlink" href="#-strokepath" title="Permanent link">&para;</a></h2>
+<p>Strokes the path that was added the latest.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">strokePath</span><span class="p">()</span>
+</code></pre></div>
+
+<p>The path that was added the latest to the context is stroked with the color set using setStrokeColor and the line width set using setLineWidth.</p>
+<hr />
+<h2 id="-fillpath">-fillPath<a class="headerlink" href="#-fillpath" title="Permanent link">&para;</a></h2>
+<p>Fills the path that was added the latest.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">fillPath</span><span class="p">()</span>
+</code></pre></div>
+
+<p>The path that was latest added to the context is filled with the color set using setFillColor.</p>
+<hr />
+<h2 id="-drawtext">-drawText<a class="headerlink" href="#-drawtext" title="Permanent link">&para;</a></h2>
+<p>Draws text at a position.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">drawText</span><span class="p">(</span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">pos</span><span class="o">:</span><span class="w"> </span><span class="nx">Point</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Call this to draw a text string to the context. The top-left of the text will be drawn at the specified position.</p>
+<h3 id="parameters_12">Parameters<a class="headerlink" href="#parameters_12" title="Permanent link">&para;</a></h3>
+<p><strong>text</strong><br />
+<em>string</em><br />
+Text to draw.</p>
+<p><strong>pos</strong><br />
+<em>Point</em><br />
+Position to draw the top-left of the text.</p>
+<hr />
+<h2 id="-drawtextinrect">-drawTextInRect<a class="headerlink" href="#-drawtextinrect" title="Permanent link">&para;</a></h2>
+<p>Draws text in a rectangle.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">drawTextInRect</span><span class="p">(</span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">rect</span><span class="o">:</span><span class="w"> </span><span class="nx">Rect</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Call this to draw a text string in a rectangle. Specify how the text should be aligned within the rectangle by calling setTextAlignedLeft, setTextAlignedCenter or setTextAlignedRight before drawing the text.</p>
+<h3 id="parameters_13">Parameters<a class="headerlink" href="#parameters_13" title="Permanent link">&para;</a></h3>
+<p><strong>text</strong><br />
+<em>string</em><br />
+Text to draw.</p>
+<p><strong>rect</strong><br />
+<em>Rect</em><br />
+Rectangle to draw text in.</p>
+<hr />
+<h2 id="-setfontsize">-setFontSize<a class="headerlink" href="#-setfontsize" title="Permanent link">&para;</a></h2>
+<p>Sets the font size used when drawing text.</p>
+<p><span class="warning">Deprecated in version 1.5. Use the setFont() function instead.</span></p>
+<div class="codehilite"><pre><span></span><code><span class="nx">setFontSize</span><span class="p">(</span><span class="nx">size</span><span class="o">:</span><span class="w"> </span><span class="nx">number</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Sets the font size to be used when drawing texts to the context.</p>
+<h3 id="parameters_14">Parameters<a class="headerlink" href="#parameters_14" title="Permanent link">&para;</a></h3>
+<p><strong>size</strong><br />
+<em>number</em><br />
+Font size to use when drawing text.</p>
+<hr />
+<h2 id="-setfont">-setFont<a class="headerlink" href="#-setfont" title="Permanent link">&para;</a></h2>
+<p>Sets the font to use when drawing text.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">setFont</span><span class="p">(</span><span class="nx">font</span><span class="o">:</span><span class="w"> </span><span class="nx">Font</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Sets the font to be used when drawing texts to the context.</p>
+<h3 id="parameters_15">Parameters<a class="headerlink" href="#parameters_15" title="Permanent link">&para;</a></h3>
+<p><strong>font</strong><br />
+<em>Font</em><br />
+Font to use when drawing text.</p>
+<hr />
+<h2 id="-settextcolor">-setTextColor<a class="headerlink" href="#-settextcolor" title="Permanent link">&para;</a></h2>
+<p>Sets the text color used when drawing text.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">setTextColor</span><span class="p">(</span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="nx">Color</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Sets the text color to be used when drawing text strings to the context.</p>
+<h3 id="parameters_16">Parameters<a class="headerlink" href="#parameters_16" title="Permanent link">&para;</a></h3>
+<p><strong>color</strong><br />
+<em>Color</em><br />
+Color to use when drawing text.</p>
+<hr />
+<h2 id="-settextalignedleft">-setTextAlignedLeft<a class="headerlink" href="#-settextalignedleft" title="Permanent link">&para;</a></h2>
+<p>Specifies that texts should be left aligned.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">setTextAlignedLeft</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Sets text alignment to left. Texts drawn after calling this will be left aligned inside the provided rectangle.</p>
+<hr />
+<h2 id="-settextalignedcenter">-setTextAlignedCenter<a class="headerlink" href="#-settextalignedcenter" title="Permanent link">&para;</a></h2>
+<p>Specifies that texts should be center aligned.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">setTextAlignedCenter</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Sets text alignment to center. Texts drawn after calling this will be center aligned inside the provided rectangle.</p>
+<hr />
+<h2 id="-settextalignedright">-setTextAlignedRight<a class="headerlink" href="#-settextalignedright" title="Permanent link">&para;</a></h2>
+<p>Specifies that texts should be right aligned.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">setTextAlignedRight</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Sets text alignment to right. Texts drawn after calling this will be right aligned inside the provided rectangle.</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+<footer class="md-footer">
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            © 2023 Simon B. Støvring. All rights reserved.
+          </div>
+        
+        <div>
+          <a href="https://scriptable.app/scriptable-press-kit.zip">Press Kit</a>
+          &nbsp;
+          <a href="https://scriptable.app/privacy-policy/">Privacy Policy</a>
+          &nbsp;
+          <a href="mailto:mail@scriptable.app">Contact</a>
+        </div>
+        powered by
+        <a href="https://www.mkdocs.org">MkDocs</a>
+        and
+        <a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a>
+      </div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/scriptableapp" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>

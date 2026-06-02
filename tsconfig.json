@@ -1,0 +1,41 @@
+{
+    "compilerOptions": {
+        "typeRoots": ["./node_modules/@types", "src/env/stack-ui/types"],
+        // "types": ["node"],
+        "lib": ["ES5", "ES2015", "ES2016", "ES2017", "Es2018", "ES2019", "ES2020", "ESNext"],
+        "jsx": "react",
+        "jsxFactory": "h",
+        "jsxFragmentFactory": "Fragment",
+        "outDir": "./dist",
+        "target": "es2015",
+        "allowJs": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "sourceMap": true,
+        "baseUrl": "./",
+        "paths": {
+            "@app/*": ["./src/*"]
+        }
+    },
+    "exclude": [
+        "node_modules",
+        "dist",
+        "build",
+        "manual",
+        "bak",
+        "src/env/runtime.ts",
+        "src/env/widget-base.ts",
+        "src/env/storage.ts",
+        "src/env/pinyin.ts",
+        "src/env/custom-font.ts",
+        "src/env/utils.ts",
+        "src/env/stack-ui/index.ts"
+    ],
+    "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

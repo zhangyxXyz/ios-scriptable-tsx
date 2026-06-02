@@ -1,0 +1,2488 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Scriptable, an automation app for iOS.">
+      
+      
+      
+        <link rel="canonical" href="https://docs.scriptable.app/webview/">
+      
+      
+        <link rel="prev" href="../uuid/">
+      
+      
+        <link rel="next" href="../widgetdate/">
+      
+      
+      <link rel="icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.46">
+    
+    
+      
+        <title>WebView - Scriptable Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6f8fc17f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../css/extra_material.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#webview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Scriptable Docs" class="md-header__button md-logo" aria-label="Scriptable Docs" data-md-component="logo">
+      
+  <img src="../img/glyph.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Scriptable Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              WebView
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Scriptable Docs" class="md-nav__button md-logo" aria-label="Scriptable Docs" data-md-component="logo">
+      
+  <img src="../img/glyph.png" alt="logo">
+
+    </a>
+    Scriptable Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scriptable Docs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alert/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Alert
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../args/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    args
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../calendar/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Calendar
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../calendarevent/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CalendarEvent
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../callbackurl/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CallbackURL
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../color/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Color
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    config
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../console/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    console
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contact/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contact
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contactscontainer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ContactsContainer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contactsgroup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ContactsGroup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dateformatter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DateFormatter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datepicker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DatePicker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../device/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dictation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dictation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentpicker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DocumentPicker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drawcontext/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DrawContext
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filemanager/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    FileManager
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../font/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Font
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Image
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../importmodule/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    importModule
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keychain/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Keychain
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lineargradient/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LinearGradient
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../listwidget/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ListWidget
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../location/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Location
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mail/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Message
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    module
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notification
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pasteboard/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pasteboard
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../path/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Path
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../photos/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Photos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../point/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Point
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quicklook/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    QuickLook
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rect/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rect
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recurrencerule/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RecurrenceRule
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../relativedatetimeformatter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RelativeDateTimeFormatter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reminder/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reminder
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../request/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Request
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../safari/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Safari
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../script/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sfsymbol/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SFSymbol
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sharesheet/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ShareSheet
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../size/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Size
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../speech/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Speech
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../textfield/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    TextField
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitable/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITable
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitablecell/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITableCell
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uitablerow/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UITableRow
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../urlscheme/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    URLScheme
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../uuid/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UUID
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    WebView
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    WebView
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#shouldallowrequest" class="md-nav__link">
+    <span class="md-ellipsis">
+      shouldAllowRequest
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-new-webview" class="md-nav__link">
+    <span class="md-ellipsis">
+      -new WebView
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadhtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      +loadHTML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+loadHTML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      +loadFile
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+loadFile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadurl" class="md-nav__link">
+    <span class="md-ellipsis">
+      +loadURL
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+loadURL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-loadurl" class="md-nav__link">
+    <span class="md-ellipsis">
+      -loadURL
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-loadURL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-loadrequest" class="md-nav__link">
+    <span class="md-ellipsis">
+      -loadRequest
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-loadRequest">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-loadhtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      -loadHTML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-loadHTML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-loadfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      -loadFile
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-loadFile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-evaluatejavascript" class="md-nav__link">
+    <span class="md-ellipsis">
+      -evaluateJavaScript
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-evaluateJavaScript">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-gethtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      -getHTML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-getHTML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-present" class="md-nav__link">
+    <span class="md-ellipsis">
+      -present
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-present">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-waitforload" class="md-nav__link">
+    <span class="md-ellipsis">
+      -waitForLoad
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-waitForLoad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetdate/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetDate
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetimage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetImage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetspacer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetSpacer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgetstack/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetStack
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widgettext/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WidgetText
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xmlparser/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    XMLParser
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#shouldallowrequest" class="md-nav__link">
+    <span class="md-ellipsis">
+      shouldAllowRequest
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-new-webview" class="md-nav__link">
+    <span class="md-ellipsis">
+      -new WebView
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadhtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      +loadHTML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+loadHTML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      +loadFile
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+loadFile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadurl" class="md-nav__link">
+    <span class="md-ellipsis">
+      +loadURL
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="+loadURL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-loadurl" class="md-nav__link">
+    <span class="md-ellipsis">
+      -loadURL
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-loadURL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-loadrequest" class="md-nav__link">
+    <span class="md-ellipsis">
+      -loadRequest
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-loadRequest">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-loadhtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      -loadHTML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-loadHTML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-loadfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      -loadFile
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-loadFile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-evaluatejavascript" class="md-nav__link">
+    <span class="md-ellipsis">
+      -evaluateJavaScript
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-evaluateJavaScript">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-gethtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      -getHTML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-getHTML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-present" class="md-nav__link">
+    <span class="md-ellipsis">
+      -present
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-present">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-value_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-waitforload" class="md-nav__link">
+    <span class="md-ellipsis">
+      -waitForLoad
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="-waitForLoad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#return-value_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return value
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="webview">WebView<a class="headerlink" href="#webview" title="Permanent link">&para;</a></h1>
+<p>Presents websites and evaluates JavaScript on websites.</p>
+<p>Supports rendering HTML as well as loading a file and rendering it. A file can be of various types. It could for example be an HTML file or an image.</p>
+<p>The web view also supports evaluating JavaScript on a website.</p>
+<h2 id="shouldallowrequest">shouldAllowRequest<a class="headerlink" href="#shouldallowrequest" title="Permanent link">&para;</a></h2>
+<p>Function called upon load of a request.</p>
+<p>When the web view performs a request to load a resource, the function can determine whether or not to allow the request. Disallowing request can speed up the time it takes to load the website.</p>
+<p>By default all requests are allowed.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">shouldAllowRequest</span><span class="o">:</span><span class="w"> </span><span class="nx">fn</span><span class="p">(</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nx">bool</span>
+</code></pre></div>
+
+<hr />
+<h2 id="-new-webview">-new WebView<a class="headerlink" href="#-new-webview" title="Permanent link">&para;</a></h2>
+<p>Constructs web view.</p>
+<div class="codehilite"><pre><span></span><code><span class="ow">new</span><span class="w"> </span><span class="nx">WebView</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Constructs a new web view. Use a web view to evaluate JavaScript on websites.</p>
+<hr />
+<h2 id="loadhtml">+loadHTML<a class="headerlink" href="#loadhtml" title="Permanent link">&para;</a></h2>
+<p>Loads HTML and renders it.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">loadHTML</span><span class="p">(</span><span class="nx">html</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">baseURL</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">preferredSize</span><span class="o">:</span><span class="w"> </span><span class="nx">Size</span><span class="p">,</span><span class="w"> </span><span class="nx">fullscreen</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span>
+</code></pre></div>
+
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
+<p><strong>html</strong><br />
+<em>string</em><br />
+HTML to load and render.</p>
+<p><strong>baseURL</strong><br />
+<em>string</em><br />
+Optional. Base URL used to resolve relative URLs in the HTML.</p>
+<p><strong>preferredSize</strong><br />
+<em>Size</em><br />
+Optional. Preferred size of the view. This size is not guaranteed to be respected and is only used when the script is run with Siri or in the Shortcuts app.</p>
+<p><strong>fullscreen</strong><br />
+<em>bool</em><br />
+Optional. Set to true to present the web view in fullscreen. This only has an effect when used within the app. Defaults to false.</p>
+<h3 id="return-value">Return value<a class="headerlink" href="#return-value" title="Permanent link">&para;</a></h3>
+<p><em>Promise</em><br />
+Promise that carries no value. Once the web view have been closed, the promise will complete.</p>
+<hr />
+<h2 id="loadfile">+loadFile<a class="headerlink" href="#loadfile" title="Permanent link">&para;</a></h2>
+<p>Loads a file and renders it.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">loadFile</span><span class="p">(</span><span class="nx">fileURL</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">preferredSize</span><span class="o">:</span><span class="w"> </span><span class="nx">Size</span><span class="p">,</span><span class="w"> </span><span class="nx">fullscreen</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span>
+</code></pre></div>
+
+<p>Files can be of various types, including HTML files and images.</p>
+<p>The supplied HTML file can reference files and nested directories in the same directory as the HTML file resides.</p>
+<p>The optional <code>preferredSize</code> parameter is ignored unless the script is run in a Siri Shortcut.</p>
+<p>If you are displaying large images in a memory constrained envrionment, for example in a Siri Shortcut, you should use the WebView bridge instead of the QuickLook bridge. The technical reason for this is that a Siri Shortcut and other app extension processes have very limited memory and loading a very large image will cause the app extension to be terminated. However, the web view will run in a different process meaning that it is not affected by the same memory constraints.</p>
+<h3 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">&para;</a></h3>
+<p><strong>fileURL</strong><br />
+<em>string</em><br />
+URL of the file to load and render.</p>
+<p><strong>preferredSize</strong><br />
+<em>Size</em><br />
+Optional. Preferred size of the view. This size is not guaranteed to be respected and is only used when the script is run with Siri or in the Shortcuts app.</p>
+<p><strong>fullscreen</strong><br />
+<em>bool</em><br />
+Optional. Set to true to present the web view in fullscreen. This only has an effect when used within the app. Defaults to false.</p>
+<h3 id="return-value_1">Return value<a class="headerlink" href="#return-value_1" title="Permanent link">&para;</a></h3>
+<p><em>Promise</em><br />
+Promise that carries no value. Once the web view have been closed, the promise will complete.</p>
+<hr />
+<h2 id="loadurl">+loadURL<a class="headerlink" href="#loadurl" title="Permanent link">&para;</a></h2>
+<p>Loads URL in web view and presents the web view.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="nx">loadURL</span><span class="p">(</span><span class="nx">url</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">preferredSize</span><span class="o">:</span><span class="w"> </span><span class="nx">Size</span><span class="p">,</span><span class="w"> </span><span class="nx">fullscreen</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span>
+</code></pre></div>
+
+<p>The optional <code>preferredSize</code> parameter is ignored unless the script is run in a Siri Shortcut.</p>
+<h3 id="parameters_2">Parameters<a class="headerlink" href="#parameters_2" title="Permanent link">&para;</a></h3>
+<p><strong>url</strong><br />
+<em>string</em><br />
+URL to load into the web view.</p>
+<p><strong>preferredSize</strong><br />
+<em>Size</em><br />
+Optional. Preferred size of the view. This size is not guaranteed to be respected and is only used when the script is run with Siri or in the Shortcuts app.</p>
+<p><strong>fullscreen</strong><br />
+<em>bool</em><br />
+Optional. Set to true to present the web view in fullscreen. This only has an effect when used within the app. Defaults to false.</p>
+<h3 id="return-value_2">Return value<a class="headerlink" href="#return-value_2" title="Permanent link">&para;</a></h3>
+<p><em>Promise</em><br />
+Promise that carries no value. Once the web view have been closed, the promise will complete.</p>
+<hr />
+<h2 id="-loadurl">-loadURL<a class="headerlink" href="#-loadurl" title="Permanent link">&para;</a></h2>
+<p>Loads URL in web view.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">loadURL</span><span class="p">(</span><span class="nx">url</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span>
+</code></pre></div>
+
+<p>Loads the URL in the web view. The returned promise will complete once the web view has finished loading.</p>
+<h3 id="parameters_3">Parameters<a class="headerlink" href="#parameters_3" title="Permanent link">&para;</a></h3>
+<p><strong>url</strong><br />
+<em>string</em><br />
+URL to load into the web view.</p>
+<h3 id="return-value_3">Return value<a class="headerlink" href="#return-value_3" title="Permanent link">&para;</a></h3>
+<p><em>Promise</em><br />
+Promise that carries no value. Once the web view has finished loading, the promise will complete.</p>
+<hr />
+<h2 id="-loadrequest">-loadRequest<a class="headerlink" href="#-loadrequest" title="Permanent link">&para;</a></h2>
+<p>Loads request in web view.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">loadRequest</span><span class="p">(</span><span class="nx">request</span><span class="o">:</span><span class="w"> </span><span class="nx">Request</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span>
+</code></pre></div>
+
+<p>When loading a request into the web view, the HTTP method, body and headers of the request will be respected. The onRedirect function on the request will not be invoked.</p>
+<h3 id="parameters_4">Parameters<a class="headerlink" href="#parameters_4" title="Permanent link">&para;</a></h3>
+<p><strong>request</strong><br />
+<em>Request</em><br />
+Request to load into the web view.</p>
+<h3 id="return-value_4">Return value<a class="headerlink" href="#return-value_4" title="Permanent link">&para;</a></h3>
+<p><em>Promise</em><br />
+Promise that carries no value. Once the web view has finished loading, the promise will complete.</p>
+<hr />
+<h2 id="-loadhtml">-loadHTML<a class="headerlink" href="#-loadhtml" title="Permanent link">&para;</a></h2>
+<p>Loads HTML in web view.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">loadHTML</span><span class="p">(</span><span class="nx">html</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">baseURL</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span>
+</code></pre></div>
+
+<p>Loads the HTML into  the web view. The returned promise will complete once the web view has finished loading.</p>
+<h3 id="parameters_5">Parameters<a class="headerlink" href="#parameters_5" title="Permanent link">&para;</a></h3>
+<p><strong>html</strong><br />
+<em>string</em><br />
+HTML to load into the web view.</p>
+<p><strong>baseURL</strong><br />
+<em>string</em><br />
+Optional. Base URL used to resolve relative URLs in the HTML.</p>
+<h3 id="return-value_5">Return value<a class="headerlink" href="#return-value_5" title="Permanent link">&para;</a></h3>
+<p><em>Promise</em><br />
+Promise that carries no value. Once the web view has finished loading, the promise will complete.</p>
+<hr />
+<h2 id="-loadfile">-loadFile<a class="headerlink" href="#-loadfile" title="Permanent link">&para;</a></h2>
+<p>Loads file in the web view.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">loadFile</span><span class="p">(</span><span class="nx">fileURL</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span>
+</code></pre></div>
+
+<p>Files can be of various types, including HTML files and images.</p>
+<p>The supplied HTML file can reference files and nested directories in the same directory as the HTML file resides.</p>
+<h3 id="parameters_6">Parameters<a class="headerlink" href="#parameters_6" title="Permanent link">&para;</a></h3>
+<p><strong>fileURL</strong><br />
+<em>string</em><br />
+URL of the file to load and render.</p>
+<h3 id="return-value_6">Return value<a class="headerlink" href="#return-value_6" title="Permanent link">&para;</a></h3>
+<p><em>Promise</em><br />
+Promise that carries no value. Once the web view has finished loading, the promise will complete.</p>
+<hr />
+<h2 id="-evaluatejavascript">-evaluateJavaScript<a class="headerlink" href="#-evaluatejavascript" title="Permanent link">&para;</a></h2>
+<p>Evaluates JavaScript in the web view.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">evaluateJavaScript</span><span class="p">(</span><span class="nx">javaScript</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">,</span><span class="w"> </span><span class="nx">useCallback</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">any</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>Evaluates JavaScript in the current context of the web view. The returned promise carries the result of evaluating the JavaScript.</p>
+<p>When passing <code>false</code> to the <code>useCallback</code> parameter, which is the default value, evaluation will terminate after evaluating the last line of the JavaScript. The value on the last line of the script will be carried by the promise returned by <code>evaluateJavaScript</code>.</p>
+<p>When passing <code>true</code> to the <code>useCallback</code> parameter, evaluation will only complete after the globally available <code>completion</code> function is called. Any value passed to the function, will be carried by the promise returned by <code>evaluateJavaScript</code>.</p>
+<p>The log is available from the evaluated JavaScript, i.e. messages passed to the globally available <code>log</code> and <code>logError</code> functions will be shown in the log.</p>
+<h3 id="parameters_7">Parameters<a class="headerlink" href="#parameters_7" title="Permanent link">&para;</a></h3>
+<p><strong>javaScript</strong><br />
+<em>string</em><br />
+JavaScript to evaluate in the web view.</p>
+<p><strong>useCallback</strong><br />
+<em>bool</em><br />
+Optional. If true the web view waits for the globally available completion function of the web view to be called before terminating. Defaults to false.</p>
+<h3 id="return-value_7">Return value<a class="headerlink" href="#return-value_7" title="Permanent link">&para;</a></h3>
+<p><em>Promise<any></em><br />
+Promise that carries the result of evaluating the JavaScript.</p>
+<hr />
+<h2 id="-gethtml">-getHTML<a class="headerlink" href="#-gethtml" title="Permanent link">&para;</a></h2>
+<p>Reads and returns HTML from the loaded website.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">getHTML</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">any</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<h3 id="return-value_8">Return value<a class="headerlink" href="#return-value_8" title="Permanent link">&para;</a></h3>
+<p><em>Promise<any></em><br />
+Promise that carries the HTML of the loaded website.</p>
+<hr />
+<h2 id="-present">-present<a class="headerlink" href="#-present" title="Permanent link">&para;</a></h2>
+<p>Presents the web view.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">present</span><span class="p">(</span><span class="nx">fullscreen</span><span class="o">:</span><span class="w"> </span><span class="nx">bool</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span>
+</code></pre></div>
+
+<p>The web view is presented with the content that has been loaded into it.</p>
+<h3 id="parameters_8">Parameters<a class="headerlink" href="#parameters_8" title="Permanent link">&para;</a></h3>
+<p><strong>fullscreen</strong><br />
+<em>bool</em><br />
+Set to true to present the web view in fullscreen. Defaults to false.</p>
+<h3 id="return-value_9">Return value<a class="headerlink" href="#return-value_9" title="Permanent link">&para;</a></h3>
+<p><em>Promise</em><br />
+Promise that is fulfilled when the presented web view is dismissed. The promise carries no value.</p>
+<hr />
+<h2 id="-waitforload">-waitForLoad<a class="headerlink" href="#-waitforload" title="Permanent link">&para;</a></h2>
+<p>Waits for the web view to load.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">waitForLoad</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">any</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>The returned promise will be fulfilled when the web view finishes loading. If the load fails, the promise will be fulfilled with an error.
+Use this with caution. If the web view is not loading a new page or is not about to load a new page, the returned promise will never be fulfilled. This limitation exists because Scriptable cannot determine if a web view is about to load a page in cases where evaluating JavaScript in the web view causes a new page to load.</p>
+<p>Generally this should only be used when loading causing a new page to load from <code>evaluateJavaScript</code>. In other cases, e.g. when loading a URL using <code>loadURL</code>,
+the returned promise will be fulfilled when the page have been loaded.</p>
+<h3 id="return-value_10">Return value<a class="headerlink" href="#return-value_10" title="Permanent link">&para;</a></h3>
+<p><em>Promise<any></em><br />
+Promise that is fulfilled when the web view has finished the active load.</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+<footer class="md-footer">
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            © 2023 Simon B. Støvring. All rights reserved.
+          </div>
+        
+        <div>
+          <a href="https://scriptable.app/scriptable-press-kit.zip">Press Kit</a>
+          &nbsp;
+          <a href="https://scriptable.app/privacy-policy/">Privacy Policy</a>
+          &nbsp;
+          <a href="mailto:mail@scriptable.app">Contact</a>
+        </div>
+        powered by
+        <a href="https://www.mkdocs.org">MkDocs</a>
+        and
+        <a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a>
+      </div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/scriptableapp" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>
