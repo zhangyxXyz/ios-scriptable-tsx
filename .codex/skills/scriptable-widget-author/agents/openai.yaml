@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scriptable Widget Author"
+  short_description: "在本仓库中编写并验证 Scriptable TSX widget。"
+  default_prompt: "为这个仓库编写一个 Scriptable TSX widget 脚本，并用本地 Playground 验证。"
