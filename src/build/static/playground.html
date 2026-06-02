@@ -1909,11 +1909,17 @@
                 static systemFont(size) {
                     return new MockFont('system', size)
                 }
+                static lightSystemFont(size) {
+                    return new MockFont('light', size)
+                }
                 static semiboldSystemFont(size) {
                     return new MockFont('semibold', size)
                 }
                 static mediumSystemFont(size) {
                     return new MockFont('medium', size)
+                }
+                static boldSystemFont(size) {
+                    return new MockFont('bold', size)
                 }
             }
 
@@ -2161,6 +2167,12 @@
                 if (font?.size) styles.push(`font-size:${font.size}px`)
                 if (textAlign) styles.push(`text-align:${textAlign}`)
                 if (lineLimit === 1) styles.push('white-space:nowrap')
+                if (lineLimit > 1) {
+                    styles.push('white-space:normal')
+                    styles.push('display:-webkit-box')
+                    styles.push(`-webkit-line-clamp:${lineLimit}`)
+                    styles.push('-webkit-box-orient:vertical')
+                }
                 if (padding) styles.push(`padding:${padding[0]}px ${padding[3]}px ${padding[2]}px ${padding[1]}px`)
                 if (backgroundColor) styles.push(`background:${colorToCss(backgroundColor)}`)
                 if (cornerRadius !== undefined) styles.push(`border-radius:${cornerRadius}px`)
@@ -2679,7 +2691,9 @@
 
             async function executeScript(file, sandbox, runtimeScriptName = file) {
                 sandbox.__setScriptFile?.(file, runtimeScriptName)
-                const code = await fetch(`/${file}?t=${Date.now()}`).then(res => res.text())
+                const code = await fetch(`/api/script?file=${encodeURIComponent(file)}&t=${Date.now()}`).then(res =>
+                    res.text(),
+                )
                 const runner = new AsyncFunction('sandbox', `with (sandbox) { ${code}\n }`)
                 return runner(sandbox)
             }

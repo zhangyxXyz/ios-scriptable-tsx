@@ -22,6 +22,10 @@ interface ProxyQuery {
     url?: string
 }
 
+interface ScriptQuery {
+    file?: string
+}
+
 interface FsQuery {
     path?: string
 }
@@ -143,6 +147,27 @@ export function createServer(params: CreateServerParams): {serverApi: string} {
             msg: 'success',
             data: scripts,
         } as Res<string[]>)
+    })
+
+    app.get('/api/script', (req, res) => {
+        const {file = ''} = req.query as ScriptQuery
+        if (!file.endsWith('.js') || path.basename(file) !== file) {
+            res.status(400).send({code: 400, msg: 'Invalid script file'})
+            return
+        }
+
+        const filePath = path.resolve(staticDir, file)
+        const root = path.resolve(staticDir)
+        if (filePath !== root && !filePath.startsWith(`${root}${path.sep}`)) {
+            res.status(400).send({code: 400, msg: 'Invalid script path'})
+            return
+        }
+        if (!fs.existsSync(filePath)) {
+            res.status(404).send({code: 404, msg: 'Script not found'})
+            return
+        }
+
+        res.type('application/javascript; charset=utf-8').send(fs.readFileSync(filePath, 'utf8'))
     })
 
     app.get('/api/scriptable-docs', (_req, res) => {

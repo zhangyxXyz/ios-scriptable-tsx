@@ -426,7 +426,7 @@ await __topLevelAwait__();
                 ...prettierConfig,
                 parser: 'babel',
             })
-            writeText = writeText.replace(/^\s*(?:;\(['"]use strict['"]\)|['"]use strict['"];?)\s*$/gm, '')
+            writeText = writeText.replace(/^\s*(?:;?\(['"]use strict['"]\);?|['"]use strict['"];?)\s*$/gm, '')
         } catch (err) {
             console.error('格式化代码失败', err)
         }

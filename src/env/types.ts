@@ -188,6 +188,7 @@ export declare class WidgetBase {
 
     name?: string
     en?: string
+    storageExpirationMinutes: number
     backgroundColor: string
     widgetFamily?: WidgetFamily
     widgetColor: Color
