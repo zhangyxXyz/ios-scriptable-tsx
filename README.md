@@ -74,7 +74,7 @@ Playground 默认以 `App Runtime` 运行，适合调试设置页、点击项、
 - `Log / Requests`：查看脚本日志、请求响应和运行时事件。
 - `Docs`：在同一面板里查看离线 Scriptable 文档。
 
-更多细节见 [Playground 调试指南](./docs/cn/playground.md)。
+更多细节见 [Playground 调试指南](./docs/zh-CN/playground.md)。
 
 ## 本地缓存说明
 
@@ -94,12 +94,12 @@ Playground 会把 Scriptable 的存储行为映射到仓库根目录的 `.cache`
 
 ## 文档
 
-- [快速开始](./docs/cn/quick-start.md)
-- [Playground 调试指南](./docs/cn/playground.md)
-- [构建流程](./docs/cn/build.md)
-- [运行时环境](./docs/cn/env.md)
-- [Stack UI](./docs/cn/stack-ui.md)
-- [架构说明](./docs/cn/architecture.md)
+- [快速开始](./docs/zh-CN/quick-start.md)
+- [Playground 调试指南](./docs/zh-CN/playground.md)
+- [构建流程](./docs/zh-CN/build.md)
+- [运行时环境](./docs/zh-CN/env.md)
+- [Stack UI](./docs/zh-CN/stack-ui.md)
+- [架构说明](./docs/zh-CN/architecture.md)
 
 ## License
 
