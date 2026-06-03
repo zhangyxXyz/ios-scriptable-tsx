@@ -258,13 +258,18 @@ EndAwait(async () => {
         const localVersion = String(script.installedVersion || '').trim()
         const remoteBuild = String(script.build || '').trim()
         const localBuild = String(script.installedBuild || '').trim()
+        const isInstalled = Boolean(localVersion || localBuild)
         const hasVersion = Boolean(remoteVersion && remoteVersion !== remoteBuild)
+
+        if (!isInstalled) {
+            return {shouldUpdate: true, reason: '未安装'}
+        }
 
         if (hasVersion) {
             if (localVersion && localVersion === remoteVersion) {
                 return {shouldUpdate: false, reason: '无需更新'}
             }
-            return {shouldUpdate: true, reason: localVersion ? `版本 ${localVersion} -> ${remoteVersion}` : '未安装'}
+            return {shouldUpdate: true, reason: `版本 ${localVersion || '-'} -> ${remoteVersion}`}
         }
 
         if (remoteBuild && localBuild && localBuild >= remoteBuild) {
@@ -283,7 +288,7 @@ EndAwait(async () => {
         const fm = this.getFileManager()
         fm.writeString(this.getScriptPath(script.fileName), source)
         if (script.fileName === dependencyFileName) this.reopenScript()
-        return `${script.name?.zh || script.fileName} 已更新`
+        return `${script.name?.zh || script.fileName} ${decision.reason === '未安装' ? '已安装' : '已更新'}`
     }
 
     findScript(state: SubscriptionState, fileName: string) {
@@ -364,6 +369,7 @@ button.red { background: rgba(255,59,48,0.12); color: var(--red); }
 .row-main { flex: 1; min-width: 0; }
 .row-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
 .status-pill { border-radius: 999px; padding: 2px 7px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.status-pill.install { color: #ffffff; background: var(--blue); }
 .status-pill.update { color: #ffffff; background: var(--green); }
 .status-pill.current { color: var(--muted); background: rgba(142,142,147,0.16); }
 .row-desc { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
@@ -396,14 +402,20 @@ button.red { background: rgba(255,59,48,0.12); color: var(--red); }
 let state = ${initialState};
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function scriptNeedsUpdate(script) {
+  return scriptStatus(script).action !== 'forceUpdateScript';
+}
+function scriptStatus(script) {
   const remoteVersion = String(script.version || '').trim();
   const localVersion = String(script.installedVersion || '').trim();
   const remoteBuild = String(script.build || '').trim();
   const localBuild = String(script.installedBuild || '').trim();
+  const isInstalled = !!(localVersion || localBuild);
+  if (!isInstalled) return {text: '未安装', className: 'install', action: 'updateScript', button: '安装', buttonClass: 'green'};
   const hasVersion = !!(remoteVersion && remoteVersion !== remoteBuild);
-  if (hasVersion) return !(localVersion && localVersion === remoteVersion);
-  if (remoteBuild && localBuild) return localBuild < remoteBuild;
-  return true;
+  const needsUpdate = hasVersion ? !(localVersion && localVersion === remoteVersion) : !(remoteBuild && localBuild && localBuild >= remoteBuild);
+  return needsUpdate
+    ? {text: '可更新', className: 'update', action: 'updateScript', button: '更新', buttonClass: ''}
+    : {text: '已最新', className: 'current', action: 'forceUpdateScript', button: '强制', buttonClass: 'secondary'};
 }
 function invoke(code, data) {
   window.dispatchEvent(new CustomEvent('JBridge', {detail: {code, data}}));
@@ -444,15 +456,11 @@ function render() {
               const zhName = script.name && script.name.zh ? script.name.zh : script.fileName;
               const enName = script.name && script.name.en ? script.name.en : '';
               const title = enName && enName !== zhName ? zhName + ' / ' + enName : zhName;
-              const needsUpdate = scriptNeedsUpdate(script);
-              const statusText = needsUpdate ? '可更新' : '已最新';
-              const statusClass = needsUpdate ? 'update' : 'current';
+              const status = scriptStatus(script);
               const buildLine = '本地 build：' + (script.installedBuild || '-') + ' ｜ 远端 build：' + (script.build || '-');
               const versionLine = '本地版本：' + (script.installedVersion || '-') + ' ｜ 远端版本：' + (script.version || '-');
-              const actionButton = needsUpdate
-                ? '<button onclick="invoke(\\'updateScript\\', ' + JSON.stringify(script.fileName).replace(/"/g, '&quot;') + ')">更新</button>'
-                : '<button class="secondary" onclick="invoke(\\'forceUpdateScript\\', ' + JSON.stringify(script.fileName).replace(/"/g, '&quot;') + ')">强制</button>';
-              return '<div class="row"><div class="row-main"><div class="row-title"><span>' + escapeHtml(title) + '</span><span class="status-pill ' + statusClass + '">' + statusText + '</span></div><div class="row-desc">' + escapeHtml(buildLine) + '</div><div class="row-desc">' + escapeHtml(versionLine) + '</div></div><div class="script-actions">' + actionButton + '</div></div>';
+              const actionButton = '<button class="' + status.buttonClass + '" onclick="invoke(\\'' + status.action + '\\', ' + JSON.stringify(script.fileName).replace(/"/g, '&quot;') + ')">' + status.button + '</button>';
+              return '<div class="row"><div class="row-main"><div class="row-title"><span>' + escapeHtml(title) + '</span><span class="status-pill ' + status.className + '">' + status.text + '</span></div><div class="row-desc">' + escapeHtml(buildLine) + '</div><div class="row-desc">' + escapeHtml(versionLine) + '</div></div><div class="script-actions">' + actionButton + '</div></div>';
             }).join('');
         return '<section class="section"><div class="section-title">' + escapeHtml(manifest.title) + '</div><div class="card">' + scripts + '</div></section>';
       }).join('')
