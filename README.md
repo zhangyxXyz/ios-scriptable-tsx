@@ -16,6 +16,7 @@
 - 本地状态写入 `.cache`，包括 `.cache/keychain.json`、`.cache/Documents`、`.cache/Library`、`.cache/iCloud`、`.cache/images` 和 `.cache/tmp`，便于直接检查和重置。
 - `Appearance` 控制 Widget / WebView 内部的 Scriptable 外观；页面自己的 Light / Dark / Auto 主题只影响 Playground 外壳。
 - 内置离线 Scriptable Docs 预览，调试时不用频繁跳转到外部文档站点。
+- 构建时生成 `dist/subscription.json`，可被 `ScriptUpdater.js` 在 Scriptable 内管理订阅、检查版本并更新脚本。
 
 ## 快速开始
 
@@ -45,6 +46,44 @@ npm run build
 ```
 
 构建结果会输出到 `dist`。把业务脚本和它依赖的 `Seiun.Env.js` 放到 Scriptable 的同一目录即可运行。
+
+## 构建产物与订阅清单
+
+普通构建会解析 `src/index.ts` 中的静态 import，并把每个入口输出为 `dist/*.js`。构建完成后还会生成 `dist/subscription.json`，用于描述当前可订阅脚本：
+
+- `rawUrl`：脚本远端 raw 地址，默认从 GitHub `origin` 和当前分支推断为 `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/dist/<file>`。
+- `name.zh` / `name.en`：脚本中文名和英文名，优先从脚本类里的 `this.name`、`this.en` 读取。
+- `desc`：脚本头部注释里的 `desc`，没有时使用脚本名。
+- `version`：脚本头部注释里的 `version`，没有版本号时回退为 build 时间。
+- `build`：构建时间。
+
+如果需要固定订阅 raw 根地址，可以在构建时设置：
+
+```bash
+$env:SUBSCRIPTION_RAW_BASE_URL='https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist'
+npm run dev
+```
+
+构建器会先把候选产物写入 `dist/.tmp`，再和现有 `dist` 文件比较。比较时会把新文件的 build 时间临时替换为旧文件的 build 时间并计算 MD5；如果内容一致，就跳过覆盖，避免只有 build 时间变化导致 `dist` 产生无意义改动。没有旧 build 时间或内容确实变化时，会覆盖正式产物。构建成功后会清理 `dist/.tmp`。
+
+## 脚本更新器
+
+`dist/ScriptUpdater.js` 是订阅更新器，放到 Scriptable 后可在 App 内打开“订阅管理”。它默认使用本仓库的 `dist/subscription.json`，也支持添加多个订阅 URL。
+
+订阅管理页面会按订阅源分组展示脚本。每个脚本条目分三行：
+
+- 第一行：中文名 / 英文名，并显示“可更新”或“已最新”状态。
+- 第二行：本地 build / 远端 build。
+- 第三行：本地版本 / 远端版本。
+
+更新判断规则：
+
+- 如果远端脚本有版本号，优先比较版本；版本一致时显示“无需更新”。
+- 如果没有版本号，比较 build 时间。
+- 有更新时按钮显示“更新”；无需更新时按钮显示“强制”，可手动覆盖下载。
+- 顶部“全部更新”只更新需要更新的脚本；“强制全部”会覆盖下载全部脚本。
+
+第一次在真机运行更新器时，如果本地没有 `Seiun.Env.js`，更新器会先下载依赖并重新拉起脚本。Playground 调试时，更新器会把当前 `dist` 产物视为本地脚本，不依赖 `.cache/Documents` 中的旧缓存。
 
 ## Playground 预览调试
 
