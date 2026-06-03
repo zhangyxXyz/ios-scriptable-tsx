@@ -1477,6 +1477,7 @@
                 state.activeWebView = entry?.webView || null
                 const value = String(entry?.content || '')
                 webviewPanelEl.hidden = false
+                entry?.webView?.attachFrame?.(webviewFrameEl)
                 if (/^https?:\/\//.test(value)) {
                     webviewFrameEl.srcdoc = `<p style="font:14px system-ui;padding:16px">WebView URL: <a href="${escapeHtml(value)}" target="_blank">${escapeHtml(value)}</a></p>`
                 } else {
@@ -1484,7 +1485,6 @@
                         forceWebViewAppearance(value) ||
                         '<p style="font:14px system-ui;padding:16px;color:#667085">Empty WebView</p>'
                 }
-                entry?.webView?.attachFrame?.(webviewFrameEl)
                 updateWebViewBackButton()
                 return webviewFrameEl
             }

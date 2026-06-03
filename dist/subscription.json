@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-04 03:47:17",
+  "generatedAt": "2026-06-04 04:11:22",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -37,7 +37,7 @@
       },
       "desc": "Cursor监控",
       "version": "1.0.0",
-      "build": "2026-06-04 03:42:25"
+      "build": "2026-06-04 04:11:22"
     },
     {
       "id": "ScriptUpdater",

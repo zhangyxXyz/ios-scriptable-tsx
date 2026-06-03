@@ -7,7 +7,8 @@
                 this._handle = null
             }
             schedule(callback) {
-                const delay = Math.max(0, Number(this.timeInterval || 0) * 1000)
+                const interval = Number(this.timeInterval || 0)
+                const delay = Math.max(0, interval > 10 ? interval : interval * 1000)
                 this._handle = this.repeats ? setInterval(callback, delay) : setTimeout(callback, delay)
             }
             invalidate() {

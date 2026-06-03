@@ -10,6 +10,8 @@
                 this.presentedFrame = null
                 this.presentPromise = null
                 this.closePresent = null
+                this.frameLoadPromise = null
+                this.resolveFrameLoad = null
             }
             static async loadHTML(html) {
                 const webView = new WebView()
@@ -39,7 +41,10 @@
                 this.url = fileURL
             }
             async ensureDocument() {
-                if (this.presentedFrame?.isConnected) return this.presentedFrame.contentDocument
+                if (this.presentedFrame?.isConnected) {
+                    await this.waitForPresentedFrameLoad()
+                    return this.presentedFrame.contentDocument
+                }
                 if (this.frame && this.frame.isConnected) return this.frame.contentDocument
                 const frame = document.createElement('iframe')
                 frame.style.cssText = 'position:absolute;left:-10000px;top:-10000px;width:1px;height:1px;border:0;'
@@ -85,6 +90,9 @@
             }
             attachFrame(frame) {
                 this.presentedFrame = frame
+                this.frameLoadPromise = new Promise(resolve => {
+                    this.resolveFrameLoad = resolve
+                })
                 const attach = () => {
                     const win = frame.contentWindow
                     if (!win) return
@@ -100,9 +108,16 @@
                             win.dispatchEvent(new win.CustomEvent('JBridge', {detail: {code, data}}))
                         }
                     }
+                    this.resolveFrameLoad?.()
                 }
-                attach()
-                frame.addEventListener('load', attach)
+                frame.addEventListener('load', attach, {once: true})
+            }
+            async waitForPresentedFrameLoad() {
+                if (!this.presentedFrame?.isConnected) return
+                if (this.presentedFrame.contentDocument?.readyState === 'complete') return
+                if (this.frameLoadPromise) {
+                    await Promise.race([this.frameLoadPromise, new Promise(resolve => setTimeout(resolve, 100))])
+                }
             }
             async evaluateJavaScript(code, useCallback = false) {
                 const source = String(code)

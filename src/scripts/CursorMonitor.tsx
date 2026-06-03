@@ -249,6 +249,15 @@ class CursorMonitor extends WidgetBase {
         return '请选择或者添加账号'
     }
 
+    escapeHtml(value: unknown) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+    }
+
     // 生成账号列表的 HTML 内容
     generateAccountListHtml() {
         const dataSource = this.settings.dataSource || []
@@ -269,12 +278,14 @@ class CursorMonitor extends WidgetBase {
             for (let i = 0; i < dataSource.length; i++) {
                 const account = dataSource[i]
                 const isDefault = defaultAccountName && defaultAccountName === account.accountName
+                const accountName = this.escapeHtml(account.accountName || '未命名')
+                const teamId = this.escapeHtml(account.teamId ?? -1)
                 accountListHtml += `
                     <div class="account-item" data-index="${i}">
                         <div class="account-icon">🔑</div>
                         <div class="account-info">
-                            <div class="account-name">${account.accountName || '未命名'}</div>
-                            <div class="account-detail">编号: ${i} | 团队ID: ${account.teamId || -1}</div>
+                            <div class="account-name">${accountName}</div>
+                            <div class="account-detail">编号: ${i} | 团队ID: ${teamId}</div>
                         </div>
                         ${isDefault ? '<span class="account-badge">默认</span>' : ''}
                         <span class="account-arrow">›</span>
@@ -304,24 +315,6 @@ class CursorMonitor extends WidgetBase {
         } catch (e) {
             console.log('resetPendingAction error:', e)
         }
-    }
-
-    async waitForAccountAction(webView: WebViewLike) {
-        const event = await webView.evaluateJavaScript<string>(
-            `(() => {
-                if (window._cursorAccountActionHandler) {
-                    window.removeEventListener('JBridge', window._cursorAccountActionHandler);
-                }
-                window._cursorAccountActionHandler = e => {
-                    window.removeEventListener('JBridge', window._cursorAccountActionHandler);
-                    window._cursorAccountActionHandler = null;
-                    completion(JSON.stringify(e.detail || {}));
-                };
-                window.addEventListener('JBridge', window._cursorAccountActionHandler);
-            })()`,
-            true,
-        )
-        return JSON.parse(event || '{}') as {code?: string; data?: unknown}
     }
 
     async readPendingAccountAction(webView: WebViewLike) {
@@ -379,21 +372,16 @@ class CursorMonitor extends WidgetBase {
         try {
             await webView.evaluateJavaScript(
                 `(function() {
-                    window.invoke = function(code, data) {
-                        window.dispatchEvent(new CustomEvent('JBridge', { detail: { code: code, data: data } }));
-                    };
                     if (typeof window.pendingAction === 'undefined') window.pendingAction = '';
                     document.querySelectorAll('.account-item').forEach(function(item) {
                         item.onclick = function() {
-                            window.pendingAction = 'account_' + item.dataset.index;
-                            window.invoke('account', item.dataset.index);
+                            window.pendingAction = 'account_' + item.getAttribute('data-index');
                         };
                     });
                     var addBtn = document.getElementById('addBtn');
                     if (addBtn) {
                         addBtn.onclick = function() {
                             window.pendingAction = 'add';
-                            window.invoke('add');
                         };
                     }
                 })()`,
@@ -677,23 +665,25 @@ class CursorMonitor extends WidgetBase {
                             <button class="add-button" id="addBtn">+ 新增账号</button>
                         </div>
                         <script>
-                            window.pendingAction = '';
-                            window.invoke = function(code, data) {
-                                window.dispatchEvent(new CustomEvent('JBridge', { detail: { code: code, data: data } }));
-                            };
-                            document.querySelectorAll('.account-item').forEach((item) => {
-                                item.addEventListener('click', () => {
-                                    window.pendingAction = 'account_' + item.dataset.index;
-                                    window.invoke('account', item.dataset.index);
-                                });
-                            });
-                            var addBtn = document.getElementById('addBtn');
-                            if (addBtn) {
-                                addBtn.addEventListener('click', () => {
-                                    window.pendingAction = 'add';
-                                    window.invoke('add');
-                                });
-                            }
+                            (function() {
+                                try {
+                                    window.pendingAction = '';
+                                    var items = document.querySelectorAll('.account-item');
+                                    for (var i = 0; i < items.length; i++) {
+                                        items[i].onclick = function() {
+                                            window.pendingAction = 'account_' + this.getAttribute('data-index');
+                                        };
+                                    }
+                                    var addBtn = document.getElementById('addBtn');
+                                    if (addBtn) {
+                                        addBtn.onclick = function() {
+                                            window.pendingAction = 'add';
+                                        };
+                                    }
+                                } catch (error) {
+                                    document.body.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div>账号管理加载失败</div><div style="margin-top: 8px; font-size: 14px;">' + String(error) + '</div></div>';
+                                }
+                            })();
                         </script>
                     </body>
                 </html>
@@ -702,46 +692,30 @@ class CursorMonitor extends WidgetBase {
             await webView.loadHTML(html)
 
             let isWebViewClosed = false
-            const closePromise = webView.present(false).then(() => {
+            webView.present(false).then(() => {
                 isWebViewClosed = true
-                return null
             })
 
             while (!isWebViewClosed) {
+                await new Promise(resolve => Timer.schedule(250, false, () => resolve(undefined)))
                 if (isWebViewClosed) break
 
                 let action = ''
-                let actionData: unknown = null
                 try {
-                    const event = (await Promise.race([
-                        this.waitForAccountAction(webView),
-                        new Promise(resolve => Timer.schedule(1000, false, () => resolve(null))),
-                        closePromise,
-                    ])) as {code?: string; data?: unknown} | null
-                    if (isWebViewClosed) break
-                    if (event) {
-                        if (event.code === 'add') {
-                            action = 'add'
-                            actionData = event.data
-                        } else if (event.code === 'account') {
-                            action = `account_${event.data}`
-                        }
-                    }
-                    if (!action) {
-                        action = await this.readPendingAccountAction(webView)
-                    }
+                    action = await this.readPendingAccountAction(webView)
                 } catch (e) {
                     console.log('evaluateJavaScript 错误:', e)
-                    break
+                    continue
                 }
 
                 if (!action || action === '') {
+                    await this.resetPendingAction(webView)
                     continue
                 }
 
                 let result = null
                 if (action === 'add') {
-                    result = {action: 'addAccount', data: actionData}
+                    result = {action: 'addAccount'}
                 } else if (action.startsWith('account_')) {
                     const index = parseInt(action.replace('account_', ''))
                     result = {action: 'accountClick', index: index}
@@ -763,11 +737,11 @@ class CursorMonitor extends WidgetBase {
                     const actionAlert = new Alert()
                     actionAlert.title = account.accountName || '账号操作'
                     actionAlert.message = '请选择要执行的操作'
-                    actionAlert.addCancelAction('取消')
                     actionAlert.addAction('设为默认')
                     actionAlert.addAction('修改')
                     actionAlert.addAction('复制')
                     actionAlert.addDestructiveAction('删除')
+                    actionAlert.addCancelAction('取消')
                     const actionIndex = await actionAlert.presentAlert()
 
                     switch(actionIndex) {
@@ -858,6 +832,11 @@ class CursorMonitor extends WidgetBase {
             }
         } catch (e) {
             console.log('manageAccounts 主循环错误:', e)
+            const alert = new Alert()
+            alert.title = '账号管理加载失败'
+            alert.message = String(e)
+            alert.addAction('确定')
+            await alert.presentAlert()
         }
     }
 
@@ -1684,7 +1663,12 @@ class CursorMonitor extends WidgetBase {
 
     renderSummaryOverview = async (w: ListWidget, isFallback = false) => {
         GenrateView.setListWidget(w)
-        w.addSpacer(this.contentRowSpacing)
+        const isLargeFamily = this.widgetFamily === 'large'
+        if (isLargeFamily) {
+            w.addSpacer()
+        } else {
+            w.addSpacer(this.contentRowSpacing)
+        }
 
         const iconUrl = 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/cursor.png'
         const titleStack = w.addStack()
@@ -1842,7 +1826,7 @@ class CursorMonitor extends WidgetBase {
         }
 
         if (this.currentSettings.dailyDisplaySettings.listDataUpdateTimeShowType.val === '显示') {
-            w.addSpacer()
+            w.addSpacer(isLargeFamily ? 8 : undefined)
             const timeStack = w.addStack()
             timeStack.layoutHorizontally()
             timeStack.centerAlignContent()
@@ -1859,6 +1843,10 @@ class CursorMonitor extends WidgetBase {
             timeText.font = new Font('SF Mono', 10)
             timeText.textOpacity = 0.5
             timeText.rightAlignText()
+        }
+
+        if (isLargeFamily) {
+            w.addSpacer()
         }
 
         return w
