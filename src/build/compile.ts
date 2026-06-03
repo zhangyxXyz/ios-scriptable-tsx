@@ -383,9 +383,25 @@ const MODULE = module;${topLevelAwaitRuntime}
         return match ? match[1].trim() : ''
     }
 
+    function normalizeBuildLines(source: string) {
+        return source.replace(/^\s*\*\s*build\s*:\s*.*$/gm, ' * build    :  <build>')
+    }
+
     function joinRawUrl(baseUrl: string, fileName: string) {
         if (!baseUrl) return fileName
         return `${baseUrl.replace(/\/+$/, '')}/${fileName}`
+    }
+
+    const previousOutputTexts = new Map<string, string>()
+
+    async function snapshotOutputDir(dir: string) {
+        if (!fs.existsSync(dir)) return
+        const files = await getFilesFromDir(dir)
+        for (const file of files) {
+            try {
+                previousOutputTexts.set(path.resolve(file), fs.readFileSync(file, 'utf8'))
+            } catch {}
+        }
     }
 
     async function generateSubscriptionManifest(rawBaseUrl: string) {
@@ -423,8 +439,20 @@ const MODULE = module;${topLevelAwaitRuntime}
             scripts,
         }
         const manifestPath = path.resolve(outputDir, 'subscription.json')
+        let manifestText = `${JSON.stringify(manifest, null, 2)}\n`
+        const previousManifestText = previousOutputTexts.get(manifestPath)
+        if (previousManifestText) {
+            try {
+                const previousManifest = JSON.parse(previousManifestText)
+                const normalizedPrevious = {...previousManifest, generatedAt: '<generatedAt>'}
+                const normalizedNext = {...manifest, generatedAt: '<generatedAt>'}
+                if (JSON.stringify(normalizedPrevious) === JSON.stringify(normalizedNext)) {
+                    manifestText = previousManifestText
+                }
+            } catch {}
+        }
         await ensureFile(manifestPath)
-        await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, {encoding: 'utf8'})
+        await writeFile(manifestPath, manifestText, {encoding: 'utf8'})
         console.log(`订阅清单已生成: ${manifestPath}`)
     }
 
@@ -450,6 +478,8 @@ const MODULE = module;${topLevelAwaitRuntime}
         }
 
         /** esbuild 配置*/
+        await snapshotOutputDir(outputDir)
+
         const jsxRuntimeInjectPath = path.resolve(rootPath, './src/env/stack-ui/jsx-runtime.ts')
         const shouldInjectJsxRuntime = (inputPath: string) => {
             const source = fs.readFileSync(inputPath, 'utf8')
@@ -553,6 +583,11 @@ await __topLevelAwait__();
         }
 
         // 确保路径存在
+        const previousText = previousOutputTexts.get(path.resolve(outputFile.path))
+        if (previousText && normalizeBuildLines(previousText) === normalizeBuildLines(writeText)) {
+            writeText = previousText
+        }
+
         await ensureFile(outputFile.path)
         // 写入代码
         await writeFile(outputFile.path, writeText, {encoding: 'utf8'})

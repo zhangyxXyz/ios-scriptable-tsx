@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/04
- * build    :  2026-06-04 00:58:47
+ * build    :  2026-06-04 01:09:58
  * desc     :  Scriptable 脚本订阅更新器
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -185,7 +185,40 @@ EndAwait(async () => {
       }
       return { subscriptions, manifests, message };
     }
-    async downloadScript(script) {
+    shouldUpdateScript(script, force = false) {
+      if (force) return { shouldUpdate: true, reason: "强制更新" };
+      const remoteVersion = String(script.version || "").trim();
+      const localVersion = String(script.installedVersion || "").trim();
+      const remoteBuild = String(script.build || "").trim();
+      const localBuild = String(script.installedBuild || "").trim();
+      const hasVersion = Boolean(
+        remoteVersion && remoteVersion !== remoteBuild,
+      );
+      if (hasVersion) {
+        if (localVersion && localVersion === remoteVersion) {
+          return { shouldUpdate: false, reason: "无需更新" };
+        }
+        return {
+          shouldUpdate: true,
+          reason: localVersion
+            ? `版本 ${localVersion} -> ${remoteVersion}`
+            : "未安装",
+        };
+      }
+      if (remoteBuild && localBuild && localBuild >= remoteBuild) {
+        return { shouldUpdate: false, reason: "无需更新" };
+      }
+      return {
+        shouldUpdate: true,
+        reason: localBuild
+          ? `Build ${localBuild} -> ${remoteBuild || "unknown"}`
+          : "未安装",
+      };
+    }
+    async downloadScript(script, force = false) {
+      const decision = this.shouldUpdateScript(script, force);
+      if (!decision.shouldUpdate)
+        return `${script.name?.zh || script.fileName} ${decision.reason}`;
       const req = new Request(script.rawUrl);
       const source = await req.loadString();
       const fm = this.getFileManager();
@@ -266,7 +299,10 @@ button.red { background: rgba(255,59,48,0.12); color: var(--red); }
 .row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-top: 0.5px solid var(--line); }
 .row:first-child { border-top: 0; }
 .row-main { flex: 1; min-width: 0; }
-.row-title { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+.row-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+.status-pill { border-radius: 999px; padding: 2px 7px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.status-pill.update { color: #ffffff; background: var(--green); }
+.status-pill.current { color: var(--muted); background: rgba(142,142,147,0.16); }
 .row-desc { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
 .script-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .version { color: var(--blue); font-size: 12px; font-weight: 700; white-space: nowrap; }
@@ -283,6 +319,7 @@ button.red { background: rgba(255,59,48,0.12); color: var(--red); }
   <div class="toolbar">
     <button class="secondary" onclick="addSubscription()">添加</button>
     <button class="green" onclick="invoke('updateAll')">全部更新</button>
+    <button onclick="invoke('forceUpdateAll')">强制全部</button>
   </div>
 </div>
 <div id="message" class="message"></div>
@@ -290,6 +327,16 @@ button.red { background: rgba(255,59,48,0.12); color: var(--red); }
 <script>
 let state = ${initialState};
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+function scriptNeedsUpdate(script) {
+  const remoteVersion = String(script.version || '').trim();
+  const localVersion = String(script.installedVersion || '').trim();
+  const remoteBuild = String(script.build || '').trim();
+  const localBuild = String(script.installedBuild || '').trim();
+  const hasVersion = !!(remoteVersion && remoteVersion !== remoteBuild);
+  if (hasVersion) return !(localVersion && localVersion === remoteVersion);
+  if (remoteBuild && localBuild) return localBuild < remoteBuild;
+  return true;
+}
 function invoke(code, data) {
   window.dispatchEvent(new CustomEvent('JBridge', {detail: {code, data}}));
 }
@@ -308,10 +355,18 @@ function render() {
         const scripts = manifest.error
           ? '<div class="row"><div class="row-main"><div class="row-title error">拉取失败</div><div class="row-desc">' + escapeHtml(manifest.error) + '</div></div></div>'
           : manifest.scripts.map(script => {
-              const name = (script.name && (script.name.zh || script.name.en)) || script.fileName;
-              const sub = [script.name && script.name.en, script.desc, script.build ? 'Build ' + script.build : ''].filter(Boolean).join(' · ');
-              const installed = script.installedVersion ? '本地 ' + script.installedVersion : '未安装';
-              return '<div class="row"><div class="row-main"><div class="row-title">' + escapeHtml(name) + '</div><div class="row-desc">' + escapeHtml(sub) + '</div><div class="row-desc">' + escapeHtml(installed) + '</div></div><div class="script-actions"><span class="version">' + escapeHtml(script.version || '') + '</span><button onclick="invoke(\\'updateScript\\', ' + JSON.stringify(script.fileName).replace(/"/g, '&quot;') + ')">更新</button></div></div>';
+              const zhName = script.name && script.name.zh ? script.name.zh : script.fileName;
+              const enName = script.name && script.name.en ? script.name.en : '';
+              const title = enName && enName !== zhName ? zhName + ' / ' + enName : zhName;
+              const needsUpdate = scriptNeedsUpdate(script);
+              const statusText = needsUpdate ? '可更新' : '已最新';
+              const statusClass = needsUpdate ? 'update' : 'current';
+              const buildLine = '本地 build：' + (script.installedBuild || '-') + ' ｜ 远端 build：' + (script.build || '-');
+              const versionLine = '本地版本：' + (script.installedVersion || '-') + ' ｜ 远端版本：' + (script.version || '-');
+              const actionButton = needsUpdate
+                ? '<button onclick="invoke(\\'updateScript\\', ' + JSON.stringify(script.fileName).replace(/"/g, '&quot;') + ')">更新</button>'
+                : '<button class="secondary" onclick="invoke(\\'forceUpdateScript\\', ' + JSON.stringify(script.fileName).replace(/"/g, '&quot;') + ')">强制</button>';
+              return '<div class="row"><div class="row-main"><div class="row-title"><span>' + escapeHtml(title) + '</span><span class="status-pill ' + statusClass + '">' + statusText + '</span></div><div class="row-desc">' + escapeHtml(buildLine) + '</div><div class="row-desc">' + escapeHtml(versionLine) + '</div></div><div class="script-actions">' + actionButton + '</div></div>';
             }).join('');
         return '<section class="section"><div class="section-title">' + escapeHtml(manifest.title) + '</div><div class="card">' + scripts + '</div></section>';
       }).join('')
@@ -374,10 +429,32 @@ render();
               const message = await this.downloadScript(script);
               state = await this.buildState(message);
             }
+          } else if (event.code === "forceUpdateScript") {
+            const script = this.findScript(state, String(event.data || ""));
+            if (script) {
+              const message = await this.downloadScript(script, true);
+              state = await this.buildState(message);
+            }
           } else if (event.code === "updateAll") {
             const scripts = state.manifests.flatMap((item) => item.scripts);
-            for (const script of scripts) await this.downloadScript(script);
-            state = await this.buildState(`已更新 ${scripts.length} 个脚本`);
+            const messages = [];
+            for (const script of scripts)
+              messages.push(await this.downloadScript(script));
+            const updatedCount = messages.filter(
+              (message) => !message.includes("无需更新"),
+            ).length;
+            state = await this.buildState(
+              updatedCount
+                ? `已更新 ${updatedCount} 个脚本`
+                : "全部脚本无需更新",
+            );
+          } else if (event.code === "forceUpdateAll") {
+            const scripts = state.manifests.flatMap((item) => item.scripts);
+            for (const script of scripts)
+              await this.downloadScript(script, true);
+            state = await this.buildState(
+              `已强制更新 ${scripts.length} 个脚本`,
+            );
           }
         } catch (error) {
           state = { ...state, message: String(error) };
