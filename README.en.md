@@ -68,19 +68,13 @@ The builder writes candidate files to `dist/.tmp` first, then compares them with
 
 ## Script Updater
 
-`dist/ScriptUpdater.js` is the subscription updater. Add it to Scriptable and open "Subscription Management" from the app settings. It uses this repository's `dist/subscription.json` by default, and it can also manage multiple subscription URLs.
+`dist/ScriptUpdater.js` manages script subscriptions inside Scriptable. It uses this repository's `dist/subscription.json` by default and can also manage multiple subscription sources.
 
-The subscription manager groups scripts by subscription source. Each script row uses three lines:
+![ScriptUpdater in Playground](./docs/assets/script-updater-playground.png)
 
-- Line 1: Chinese name / English name, plus an "Update Available" or "Current" status.
-- Line 2: local build / remote build.
-- Line 3: local version / remote version.
-
-Update rules:
-
-- If the remote script has a version, the updater compares versions first; matching versions are treated as "No update needed".
-- If no version is available, it compares build times.
-- When an update is available, the row button shows "Update"; otherwise it shows "Force" for a manual overwrite.
+- Scripts are grouped by subscription source.
+- Versions are compared first when available; otherwise build times are compared.
+- Rows show "Update" when an update is available and "Force" when already current.
 - "Update All" only downloads scripts that need updates; "Force All" overwrites all scripts.
 
 On first real-device launch, if `Seiun.Env.js` is missing locally, the updater downloads it and reopens the script. In the Playground, the updater treats the current `dist` outputs as the local scripts and does not depend on stale files under `.cache/Documents`.

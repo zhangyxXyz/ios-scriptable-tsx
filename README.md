@@ -68,20 +68,14 @@ npm run dev
 
 ## 脚本更新器
 
-`dist/ScriptUpdater.js` 是订阅更新器，放到 Scriptable 后可在 App 内打开“订阅管理”。它默认使用本仓库的 `dist/subscription.json`，也支持添加多个订阅 URL。
+`dist/ScriptUpdater.js` 可在 Scriptable 内管理脚本订阅。默认使用本仓库的 `dist/subscription.json`，也可以添加多个订阅源。
 
-订阅管理页面会按订阅源分组展示脚本。每个脚本条目分三行：
+![ScriptUpdater in Playground](./docs/assets/script-updater-playground.png)
 
-- 第一行：中文名 / 英文名，并显示“可更新”或“已最新”状态。
-- 第二行：本地 build / 远端 build。
-- 第三行：本地版本 / 远端版本。
-
-更新判断规则：
-
-- 如果远端脚本有版本号，优先比较版本；版本一致时显示“无需更新”。
-- 如果没有版本号，比较 build 时间。
-- 有更新时按钮显示“更新”；无需更新时按钮显示“强制”，可手动覆盖下载。
-- 顶部“全部更新”只更新需要更新的脚本；“强制全部”会覆盖下载全部脚本。
+- 订阅按来源分组展示。
+- 有版本号时优先比较版本；没有版本号时比较 build 时间。
+- 需要更新时显示“更新”，已最新时显示“强制”。
+- “全部更新”只下载需要更新的脚本；“强制全部”会覆盖下载全部脚本。
 
 第一次在真机运行更新器时，如果本地没有 `Seiun.Env.js`，更新器会先下载依赖并重新拉起脚本。Playground 调试时，更新器会把当前 `dist` 产物视为本地脚本，不依赖 `.cache/Documents` 中的旧缓存。
 
