@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-04 00:44:15
+ * build    :  2026-06-04 00:56:36
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable

@@ -1,55 +1,55 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-04 00:44:16",
-  "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
+  "generatedAt": "2026-06-04 00:56:37",
+  "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/codex/script-subscription-updater/dist",
   "scripts": [
     {
       "id": "一言",
       "fileName": "一言.js",
-      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/一言.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/codex/script-subscription-updater/dist/一言.js",
       "name": {
         "zh": "一言",
         "en": "One Word"
       },
       "desc": "一言",
       "version": "1.0.0",
-      "build": "2026-06-04 00:44:15"
+      "build": "2026-06-04 00:56:36"
     },
     {
       "id": "BilibiliMonitor",
       "fileName": "BilibiliMonitor.js",
-      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/BilibiliMonitor.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/codex/script-subscription-updater/dist/BilibiliMonitor.js",
       "name": {
         "zh": "B站榜单",
         "en": "BilibiliMonitor"
       },
       "desc": "B站榜单",
       "version": "1.0.0",
-      "build": "2026-06-04 00:44:15"
+      "build": "2026-06-04 00:56:36"
     },
     {
       "id": "ScriptUpdater",
       "fileName": "ScriptUpdater.js",
-      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/ScriptUpdater.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/codex/script-subscription-updater/dist/ScriptUpdater.js",
       "name": {
         "zh": "脚本更新器",
         "en": "ScriptUpdater"
       },
       "desc": "Scriptable 脚本订阅更新器",
       "version": "1.0.0",
-      "build": "2026-06-04 00:44:15"
+      "build": "2026-06-04 00:56:36"
     },
     {
       "id": "Seiun.Env",
       "fileName": "Seiun.Env.js",
-      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/Seiun.Env.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/codex/script-subscription-updater/dist/Seiun.Env.js",
       "name": {
         "zh": "Seiun.Env",
         "en": "Seiun.Env"
       },
       "desc": "Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts",
       "version": "2.0.0",
-      "build": "2026-06-04 00:44:15"
+      "build": "2026-06-04 00:56:36"
     }
   ]
 }

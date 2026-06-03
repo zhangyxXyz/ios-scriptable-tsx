@@ -32,8 +32,6 @@ const header = `/********************************************************
   *********************************************************/
 `
 
-const subscriptionRawBaseUrl = 'https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist'
-
 module.exports = /** @type { import ('./src/build/compile').CompileOptions }  */ ({
     rootPath,
     inputFile,
@@ -42,7 +40,6 @@ module.exports = /** @type { import ('./src/build/compile').CompileOptions }  */
     minify,
     encrypt,
     header,
-    subscriptionRawBaseUrl,
 
     /**
      * esbuild 自定义配置

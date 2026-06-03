@@ -58,7 +58,7 @@ type SubscriptionState = {
     message: string
 }
 
-const RAW_BASE_URL = 'https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist'
+const RAW_BASE_URL = process.env.SCRIPTABLE_RAW_BASE_URL || 'https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist'
 const DEFAULT_SUBSCRIPTION_URL = `${RAW_BASE_URL}/subscription.json`
 const dependencyFileName = 'Seiun.Env.js'
 
@@ -394,9 +394,16 @@ render();
 
     async presentSubscriptionManager() {
         const webView = new WebView()
-        let state = await this.buildState()
+        let state: SubscriptionState = {
+            subscriptions: this.getSubscriptions(),
+            manifests: [],
+            message: '正在加载订阅...',
+        }
         await webView.loadHTML(this.renderManagerHtml(state))
         webView.present()
+
+        state = await this.buildState()
+        await this.applyState(webView, state)
 
         while (true) {
             const event = await this.waitForBridgeEvent(webView)

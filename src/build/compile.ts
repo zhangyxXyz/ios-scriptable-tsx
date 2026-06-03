@@ -2,6 +2,7 @@ import {build, BuildOptions, OutputFile} from 'esbuild'
 import fs from 'fs'
 import path from 'path'
 import {promisify} from 'util'
+import {execFileSync} from 'child_process'
 import {merge} from 'lodash'
 import {obfuscate, ObfuscatorOptions} from 'javascript-obfuscator'
 import {createServer} from './server'
@@ -107,6 +108,30 @@ const _compileOptions = {
 
 compile(merge(_compileOptions, compileOptions || {}))
 
+function runGit(rootPath: string, args: string[]) {
+    try {
+        return execFileSync('git', args, {cwd: rootPath, encoding: 'utf8'}).trim()
+    } catch {
+        return ''
+    }
+}
+
+function normalizeGithubRemote(remoteUrl: string) {
+    const gitSshMatch = remoteUrl.match(/^git@github\.com:([^/]+\/[^/]+?)(?:\.git)?$/)
+    if (gitSshMatch) return gitSshMatch[1]
+
+    const httpsMatch = remoteUrl.match(/^https:\/\/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/)
+    if (httpsMatch) return httpsMatch[1]
+
+    return ''
+}
+
+function inferSubscriptionRawBaseUrl(rootPath: string) {
+    const repo = normalizeGithubRemote(runGit(rootPath, ['remote', 'get-url', 'origin']))
+    const branch = runGit(rootPath, ['branch', '--show-current']) || 'main'
+    return repo ? `https://raw.githubusercontent.com/${repo}/${branch}/dist` : ''
+}
+
 function registerWatchCleanup(closeServer: () => Promise<void>): void {
     let isClosing = false
 
@@ -156,6 +181,12 @@ async function compile(options: CompileOptions) {
     /**加载环境变量 .env 文件*/
     loadEnvFiles(rootPath)
 
+    const resolvedSubscriptionRawBaseUrl =
+        process.env.SCRIPTABLE_RAW_BASE_URL ||
+        process.env.SUBSCRIPTION_RAW_BASE_URL ||
+        subscriptionRawBaseUrl ||
+        inferSubscriptionRawBaseUrl(rootPath)
+
     if (watch) {
         /**创建服务器*/
         const playgroundServer = createServer({
@@ -172,6 +203,8 @@ async function compile(options: CompileOptions) {
         if (/[\(\)\-\s]/.test(key)) continue
         define[`process.env.${key}`] = JSON.stringify(process.env[key])
     }
+    define['process.env.SCRIPTABLE_RAW_BASE_URL'] = JSON.stringify(resolvedSubscriptionRawBaseUrl)
+    define['process.env.SUBSCRIPTION_RAW_BASE_URL'] = JSON.stringify(resolvedSubscriptionRawBaseUrl)
 
     // 深度获取某个文件夹里所有文件路径（包括子文件夹）
     const readdir = promisify(fs.readdir)
@@ -526,8 +559,6 @@ await __topLevelAwait__();
     }
 
     console.log('加密代码结束')
-    await generateSubscriptionManifest(
-        process.env.SCRIPTABLE_RAW_BASE_URL || process.env.SUBSCRIPTION_RAW_BASE_URL || subscriptionRawBaseUrl,
-    )
+    await generateSubscriptionManifest(resolvedSubscriptionRawBaseUrl)
     console.log('打包完成')
 }
