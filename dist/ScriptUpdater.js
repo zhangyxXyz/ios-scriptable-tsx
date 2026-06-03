@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/04
- * build    :  2026-06-04 01:09:58
+ * build    :  2026-06-04 01:21:42
  * desc     :  Scriptable 脚本订阅更新器
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -34,7 +34,11 @@ function getScriptDocumentPath(fileName) {
 function reopenCurrentScript() {
   Safari.open(`scriptable:///run/${encodeURIComponent(Script.name())}`);
 }
+function canLoadSeiunEnvFromRuntime() {
+  return typeof require !== "undefined";
+}
 async function ensureSeiunEnv() {
+  if (canLoadSeiunEnvFromRuntime()) return true;
   const fm = getBootstrapFileManager();
   const envPath = getScriptDocumentPath(dependencyFileName);
   if (fm.fileExists(envPath)) return true;
@@ -127,7 +131,13 @@ EndAwait(async () => {
       this.saveSettings(false);
       return uniqueUrls;
     }
-    readLocalMeta(fileName) {
+    readLocalMeta(fileName, remote) {
+      if (fileName === dependencyFileName && canLoadSeiunEnvFromRuntime()) {
+        return {
+          installedVersion: remote?.version || "",
+          installedBuild: remote?.build || "",
+        };
+      }
       const fm = this.getFileManager();
       const filePath = this.getScriptPath(fileName);
       if (!fm.fileExists(filePath)) return {};
@@ -157,7 +167,7 @@ EndAwait(async () => {
         return {
           ...script,
           rawUrl,
-          ...this.readLocalMeta(script.fileName),
+          ...this.readLocalMeta(script.fileName, script),
         };
       });
       return {
@@ -392,6 +402,9 @@ render();
       );
       return JSON.parse(result || "{}");
     }
+    async waitForSubscriptionManagerEvent(webView, closePromise) {
+      return Promise.race([this.waitForBridgeEvent(webView), closePromise]);
+    }
     async applyState(webView, state) {
       await webView.evaluateJavaScript(
         `window.applyState(${JSON.stringify(state).replace(/</g, "\\u003c")})`,
@@ -405,12 +418,22 @@ render();
         message: "正在加载订阅...",
       };
       await webView.loadHTML(this.renderManagerHtml(state));
-      webView.present();
+      const closePromise = webView
+        .present()
+        .then(() => ({ code: "__webview_close__" }));
       state = await this.buildState();
       await this.applyState(webView, state);
       while (true) {
-        const event = await this.waitForBridgeEvent(webView);
-        if (!event.code || event.code === "__playground_close__") break;
+        const event = await this.waitForSubscriptionManagerEvent(
+          webView,
+          closePromise,
+        );
+        if (
+          !event.code ||
+          event.code === "__playground_close__" ||
+          event.code === "__webview_close__"
+        )
+          break;
         try {
           if (event.code === "addSubscription") {
             this.saveSubscriptions([

@@ -81,7 +81,13 @@ function reopenCurrentScript() {
     Safari.open(`scriptable:///run/${encodeURIComponent(Script.name())}`)
 }
 
+function canLoadSeiunEnvFromRuntime() {
+    return typeof require !== 'undefined'
+}
+
 async function ensureSeiunEnv() {
+    if (canLoadSeiunEnvFromRuntime()) return true
+
     const fm = getBootstrapFileManager()
     const envPath = getScriptDocumentPath(dependencyFileName)
     if (fm.fileExists(envPath)) return true
@@ -178,7 +184,14 @@ EndAwait(async () => {
         return uniqueUrls
     }
 
-    readLocalMeta(fileName: string) {
+    readLocalMeta(fileName: string, remote?: SubscriptionScript) {
+        if (fileName === dependencyFileName && canLoadSeiunEnvFromRuntime()) {
+            return {
+                installedVersion: remote?.version || '',
+                installedBuild: remote?.build || '',
+            }
+        }
+
         const fm = this.getFileManager()
         const filePath = this.getScriptPath(fileName)
         if (!fm.fileExists(filePath)) return {}
@@ -208,7 +221,7 @@ EndAwait(async () => {
             return {
                 ...script,
                 rawUrl,
-                ...this.readLocalMeta(script.fileName),
+                ...this.readLocalMeta(script.fileName, script),
             }
         })
         return {
@@ -441,6 +454,10 @@ render();
         return JSON.parse(result || '{}') as {code?: string; data?: unknown}
     }
 
+    async waitForSubscriptionManagerEvent(webView: WebView, closePromise: Promise<{code: string}>) {
+        return Promise.race([this.waitForBridgeEvent(webView), closePromise])
+    }
+
     async applyState(webView: WebView, state: SubscriptionState) {
         await webView.evaluateJavaScript(`window.applyState(${JSON.stringify(state).replace(/</g, '\\u003c')})`)
     }
@@ -453,14 +470,14 @@ render();
             message: '正在加载订阅...',
         }
         await webView.loadHTML(this.renderManagerHtml(state))
-        webView.present()
+        const closePromise = webView.present().then(() => ({code: '__webview_close__'}))
 
         state = await this.buildState()
         await this.applyState(webView, state)
 
         while (true) {
-            const event = await this.waitForBridgeEvent(webView)
-            if (!event.code || event.code === '__playground_close__') break
+            const event = await this.waitForSubscriptionManagerEvent(webView, closePromise)
+            if (!event.code || event.code === '__playground_close__' || event.code === '__webview_close__') break
 
             try {
                 if (event.code === 'addSubscription') {

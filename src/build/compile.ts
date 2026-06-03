@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import {promisify} from 'util'
 import {execFileSync} from 'child_process'
+import {createHash} from 'crypto'
 import {merge} from 'lodash'
 import {obfuscate, ObfuscatorOptions} from 'javascript-obfuscator'
 import {createServer} from './server'
@@ -383,13 +384,17 @@ const MODULE = module;${topLevelAwaitRuntime}
         return match ? match[1].trim() : ''
     }
 
-    function normalizeBuildLines(source: string) {
-        return source.replace(/^\s*\*\s*build\s*:\s*.*$/gm, ' * build    :  <build>')
-    }
-
     function joinRawUrl(baseUrl: string, fileName: string) {
         if (!baseUrl) return fileName
         return `${baseUrl.replace(/\/+$/, '')}/${fileName}`
+    }
+
+    function md5(source: string) {
+        return createHash('md5').update(source.replace(/\r\n/g, '\n')).digest('hex')
+    }
+
+    function replaceBuildTime(source: string, buildTime: string) {
+        return source.replace(/^(\s*\*\s*build\s*:\s*).*$/m, `$1${buildTime}`)
     }
 
     const previousOutputTexts = new Map<string, string>()
@@ -457,6 +462,7 @@ const MODULE = module;${topLevelAwaitRuntime}
     }
 
     const outputFilesInfo: OutputFile[] = []
+    const tempOutputDir = path.resolve(outputDir, '.tmp')
 
     try {
         /**计算输入文件路径集合*/
@@ -479,6 +485,7 @@ const MODULE = module;${topLevelAwaitRuntime}
 
         /** esbuild 配置*/
         await snapshotOutputDir(outputDir)
+        await remove(tempOutputDir)
 
         const jsxRuntimeInjectPath = path.resolve(rootPath, './src/env/stack-ui/jsx-runtime.ts')
         const shouldInjectJsxRuntime = (inputPath: string) => {
@@ -498,7 +505,7 @@ const MODULE = module;${topLevelAwaitRuntime}
             platform: 'node',
             charset: 'utf8',
             bundle: true,
-            outdir: outputDir,
+            outdir: tempOutputDir,
             footer: {
                 js: `
 await __topLevelAwait__();
@@ -510,10 +517,6 @@ await __topLevelAwait__();
             minify,
             write: false,
         }
-
-        // 最终打包环节
-        // 先清空输出文件夹
-        if (!filters.length) await remove(outputDir)
 
         // esbuild 打包
         for (const inputPath of inputPaths) {
@@ -528,7 +531,7 @@ await __topLevelAwait__();
             if (outputPath) {
                 delete groupOptions.outdir
                 delete groupOptions.footer
-                groupOptions.outfile = outputPath
+                groupOptions.outfile = path.resolve(tempOutputDir, path.basename(outputPath))
                 groupOptions.bundle = false
             }
             outputFilesInfo.push(...((await build(merge(groupOptions, esbuild))).outputFiles || []))
@@ -582,18 +585,26 @@ await __topLevelAwait__();
             console.error('格式化代码失败', err)
         }
 
-        // 确保路径存在
-        const previousText = previousOutputTexts.get(path.resolve(outputFile.path))
-        if (previousText && normalizeBuildLines(previousText) === normalizeBuildLines(writeText)) {
-            writeText = previousText
+        const tempPath = path.resolve(outputFile.path)
+        const outputRelativePath = path.relative(tempOutputDir, tempPath)
+        const finalPath = path.resolve(outputDir, outputRelativePath)
+        const previousText = previousOutputTexts.get(finalPath)
+        const previousBuildTime = previousText ? readHeaderField(previousText, 'build') : ''
+        const compareText = previousBuildTime ? replaceBuildTime(writeText, previousBuildTime) : writeText
+
+        await ensureFile(tempPath)
+        await writeFile(tempPath, compareText, {encoding: 'utf8'})
+
+        if (previousText && previousBuildTime && md5(previousText) === md5(compareText)) {
+            continue
         }
 
-        await ensureFile(outputFile.path)
-        // 写入代码
-        await writeFile(outputFile.path, writeText, {encoding: 'utf8'})
+        await ensureFile(finalPath)
+        await writeFile(finalPath, writeText, {encoding: 'utf8'})
     }
 
     console.log('加密代码结束')
     await generateSubscriptionManifest(resolvedSubscriptionRawBaseUrl)
+    await remove(tempOutputDir)
     console.log('打包完成')
 }

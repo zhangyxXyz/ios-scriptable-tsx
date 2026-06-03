@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-04 01:11:41",
+  "generatedAt": "2026-06-04 01:21:42",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -37,7 +37,7 @@
       },
       "desc": "Scriptable 脚本订阅更新器",
       "version": "1.0.0",
-      "build": "2026-06-04 01:09:58"
+      "build": "2026-06-04 01:21:42"
     },
     {
       "id": "Seiun.Env",
