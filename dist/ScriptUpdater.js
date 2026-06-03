@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/04
- * build    :  2026-06-04 01:21:42
+ * build    :  2026-06-04 01:27:11
  * desc     :  Scriptable 脚本订阅更新器
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -132,7 +132,7 @@ EndAwait(async () => {
       return uniqueUrls;
     }
     readLocalMeta(fileName, remote) {
-      if (fileName === dependencyFileName && canLoadSeiunEnvFromRuntime()) {
+      if (canLoadSeiunEnvFromRuntime()) {
         return {
           installedVersion: remote?.version || "",
           installedBuild: remote?.build || "",
@@ -290,6 +290,9 @@ body {
 .title { font-size: 28px; line-height: 1.1; font-weight: 720; }
 .subtitle { margin-top: 4px; color: var(--muted); font-size: 13px; }
 .toolbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.add-panel { display: none; gap: 8px; margin: 0 2px 12px; }
+.add-panel.visible { display: flex; }
+.add-panel input { flex: 1; min-width: 0; border: 0; border-radius: 8px; padding: 9px 10px; color: var(--text); background: var(--card); font-size: 13px; box-shadow: inset 0 0 0 0.5px var(--line); }
 button {
   border: 0;
   border-radius: 999px;
@@ -327,12 +330,17 @@ button.red { background: rgba(255,59,48,0.12); color: var(--red); }
     <div class="subtitle">管理 Scriptable 脚本源与本地下载</div>
   </div>
   <div class="toolbar">
-    <button class="secondary" onclick="addSubscription()">添加</button>
+    <button class="secondary" onclick="showAddSubscription()">添加</button>
     <button class="green" onclick="invoke('updateAll')">全部更新</button>
     <button onclick="invoke('forceUpdateAll')">强制全部</button>
   </div>
 </div>
 <div id="message" class="message"></div>
+<div id="addPanel" class="add-panel">
+  <input id="subscriptionInput" type="url" inputmode="url" autocomplete="off" autocapitalize="off" placeholder="订阅 JSON 地址">
+  <button onclick="submitSubscription()">保存</button>
+  <button class="secondary" onclick="hideAddSubscription()">取消</button>
+</div>
 <main id="app"></main>
 <script>
 let state = ${initialState};
@@ -350,10 +358,28 @@ function scriptNeedsUpdate(script) {
 function invoke(code, data) {
   window.dispatchEvent(new CustomEvent('JBridge', {detail: {code, data}}));
 }
-function addSubscription() {
-  const url = prompt('订阅 JSON 地址');
-  if (url) invoke('addSubscription', url.trim());
+function showAddSubscription() {
+  const panel = document.getElementById('addPanel');
+  const input = document.getElementById('subscriptionInput');
+  panel.classList.add('visible');
+  input.value = '';
+  setTimeout(() => input.focus(), 0);
 }
+function hideAddSubscription() {
+  document.getElementById('addPanel').classList.remove('visible');
+}
+function submitSubscription() {
+  const input = document.getElementById('subscriptionInput');
+  const url = String(input.value || '').trim();
+  if (!url) return;
+  hideAddSubscription();
+  invoke('addSubscription', url);
+}
+document.addEventListener('keydown', event => {
+  if (event.key === 'Enter' && document.activeElement && document.activeElement.id === 'subscriptionInput') {
+    submitSubscription();
+  }
+});
 function render() {
   document.getElementById('message').textContent = state.message || '';
   const app = document.getElementById('app');
@@ -436,11 +462,11 @@ render();
           break;
         try {
           if (event.code === "addSubscription") {
-            this.saveSubscriptions([
-              ...state.subscriptions,
-              String(event.data || ""),
-            ]);
-            state = await this.buildState("订阅已添加");
+            const url = String(event.data || "").trim();
+            if (url) {
+              this.saveSubscriptions([...state.subscriptions, url]);
+              state = await this.buildState("订阅已添加");
+            }
           } else if (event.code === "removeSubscription") {
             this.saveSubscriptions(
               state.subscriptions.filter((url) => url !== event.data),
