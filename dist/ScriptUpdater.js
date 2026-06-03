@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/04
- * build    :  2026-06-04 00:56:36
+ * build    :  2026-06-04 00:58:47
  * desc     :  Scriptable 脚本订阅更新器
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -20,7 +20,7 @@ function EndAwait(promiseFunc) {
 
 // src/scripts/ScriptUpdater.tsx
 var RAW_BASE_URL =
-  "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/codex/script-subscription-updater/dist";
+  "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist";
 var DEFAULT_SUBSCRIPTION_URL = `${RAW_BASE_URL}/subscription.json`;
 var dependencyFileName = "Seiun.Env.js";
 function getBootstrapFileManager() {
