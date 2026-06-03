@@ -7,12 +7,12 @@
         class Notification {
             constructor() {
                 this.identifier = `mock-notification-${Date.now()}`
-                this.title = ''
-                this.subtitle = ''
-                this.body = ''
+                this.title = 'Scriptable Playground'
+                this.subtitle = 'Mock notification'
+                this.body = 'This notification was generated locally for preview.'
                 this.badge = 0
-                this.threadIdentifier = ''
-                this.sound = ''
+                this.threadIdentifier = 'playground'
+                this.sound = 'default'
                 this.openURL = ''
                 this.actions = []
             }
@@ -37,7 +37,10 @@
                 this.actions.push({title, url, destructive})
             }
             static current() {
-                return new Notification()
+                const notification = new Notification()
+                notification.identifier = 'mock-notification-current'
+                notification.openURL = 'scriptable:///run/Playground'
+                return notification
             }
             static async allPending() {
                 return pendingNotifications.slice()
@@ -66,6 +69,7 @@
             static resetCurrent() {}
         }
         Notification.opened = false
+        deliveredNotifications.push(Notification.current())
 
         return {Notification}
     })

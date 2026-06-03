@@ -1,8 +1,9 @@
 ;(function () {
     function createCalendar(title) {
         return {
-            identifier: `mock-calendar-${title}`,
+            identifier: `mock-calendar-${String(title).toLowerCase().replace(/\s+/g, '-')}`,
             title,
+            color: '#0a84ff',
             isSubscribed: false,
             allowsContentModifications: true,
             supportsAvailability: () => true,

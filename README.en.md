@@ -73,7 +73,7 @@ The builder writes candidate files to `dist/.tmp` first, then compares them with
 ![ScriptUpdater in Playground](./docs/assets/script-updater-playground.png)
 
 - Scripts are grouped by subscription source.
-- Versions are compared first when available; otherwise build times are compared.
+- Versions are compared first when available; when versions match, a newer remote build time is still treated as an update; scripts without versions compare build times directly.
 - Rows show "Update" when an update is available and "Force" when already current.
 - "Update All" only downloads scripts that need updates; "Force All" overwrites all scripts.
 

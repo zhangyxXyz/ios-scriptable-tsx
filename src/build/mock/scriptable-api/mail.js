@@ -23,6 +23,12 @@
             }
             async send() {
                 writeLog('log', `Mail.send ${this.subject}`)
+                return {
+                    completed: true,
+                    toRecipients: this.toRecipients.slice(),
+                    subject: this.subject,
+                    attachmentCount: this.attachments.length,
+                }
             }
         }
 

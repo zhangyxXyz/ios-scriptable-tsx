@@ -24,7 +24,7 @@ description: 在 ios-scriptable-tsx 仓库中编写、修改、构建并验证 S
 业务 widget 优先沿用仓库现有模式：
 
 ```ts
-import type {SeiunEnv, WidgetBase as WidgetBaseType} from '@app/env/types'
+import type {SeiunEnv} from '@app/env/types'
 
 declare const importModule: (moduleName: string) => SeiunEnv
 
@@ -45,10 +45,18 @@ class MyWidget extends WidgetBase {
     }
 }
 
-EndAwait(() => Runing(MyWidget as unknown as typeof WidgetBaseType, args.widgetParameter, false))
+EndAwait(() => Runing(MyWidget, args.widgetParameter, false))
 ```
 
 布局用 TSX 更清晰时，使用 `wbox`、`wstack`、`wtext`、`wimage`、`wspacer` 等 Stack UI 标签。使用 TSX 时，从 `Seiun.Env.js` 中解构 `h`。
+
+## Lint / 类型修复注意
+
+- 业务脚本类型导入使用 `SeiunEnv`，不要使用旧的 `Env`。`Runing` 应直接传脚本类：`Runing(MyWidget, args.widgetParameter, false)`；不要在业务脚本里写 `as unknown as typeof WidgetBaseType`。
+- 不要用文件级 `eslint-disable` 掩盖 `src/scripts` 的问题。优先补充具体业务类型、`unknown`、局部结构类型或公共 runtime 类型声明。
+- `src/env/types.ts` 只放共享 runtime/types：例如 `WidgetBase` 暴露的运行时成员、通用 `SettingValue`、Scriptable 类型缺口（如运行时存在但 `@types/scriptable-ios` 未声明的属性）。订阅清单、WebView bridge 事件、账号/接口响应等单脚本业务模型留在对应脚本内。
+- 如果只有某个脚本自举需要的逻辑（例如首次下载 `Seiun.Env.js` 之后才能 `require`），不要为了它新建公共 runtime 模块；保持在脚本内，除非已有多个脚本复用。
+- 修改后至少跑 `ReadLints` 检查相关文件，并用 `npx eslint "src/scripts/Name.tsx"` 或 `npx eslint "src/scripts/**/*.{ts,tsx}"` 验证。涉及构建入口或打包方式时，再用 `$env:compileFilter='Name'; npm run dev:all` 做定向构建。
 
 ## 构建
 

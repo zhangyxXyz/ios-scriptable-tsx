@@ -73,7 +73,7 @@ npm run dev
 ![ScriptUpdater in Playground](./docs/assets/script-updater-playground.png)
 
 - 订阅按来源分组展示。
-- 有版本号时优先比较版本；没有版本号时比较 build 时间。
+- 有版本号时优先比较版本；版本号相同但远端 build 时间更新时也会提示更新；没有版本号时比较 build 时间。
 - 需要更新时显示“更新”，已最新时显示“强制”。
 - “全部更新”只下载需要更新的脚本；“强制全部”会覆盖下载全部脚本。
 

@@ -1,13 +1,17 @@
 ;(function () {
-    ScriptableMock.register('DocumentPicker', context => ({
-        DocumentPicker: {
-            open: async () => [],
-            openFile: async () => context.makeFileManager().documentsDirectory(),
-            openFolder: async () => context.makeFileManager().documentsDirectory(),
-            export: async path => [path],
-            exportString: async (_content, name) => [name],
-            exportImage: async (_image, name) => [name],
-            exportData: async (_data, name) => [name],
-        },
-    }))
+    ScriptableMock.register('DocumentPicker', context => {
+        const fm = context.makeFileManager()
+        const sampleFile = `${fm.documentsDirectory()}/Playground Sample.txt`
+        return {
+            DocumentPicker: {
+                open: async () => [sampleFile],
+                openFile: async () => sampleFile,
+                openFolder: async () => fm.documentsDirectory(),
+                export: async path => [path || sampleFile],
+                exportString: async (_content, name = 'Exported Text.txt') => [`${fm.documentsDirectory()}/${name}`],
+                exportImage: async (_image, name = 'Exported Image.png') => [`${fm.documentsDirectory()}/${name}`],
+                exportData: async (_data, name = 'Exported Data.bin') => [`${fm.documentsDirectory()}/${name}`],
+            },
+        }
+    })
 })()

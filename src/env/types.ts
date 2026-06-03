@@ -1,6 +1,17 @@
 export type WidgetFamily = 'small' | 'medium' | 'large'
 export type WidgetSizeName = WidgetFamily | 'small' | 'medium' | 'large'
 
+export type SettingValue<T> = {
+    val: T
+    type: string
+}
+
+declare global {
+    interface WidgetText {
+        size: Size
+    }
+}
+
 export type SettingItemType =
     | 'text'
     | 'color'
@@ -183,6 +194,11 @@ export interface SeiunGenrateView {
     setListWidget(listWidget: ListWidget): void
 }
 
+export interface WidgetStorage {
+    getStorage<T = unknown>(key: string, expirationMinutes?: number, isDelStorageWhenTimeExceed?: boolean): T | null
+    setStorage<T = unknown>(key: string, value: T): void
+}
+
 export declare class WidgetBase {
     constructor(scriptName?: string)
 
@@ -202,6 +218,7 @@ export declare class WidgetBase {
     settingValTypeBool: SettingValueType
     settingValTypeArray: SettingValueType
     $request: RequestClient
+    storage: WidgetStorage
 
     init(widgetFamily?: WidgetFamily): void
     render(options?: {widgetSetting: WidgetSetting}): Promise<ListWidget> | ListWidget
@@ -209,21 +226,27 @@ export declare class WidgetBase {
 
     readWidgetSetting(): WidgetSetting
     writeWidgetSetting(setting: WidgetSetting): void
+    saveSettings(notify?: boolean): void
     getDateStr(date: Date, format: string): string
     getWidgetSize(size: WidgetSizeName): Size
     dynamicColor(light: string, dark: string): Color
     changeBgMode2OnLineBg(urls: string[]): void
     getImageByUrl(url: string): Promise<Image>
     getWidgetBackgroundImage(widget: ListWidget): Promise<boolean>
+    reopenScript(): void
     setWidgetConfig(): Promise<void>
     presentSettings(...args: unknown[]): Promise<void>
     registerSetting(items: SettingItem | SettingItem[]): void
     registerSettingCategory(category: string, title: string, items: SettingItem[]): void
 }
 
+export type RunnableWidget = new (scriptName?: string) => {
+    render(options?: {widgetSetting: WidgetSetting}): Promise<ListWidget> | ListWidget
+}
+
 export interface SeiunEnv {
     WidgetBase: typeof WidgetBase
-    Runing: (Widget: typeof WidgetBase, defaultArgs?: string, isDebug?: boolean, extra?: unknown) => Promise<void>
+    Runing: (Widget: RunnableWidget, defaultArgs?: string, isDebug?: boolean, extra?: unknown) => Promise<void>
     h: (type: unknown, props?: Record<string, unknown>, ...children: unknown[]) => unknown
     Utils: SeiunUtils
     Cache: unknown

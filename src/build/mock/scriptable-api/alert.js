@@ -1,5 +1,5 @@
 ;(function () {
-    ScriptableMock.register('Alert', () => {
+    ScriptableMock.register('Alert', context => {
         class Alert {
             constructor() {
                 this.title = ''
@@ -17,25 +17,38 @@
             addCancelAction(title) {
                 this.cancelAction = title
             }
-            addTextField(_placeholder, text = '') {
-                this.textFields.push(String(text))
+            addTextField(placeholder = '', text = '') {
+                this.textFields.push({placeholder: String(placeholder), value: String(text), secure: false})
             }
-            addSecureTextField(_placeholder, text = '') {
-                this.textFields.push(String(text))
+            addSecureTextField(placeholder = '', text = '') {
+                this.textFields.push({placeholder: String(placeholder), value: String(text), secure: true})
             }
             textFieldValue(index) {
-                return this.textFields[index] || ''
+                return this.textFields[index]?.value || ''
             }
             async present() {
                 return this.presentAlert()
             }
             async presentAlert() {
-                const firstTitle = this.actions[0]?.title || this.cancelAction || ''
-                if (this.actions.length > 1 && /取消|cancel/i.test(firstTitle)) return 1
-                return 0
+                if (context.presentAlert) {
+                    const result = await context.presentAlert({
+                        title: this.title,
+                        message: this.message,
+                        actions: this.actions,
+                        cancelAction: this.cancelAction,
+                        textFields: this.textFields,
+                    })
+                    if (result?.textFields) {
+                        result.textFields.forEach((value, index) => {
+                            if (this.textFields[index]) this.textFields[index].value = String(value ?? '')
+                        })
+                    }
+                    return typeof result?.index === 'number' ? result.index : -1
+                }
+                return this.actions.length > 0 ? 0 : -1
             }
             async presentSheet() {
-                return 0
+                return this.presentAlert()
             }
         }
 

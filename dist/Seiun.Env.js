@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-04 01:35:56
+ * build    :  2026-06-04 03:21:46
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -2314,7 +2314,13 @@ function createWidgetBaseRuntime(deps2) {
     
                     for (const btn of document.querySelectorAll('.form-item')) {
                         btn.addEventListener('click', (e) => {
-                            if (e.target.closest('.select-picker-wrapper')) return;
+                            const selectWrapper = e.currentTarget.querySelector('.select-picker-wrapper');
+                            if (selectWrapper) {
+                                if (e.target.closest('.select-picker-wrapper')) return;
+                                e.stopPropagation();
+                                selectWrapper.click();
+                                return;
+                            }
                             if (e.target.closest('.color-picker-wrapper')) return;
                             if (e.target.closest('.slider-picker-wrapper')) return;
                             if (e.target.closest('.password-wrapper')) return;
@@ -3715,8 +3721,8 @@ function createWidgetBaseRuntime(deps2) {
                 this.syncCurrentSettings(targetCategory, key, value);
                 this.saveSettings(false);
               } else {
-                console.warn(
-                  `[WidgetBase][presentSettings] ⚠️ [SAVE-SELECT] data is undefined!`,
+                console.log(
+                  `[WidgetBase][presentSettings] 忽略select空事件: ${code2}`,
                 );
               }
             } else if (type === "password") {
@@ -5864,7 +5870,10 @@ function createStackUI(deps2) {
             center: () => widgetText.centerAlignText(),
             right: () => widgetText.rightAlignText(),
           };
-          isDefined(textAlign) && textAlignMap[textAlign]();
+          if (isDefined(textAlign)) {
+            textAlignMap[textAlign]?.();
+            widgetText.textAlign = textAlign;
+          }
           isDefined(onClick) && runOnClick(widgetText, onClick);
         } catch (err) {
           console.error(`[GenrateView][wtext]`, err);
@@ -5916,7 +5925,10 @@ function createStackUI(deps2) {
             center: () => widgetDate.centerAlignText(),
             right: () => widgetDate.rightAlignText(),
           };
-          isDefined(textAlign) && textAlignMap[textAlign]();
+          if (isDefined(textAlign)) {
+            textAlignMap[textAlign]?.();
+            widgetDate.textAlign = textAlign;
+          }
           isDefined(onClick) && runOnClick(widgetDate, onClick);
         } catch (err) {
           console.error(`[GenrateView][wdate]`, err);

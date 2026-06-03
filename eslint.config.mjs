@@ -15,6 +15,8 @@ export default tseslint.config(
         ...globals.node,
         ...globals.browser,
         ...globals.es2021,
+        ScriptableMock: 'readonly',
+        createScriptableHostMocks: 'readonly',
       },
       parserOptions: {
         ecmaVersion: 2021,
@@ -52,6 +54,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['node_modules/**', 'dist/**', 'build/**', 'manual/**'],
+    ignores: ['node_modules/**', 'dist/**', 'build/**', 'manual/**', 'src/build/static/assets/highlight.min.js'],
   }
 );

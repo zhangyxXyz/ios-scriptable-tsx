@@ -1,7 +1,7 @@
 ;(function () {
     ScriptableMock.register('Pasteboard', () => {
         const pasteboard = {
-            string: '',
+            string: 'https://scriptable.app',
             image: null,
         }
         return {

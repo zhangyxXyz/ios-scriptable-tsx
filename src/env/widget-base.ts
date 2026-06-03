@@ -2255,7 +2255,13 @@ function createWidgetBaseRuntime(deps: any) {
     
                     for (const btn of document.querySelectorAll('.form-item')) {
                         btn.addEventListener('click', (e) => {
-                            if (e.target.closest('.select-picker-wrapper')) return;
+                            const selectWrapper = e.currentTarget.querySelector('.select-picker-wrapper');
+                            if (selectWrapper) {
+                                if (e.target.closest('.select-picker-wrapper')) return;
+                                e.stopPropagation();
+                                selectWrapper.click();
+                                return;
+                            }
                             if (e.target.closest('.color-picker-wrapper')) return;
                             if (e.target.closest('.slider-picker-wrapper')) return;
                             if (e.target.closest('.password-wrapper')) return;
@@ -3634,7 +3640,7 @@ function createWidgetBaseRuntime(deps: any) {
                                 this.syncCurrentSettings(targetCategory, key, value)
                                 this.saveSettings(false)
                             } else {
-                                console.warn(`[WidgetBase][presentSettings] ⚠️ [SAVE-SELECT] data is undefined!`)
+                                console.log(`[WidgetBase][presentSettings] 忽略select空事件: ${code}`)
                             }
                         } else if (type === 'password') {
                             // password 类型直接保存

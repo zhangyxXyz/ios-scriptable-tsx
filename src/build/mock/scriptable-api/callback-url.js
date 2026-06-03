@@ -14,7 +14,11 @@
             }
             async open() {
                 context.writeLog('log', `CallbackURL.open ${this.getURL()}`)
-                return {}
+                return {
+                    success: '1',
+                    url: this.getURL(),
+                    source: 'playground',
+                }
             }
         }
 

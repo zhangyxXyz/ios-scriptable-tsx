@@ -18,6 +18,12 @@
             }
             async send() {
                 writeLog('log', `Message.send ${this.body}`)
+                return {
+                    completed: true,
+                    recipients: this.recipients.slice(),
+                    body: this.body,
+                    attachmentCount: this.attachments.length,
+                }
             }
         }
 

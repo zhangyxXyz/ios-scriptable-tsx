@@ -616,6 +616,10 @@
                 font-weight: 650;
                 background: var(--panel-subtle);
             }
+            .webview {
+                position: relative;
+                overflow: hidden;
+            }
             .icon-button {
                 width: auto;
                 border: 1px solid var(--line);
@@ -650,6 +654,7 @@
                 padding: 10px 12px;
                 width: 360px;
                 height: 176px;
+                box-sizing: border-box;
                 border: 1px solid #e3e7ef;
                 border-radius: 8px;
                 background: #fafafa;
@@ -663,6 +668,60 @@
                 width: 360px;
                 height: 360px;
             }
+            .widget.accessoryInline {
+                width: 257px;
+                height: 32px;
+                border-radius: 16px;
+            }
+            .widget.accessoryRectangular {
+                width: 172px;
+                height: 76px;
+                border-radius: 16px;
+            }
+            .widget.accessoryCircular {
+                width: 76px;
+                height: 76px;
+                border-radius: 50%;
+            }
+            .widget.accessoryRectangular,
+            .widget.accessoryCircular {
+                text-align: center;
+            }
+            .widget.accessoryInline .text {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex: 1 1 auto;
+                line-height: 1.2;
+                text-align: center;
+                font-weight: 500;
+            }
+            .widget.accessoryRectangular .stack,
+            .widget.accessoryCircular .stack {
+                align-items: center;
+                justify-content: center;
+            }
+            .widget.accessoryRectangular .text,
+            .widget.accessoryCircular .text {
+                line-height: 1.18;
+                text-align: center;
+                white-space: normal;
+            }
+            .widget.accessoryRectangular > .text,
+            .widget.accessoryCircular > .text {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+            }
+            .widget.accessoryRectangular > .text {
+                -webkit-line-clamp: 3;
+            }
+            .widget.accessoryCircular > .text {
+                -webkit-line-clamp: 2;
+            }
+            .widget.accessoryRectangular .image,
+            .widget.accessoryCircular .image {
+                align-self: center;
+            }
             .stack {
                 display: flex;
                 width: 100%;
@@ -675,9 +734,6 @@
             .widget > .text,
             .widget > .stack {
                 flex: 0 0 auto;
-            }
-            .widget > .stack:last-child {
-                margin-top: auto;
             }
             .status-stack {
                 align-items: center;
@@ -698,17 +754,36 @@
             .text {
                 flex: 0 1 auto;
                 min-width: 0;
-                overflow: hidden;
-                text-overflow: ellipsis;
                 white-space: nowrap;
                 line-height: 1.18;
             }
-            .row-stack > .text:first-child {
+            .text--line-limit-1 {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .text--line-limit-multi {
+                display: -webkit-box;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                overflow: hidden;
+                white-space: normal;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+                -webkit-box-orient: vertical;
+            }
+            .stack.column > .text--line-limit-multi {
+                align-self: stretch;
+            }
+            .row-stack > .text:not(:last-child) {
                 flex: 1 1 auto;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             .row-stack > .text:last-child {
-                flex: 0 0 34%;
-                max-width: 34%;
+                flex: 0 0 auto;
+                margin-left: auto;
                 text-align: right;
             }
             .image {
@@ -727,6 +802,11 @@
                 width: 100%;
                 height: 100%;
             }
+            .image.sf-symbol[data-symbol-src] {
+                background: currentColor;
+                -webkit-mask: var(--symbol-src) center / contain no-repeat;
+                mask: var(--symbol-src) center / contain no-repeat;
+            }
             .image.real-image {
                 overflow: hidden;
             }
@@ -735,6 +815,11 @@
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
+            }
+            .image.tinted-image[data-image-src] {
+                background: currentColor;
+                -webkit-mask: var(--image-src) center / contain no-repeat;
+                mask: var(--image-src) center / contain no-repeat;
             }
             pre {
                 margin: 0;
@@ -957,6 +1042,9 @@
                             <option value="medium">medium</option>
                             <option value="large">large</option>
                             <option value="small">small</option>
+                            <option value="accessoryInline">accessoryInline</option>
+                            <option value="accessoryRectangular">accessoryRectangular</option>
+                            <option value="accessoryCircular">accessoryCircular</option>
                         </select>
                     </div>
                     <div class="field">
@@ -1375,7 +1463,7 @@
                 state.activeWebView = null
                 previewEl.innerHTML = ''
                 previewEl.removeAttribute('style')
-                previewEl.classList.remove('small', 'large')
+                previewEl.classList.remove('small', 'large', 'accessoryInline', 'accessoryRectangular', 'accessoryCircular')
                 applyPreviewDefaults()
                 webviewFrameEl.removeAttribute('srcdoc')
                 syncRunModeSurface(runMode)
@@ -1460,6 +1548,113 @@
                 const entry = {content, webView}
                 state.webviewStack.push(entry)
                 return showWebViewEntry(entry)
+            }
+
+            function presentAlert(options = {}) {
+                const title = options.title || 'Alert'
+                const message = options.message || ''
+                const actions = Array.isArray(options.actions) ? options.actions : []
+                const textFields = Array.isArray(options.textFields) ? options.textFields : []
+                const cancelAction = options.cancelAction
+
+                writeLog('log', `[Alert] ${title}`)
+
+                return new Promise(resolve => {
+                    const host = webviewPanelEl && !webviewPanelEl.hidden ? webviewPanelEl : document.body
+                    const overlay = document.createElement('div')
+                    overlay.style.cssText = [
+                        host === document.body ? 'position:fixed' : 'position:absolute',
+                        host === document.body ? 'inset:0' : 'inset:42px 0 0 0',
+                        'z-index:9999',
+                        'display:flex',
+                        'align-items:center',
+                        'justify-content:center',
+                        'padding:20px',
+                        'background:rgba(0,0,0,0.35)',
+                    ].join(';')
+
+                    const panel = document.createElement('div')
+                    panel.style.cssText = [
+                        'width:min(420px, calc(100% - 40px))',
+                        'box-sizing:border-box',
+                        'border-radius:12px',
+                        'background:var(--panel)',
+                        'border:1px solid var(--border)',
+                        'box-shadow:0 20px 60px rgba(0,0,0,0.35)',
+                        'padding:18px',
+                    ].join(';')
+
+                    const titleEl = document.createElement('div')
+                    titleEl.textContent = title
+                    titleEl.style.cssText = 'font-size:18px;font-weight:700;margin-bottom:8px;color:var(--text)'
+                    panel.appendChild(titleEl)
+
+                    if (message) {
+                        const messageEl = document.createElement('div')
+                        messageEl.textContent = message
+                        messageEl.style.cssText = 'font-size:13px;color:var(--muted);margin-bottom:14px;white-space:pre-wrap'
+                        panel.appendChild(messageEl)
+                    }
+
+                    const inputs = textFields.map(field => {
+                        const input = document.createElement('input')
+                        input.type = field.secure ? 'password' : 'text'
+                        input.placeholder = field.placeholder || ''
+                        input.value = field.value || ''
+                        input.style.cssText = [
+                            'width:100%',
+                            'box-sizing:border-box',
+                            'margin:0 0 10px',
+                            'padding:10px 11px',
+                            'border-radius:8px',
+                            'border:1px solid var(--border)',
+                            'background:var(--input)',
+                            'color:var(--text)',
+                            'font:inherit',
+                        ].join(';')
+                        panel.appendChild(input)
+                        return input
+                    })
+
+                    const buttonRow = document.createElement('div')
+                    buttonRow.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap'
+
+                    const finish = index => {
+                        overlay.remove()
+                        resolve({index, textFields: inputs.map(input => input.value)})
+                    }
+
+                    if (cancelAction) {
+                        const cancel = document.createElement('button')
+                        cancel.type = 'button'
+                        cancel.textContent = cancelAction
+                        cancel.className = 'secondary'
+                        cancel.addEventListener('click', () => finish(-1))
+                        buttonRow.appendChild(cancel)
+                    }
+
+                    actions.forEach((action, index) => {
+                        const button = document.createElement('button')
+                        button.type = 'button'
+                        button.textContent = action.title || `Action ${index + 1}`
+                        if (action.destructive) button.style.background = '#e5484d'
+                        button.addEventListener('click', () => finish(index))
+                        buttonRow.appendChild(button)
+                    })
+
+                    if (!actions.length && !cancelAction) {
+                        const ok = document.createElement('button')
+                        ok.type = 'button'
+                        ok.textContent = 'OK'
+                        ok.addEventListener('click', () => finish(0))
+                        buttonRow.appendChild(ok)
+                    }
+
+                    panel.appendChild(buttonRow)
+                    overlay.appendChild(panel)
+                    host.appendChild(overlay)
+                    inputs[0]?.focus()
+                })
             }
 
             function goBackWebView() {
@@ -1786,7 +1981,7 @@
                 return MockImage.fromSrc(file.name || 'picked-image', 'picked-image', dataUrl)
             }
 
-            function createSymbolPngDataUrl(name = 'square.grid.2x2') {
+            function createFallbackSymbolPngDataUrl(name = 'symbol') {
                 const canvas = document.createElement('canvas')
                 canvas.width = 64
                 canvas.height = 64
@@ -1794,98 +1989,98 @@
                 ctx.clearRect(0, 0, 64, 64)
                 ctx.strokeStyle = '#000000'
                 ctx.fillStyle = '#000000'
-                ctx.lineWidth = 5
-                ctx.lineCap = 'round'
+                ctx.lineWidth = 4
                 ctx.lineJoin = 'round'
-
-                const roundedRect = (x, y, w, h, r = 6) => {
-                    ctx.beginPath()
-                    ctx.moveTo(x + r, y)
-                    ctx.lineTo(x + w - r, y)
-                    ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-                    ctx.lineTo(x + w, y + h - r)
-                    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-                    ctx.lineTo(x + r, y + h)
-                    ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-                    ctx.lineTo(x, y + r)
-                    ctx.quadraticCurveTo(x, y, x + r, y)
-                    ctx.stroke()
-                }
-
-                if (name.includes('chevron.right')) {
-                    ctx.beginPath()
-                    ctx.moveTo(24, 16)
-                    ctx.lineTo(40, 32)
-                    ctx.lineTo(24, 48)
-                    ctx.stroke()
-                } else if (name.includes('chevron.up.chevron.down')) {
-                    ctx.beginPath()
-                    ctx.moveTo(22, 27)
-                    ctx.lineTo(32, 17)
-                    ctx.lineTo(42, 27)
-                    ctx.moveTo(22, 37)
-                    ctx.lineTo(32, 47)
-                    ctx.lineTo(42, 37)
-                    ctx.stroke()
-                } else if (name.includes('arrow.clockwise')) {
-                    ctx.beginPath()
-                    ctx.arc(32, 34, 18, Math.PI * 0.2, Math.PI * 1.8)
-                    ctx.stroke()
-                    ctx.beginPath()
-                    ctx.moveTo(47, 17)
-                    ctx.lineTo(49, 34)
-                    ctx.lineTo(35, 27)
-                    ctx.fill()
-                } else if (name.includes('trash')) {
-                    roundedRect(20, 24, 24, 28, 3)
-                    ctx.beginPath()
-                    ctx.moveTo(18, 20)
-                    ctx.lineTo(46, 20)
-                    ctx.moveTo(27, 15)
-                    ctx.lineTo(37, 15)
-                    ctx.stroke()
-                } else if (name.includes('person')) {
-                    ctx.beginPath()
-                    ctx.arc(32, 24, 10, 0, Math.PI * 2)
-                    ctx.stroke()
-                    ctx.beginPath()
-                    ctx.arc(32, 48, 17, Math.PI, Math.PI * 2)
-                    ctx.stroke()
-                } else if (name.includes('link')) {
-                    roundedRect(13, 26, 24, 14, 7)
-                    roundedRect(27, 24, 24, 14, 7)
-                } else if (name.includes('number')) {
-                    roundedRect(13, 13, 38, 38, 7)
-                    ctx.font = 'bold 28px system-ui'
-                    ctx.textAlign = 'center'
-                    ctx.textBaseline = 'middle'
-                    ctx.fillText('1', 32, 34)
-                } else if (name.includes('list') || name.includes('gear')) {
-                    ;[20, 32, 44].forEach(y => {
-                        ctx.beginPath()
-                        ctx.moveTo(20, y)
-                        ctx.lineTo(46, y)
-                        ctx.stroke()
-                    })
-                    ;[20, 32, 44].forEach(y => {
-                        ctx.beginPath()
-                        ctx.arc(15, y, 2.5, 0, Math.PI * 2)
-                        ctx.fill()
-                    })
-                } else {
-                    roundedRect(16, 16, 32, 32, 7)
-                }
-
+                ctx.strokeRect(16, 16, 32, 32)
+                ctx.font = 'bold 10px system-ui'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
+                ctx.fillText(String(name).split('.').slice(0, 2).join('.').slice(0, 8), 32, 32)
                 return canvas.toDataURL('image/png')
             }
 
+            function createSfSymbolPngDataUrl(name = 'square.grid.2x2') {
+                try {
+                    const result = apiJsonSync('GET', `/api/sf-symbol.json?name=${encodeURIComponent(name)}`)
+                    const symbol = result.data
+                    const [minX, minY, width, height] = String(symbol.viewBox || '0 0 64 64')
+                        .split(/\s+/)
+                        .map(Number)
+                    if (!symbol.paths?.length || !width || !height) return createFallbackSymbolPngDataUrl(name)
+
+                    const canvas = document.createElement('canvas')
+                    canvas.width = 64
+                    canvas.height = 64
+                    const ctx = canvas.getContext('2d')
+                    ctx.clearRect(0, 0, 64, 64)
+                    const scale = Math.min(52 / width, 52 / height)
+                    const offsetX = (64 - width * scale) / 2
+                    const offsetY = (64 - height * scale) / 2
+
+                    ctx.save()
+                    ctx.translate(offsetX, offsetY)
+                    ctx.scale(scale, scale)
+                    ctx.translate(-minX, -minY)
+                    ctx.fillStyle = '#000000'
+                    for (const pathInfo of symbol.paths) {
+                        const path = new Path2D(pathInfo.d)
+                        ctx.globalAlpha = Number(pathInfo.fillOpacity ?? 1)
+                        ctx.fill(path, pathInfo.fillRule === 'evenodd' ? 'evenodd' : 'nonzero')
+                    }
+                    ctx.restore()
+                    ctx.globalAlpha = 1
+
+                    return canvas.toDataURL('image/png')
+                } catch {
+                    return createFallbackSymbolPngDataUrl(name)
+                }
+            }
             class MockColor {
                 constructor(hex = '#000000', alpha = 1) {
                     this.hex = hex
                     this.alpha = alpha
                 }
+                static fromHex(hex, alpha = 1) {
+                    return new MockColor(hex, alpha)
+                }
+                static clear() {
+                    return new MockColor('#000000', 0)
+                }
                 static red() {
                     return new MockColor('#ff3b30')
+                }
+                static orange() {
+                    return new MockColor('#ff9500')
+                }
+                static yellow() {
+                    return new MockColor('#ffcc00')
+                }
+                static green() {
+                    return new MockColor('#34c759')
+                }
+                static blue() {
+                    return new MockColor('#007aff')
+                }
+                static cyan() {
+                    return new MockColor('#32ade6')
+                }
+                static magenta() {
+                    return new MockColor('#ff2d55')
+                }
+                static purple() {
+                    return new MockColor('#af52de')
+                }
+                static brown() {
+                    return new MockColor('#a2845e')
+                }
+                static gray() {
+                    return new MockColor('#8e8e93')
+                }
+                static lightGray() {
+                    return new MockColor('#d1d1d6')
+                }
+                static darkGray() {
+                    return new MockColor('#3a3a3c')
                 }
                 static white() {
                     return new MockColor('#ffffff')
@@ -1897,29 +2092,31 @@
                     return light || dark
                 }
                 toString() {
+                    if (this.alpha === 0) return 'transparent'
                     return this.hex
                 }
             }
 
             class MockFont {
-                constructor(name = 'system', size = 12) {
+                constructor(name = 'system', size = 12, weight = 400) {
                     this.name = name
                     this.size = size
+                    this.weight = weight
                 }
                 static systemFont(size) {
-                    return new MockFont('system', size)
+                    return new MockFont('system', size, 400)
                 }
                 static lightSystemFont(size) {
-                    return new MockFont('light', size)
+                    return new MockFont('system', size, 300)
                 }
                 static semiboldSystemFont(size) {
-                    return new MockFont('semibold', size)
+                    return new MockFont('system', size, 600)
                 }
                 static mediumSystemFont(size) {
-                    return new MockFont('medium', size)
+                    return new MockFont('system', size, 500)
                 }
                 static boldSystemFont(size) {
-                    return new MockFont('bold', size)
+                    return new MockFont('system', size, 700)
                 }
             }
 
@@ -2109,6 +2306,15 @@
                 presentLarge() {
                     renderWidget(this, 'large')
                 }
+                presentAccessoryInline() {
+                    renderWidget(this, 'accessoryInline')
+                }
+                presentAccessoryRectangular() {
+                    renderWidget(this, 'accessoryRectangular')
+                }
+                presentAccessoryCircular() {
+                    renderWidget(this, 'accessoryCircular')
+                }
             }
 
             class MockListWidget extends WidgetNode {
@@ -2118,13 +2324,19 @@
                 }
             }
 
+            let rootAlignmentToken = 0
+
             function renderWidget(widget, family = $('family').value) {
                 if (family && $('family').value !== family) $('family').value = family
                 previewEl.classList.toggle('small', family === 'small')
                 previewEl.classList.toggle('large', family === 'large')
-                applyRootWidgetStyle(widget)
+                previewEl.classList.toggle('accessoryInline', family === 'accessoryInline')
+                previewEl.classList.toggle('accessoryRectangular', family === 'accessoryRectangular')
+                previewEl.classList.toggle('accessoryCircular', family === 'accessoryCircular')
+                applyRootWidgetStyle(widget, family)
                 const direction = readProp(widget, 'direction') || 'column'
-                previewEl.innerHTML = (widget.children || []).map(child => renderNode(child, direction)).join('')
+                previewEl.innerHTML = (widget.children || []).map(child => renderNode(child, direction, family)).join('')
+                updateRootWidgetAlignment(widget, family, direction)
             }
 
             function readProp(node, key) {
@@ -2142,6 +2354,10 @@
                 return $('appearance').value === 'dark'
             }
 
+            function isAccessoryFamily(family) {
+                return ['accessoryInline', 'accessoryRectangular', 'accessoryCircular'].includes(family)
+            }
+
             function normalizeTextColor(color) {
                 const cssColor = colorToCss(color)
                 if (!isDarkPreview()) return cssColor
@@ -2151,7 +2367,7 @@
                 return cssColor
             }
 
-            function styleFromNode(node) {
+            function styleFromNode(node, parentDirection = 'column') {
                 const styles = []
                 const textColor = readProp(node, 'textColor')
                 const opacity = readProp(node, 'textOpacity') ?? readProp(node, 'opacity')
@@ -2165,10 +2381,27 @@
                 styles.push(`color:${normalizeTextColor(textColor)}`)
                 if (opacity !== undefined) styles.push(`opacity:${opacity}`)
                 if (font?.size) styles.push(`font-size:${font.size}px`)
+                if (font?.weight) styles.push(`font-weight:${font.weight}`)
+                if (font?.name && /mono/i.test(font.name)) {
+                    styles.push("font-family:'SF Mono','Menlo','Consolas',monospace")
+                } else if (font?.name) {
+                    styles.push("font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif")
+                }
+                const isTextNode = node?.type === 'text'
                 if (textAlign) styles.push(`text-align:${textAlign}`)
+                if (isTextNode && parentDirection !== 'row' && (textAlign || lineLimit)) {
+                    styles.push('width:100%')
+                    styles.push('box-sizing:border-box')
+                    styles.push('align-self:stretch')
+                }
                 if (lineLimit === 1) styles.push('white-space:nowrap')
                 if (lineLimit > 1) {
                     styles.push('white-space:normal')
+                    styles.push('max-width:100%')
+                    styles.push('min-width:0')
+                    styles.push('overflow:hidden')
+                    styles.push('overflow-wrap:anywhere')
+                    styles.push('word-break:break-word')
                     styles.push('display:-webkit-box')
                     styles.push(`-webkit-line-clamp:${lineLimit}`)
                     styles.push('-webkit-box-orient:vertical')
@@ -2181,54 +2414,72 @@
                 return styles.length ? ` style="${styles.join(';')}"` : ''
             }
 
-            function applyRootWidgetStyle(widget) {
+            function applyRootWidgetStyle(widget, family = $('family').value) {
                 const backgroundImage = readProp(widget, 'backgroundImage')
+                const backgroundColor = colorToCss(readProp(widget, 'backgroundColor'))
+                const borderColor = colorToCss(readProp(widget, 'borderColor'))
                 previewEl.style.background =
-                    colorToCss(readProp(widget, 'backgroundColor')) || (isDarkPreview() ? '#000000' : '#fafafa')
+                    backgroundColor || (isDarkPreview() ? '#000000' : '#fafafa')
                 previewEl.style.backgroundImage = backgroundImage?.src ? `url("${backgroundImage.src}")` : ''
                 previewEl.style.backgroundSize = backgroundImage?.src ? 'cover' : ''
                 previewEl.style.backgroundPosition = backgroundImage?.src ? 'center' : ''
                 previewEl.style.gap = `${Number(readProp(widget, 'spacing') || 0)}px`
                 previewEl.style.display = 'flex'
                 previewEl.style.flexDirection = readProp(widget, 'direction') === 'row' ? 'row' : 'column'
-                previewEl.style.borderColor =
-                    colorToCss(readProp(widget, 'borderColor')) || (isDarkPreview() ? '#263856' : '#e3e7ef')
+                previewEl.style.alignItems = isAccessoryFamily(family) ? 'center' : 'stretch'
+                previewEl.style.justifyContent = isAccessoryFamily(family) ? 'center' : 'flex-start'
+                previewEl.style.borderColor = borderColor || (isDarkPreview() ? '#263856' : '#e3e7ef')
                 const padding = readProp(widget, 'padding')
                 if (padding) {
                     previewEl.style.padding = `${padding[0]}px ${padding[3]}px ${padding[2]}px ${padding[1]}px`
+                } else if (family === 'accessoryInline') {
+                    previewEl.style.padding = '4px 10px'
+                } else if (family === 'accessoryRectangular') {
+                    previewEl.style.padding = '9px 12px'
+                } else if (family === 'accessoryCircular') {
+                    previewEl.style.padding = '8px'
                 } else {
                     previewEl.style.padding = '10px 12px'
                 }
             }
 
-            function renderSymbol(label) {
-                const symbols = {
-                    'arrow.clockwise': '↻',
-                    photo: '▧',
-                    gear: '⚙',
-                    checkmark: '✓',
-                    xmark: '×',
-                    plus: '+',
-                    minus: '-',
-                    bell: '◉',
-                    star: '★',
-                    heart: '♥',
-                    flame: '▲',
-                    play: '▶',
-                    pause: 'Ⅱ',
-                }
-                return symbols[label] || label || 'img'
+            function hasRootFlexibleSpacer(widget) {
+                return (widget.children || []).some(
+                    child =>
+                        child?.type === 'spacer' &&
+                        (readProp(child, 'length') === null || readProp(child, 'length') === undefined),
+                )
             }
 
-            function renderSfSymbol(label) {
-                if (label === 'arrow.clockwise') {
-                    return `
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path d="M19 7.2V3h-1.8v2.2A8 8 0 1 0 20 11.2h-1.9A6.1 6.1 0 1 1 16 6.5h-3.1v1.7H19Z" fill="currentColor"></path>
-                        </svg>
-                    `
+            function updateRootWidgetAlignment(widget, family, direction) {
+                const token = ++rootAlignmentToken
+                if (isAccessoryFamily(family)) return
+                if (direction === 'row' || hasRootFlexibleSpacer(widget)) {
+                    previewEl.style.justifyContent = 'flex-start'
+                    return
                 }
-                return escapeHtml(renderSymbol(label))
+
+                requestAnimationFrame(() => {
+                    if (token !== rootAlignmentToken) return
+                    const children = Array.from(previewEl.children)
+                    if (!children.length) return
+
+                    const widgetRect = previewEl.getBoundingClientRect()
+                    const visibleRects = children
+                        .map(child => child.getBoundingClientRect())
+                        .filter(rect => rect.width > 0 && rect.height > 0)
+                    if (!visibleRects.length) return
+
+                    const contentTop = Math.min(...visibleRects.map(rect => rect.top))
+                    const contentBottom = Math.max(...visibleRects.map(rect => rect.bottom))
+                    const contentHeight = contentBottom - contentTop
+                    const availableHeight = widgetRect.height
+                    const spareHeight = availableHeight - contentHeight
+                    previewEl.style.justifyContent =
+                        contentHeight > 0 && spareHeight > 28 && contentHeight / availableHeight < 0.78
+                            ? 'center'
+                            : 'flex-start'
+                })
             }
 
             function renderImageNode(node) {
@@ -2243,14 +2494,24 @@
                 if (tintColor) styles.push(`color:${colorToCss(tintColor)}`)
 
                 if (image?.kind === 'sf-symbol') {
-                    return `<span class="image sf-symbol" title="${escapeHtml(image.label)}" style="${styles.join(';')}">${renderSfSymbol(image.label)}</span>`
+                    const symbolSrc = image.src ? `url(${escapeHtml(image.src)})` : ''
+                    if (symbolSrc) styles.push(`--symbol-src:${symbolSrc}`)
+                    return `<span class="image sf-symbol" data-symbol-src="true" title="${escapeHtml(
+                        image.label,
+                    )}" style="${styles.join(';')}"></span>`
                 }
 
                 if (image?.src) {
+                    if (tintColor) {
+                        styles.push(`--image-src:url(${escapeHtml(image.src)})`)
+                        return `<span class="image tinted-image" data-image-src="true" title="${escapeHtml(image.label || 'image')}" style="${styles.join(';')}"></span>`
+                    }
                     return `<span class="image real-image" title="${escapeHtml(image.label || 'image')}" style="${styles.join(';')}"><img alt="" src="${escapeHtml(image.src)}"></span>`
                 }
 
-                return `<span class="image" title="${escapeHtml(image?.label || 'image')}" style="${styles.join(';')}">${escapeHtml(renderSymbol(image?.label))}</span>`
+                return `<span class="image" title="${escapeHtml(image?.label || 'image')}" style="${styles.join(';')}">${escapeHtml(
+                    image?.label || 'img',
+                )}</span>`
             }
 
             function mergeInlineStyle(styleAttr, extraStyles) {
@@ -2260,10 +2521,16 @@
                 return styleAttr.replace(/^ style="/, ` style="${extra};`)
             }
 
-            function renderNode(node, parentDirection = 'column') {
+            function renderNode(node, parentDirection = 'column', family = $('family').value) {
                 if (!node) return ''
-                if (node.type === 'text')
-                    return `<div class="text"${styleFromNode(node)}>${escapeHtml(readProp(node, 'text') || '')}</div>`
+                if (node.type === 'text') {
+                    const lineLimit = readProp(node, 'lineLimit')
+                    const textClass = `text${
+                        lineLimit === 1 ? ' text--line-limit-1' : lineLimit > 1 ? ' text--line-limit-multi' : ''
+                    }`
+                    const textValue = readProp(node, 'text') || ''
+                    return `<div class="${textClass}"${styleFromNode(node, parentDirection)}>${escapeHtml(textValue)}</div>`
+                }
                 if (node.type === 'image') return renderImageNode(node)
                 if (node.type === 'date')
                     return `<div class="text">${escapeHtml(new Date(readProp(node, 'date')).toLocaleString())}</div>`
@@ -2288,13 +2555,14 @@
                         : 'stack column'
                 const align = readProp(node, 'align')
                 const gap = Number(readProp(node, 'spacing') || 0)
-                const alignItems = align === 'center' ? 'center' : align === 'bottom' ? 'flex-end' : 'flex-start'
+                const alignItems =
+                    align === 'center' ? 'center' : align === 'bottom' ? 'flex-end' : isStatusStack ? 'center' : 'flex-start'
                 const style = mergeInlineStyle(styleFromNode(node), [
                     gap ? `gap:${gap}px` : '',
                     direction === 'row' ? `align-items:${alignItems}` : '',
                 ])
                 const content = (node.children || [])
-                    .map(child => renderNode(child, direction))
+                    .map(child => renderNode(child, direction, family))
                     .join('')
                 const href = readProp(node, 'href') || readProp(node, 'url')
                 if (href) {
@@ -2358,10 +2626,55 @@
                 return matchKey ? mockMap[matchKey] : undefined
             }
 
-            async function proxyFetch(url) {
-                const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`)
+            async function proxyFetch(url, init = {}) {
+                const response = await fetch('/api/proxy', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        url,
+                        method: init.method || 'GET',
+                        headers: init.headers || {},
+                        body: init.body,
+                    }),
+                })
                 if (!response.ok) throw new Error(`Request failed ${response.status}: ${url}`)
                 return response
+            }
+
+            function createMockApiResponse(url, error) {
+                const now = new Date()
+                return {
+                    code: 0,
+                    msg: 'success',
+                    data: {
+                        id: 'playground-sample',
+                        title: 'Playground mock response',
+                        summary: 'This is a fallback response generated by the local Scriptable Playground.',
+                        url,
+                        status: 'ok',
+                        updatedAt: now.toISOString(),
+                        items: [
+                            {
+                                id: 'sample-1',
+                                name: 'Sample item',
+                                value: 86,
+                                trend: 'stable',
+                            },
+                            {
+                                id: 'sample-2',
+                                name: 'Preview item',
+                                value: 42,
+                                trend: 'up',
+                            },
+                        ],
+                    },
+                    meta: {
+                        mocked: true,
+                        source: 'playground',
+                        reason: error instanceof Error ? error.message : String(error || 'network unavailable'),
+                        timestamp: now.getTime(),
+                    },
+                }
             }
 
             function createSandbox(mockMap, family, parameter, scriptName, appearance, runMode) {
@@ -2415,13 +2728,23 @@
                     async loadJSON() {
                         const mockResponse = findMockResponse(mockMap, this.url)
                         if (mockResponse !== undefined) return mockResponse
-                        return proxyFetch(this.url).then(res => res.json())
+                        try {
+                            return await proxyFetch(this.url, this).then(res => res.json())
+                        } catch (error) {
+                            writeLog('warn', `Request.loadJSON fallback: ${this.url}`)
+                            return createMockApiResponse(this.url, error)
+                        }
                     }
                     async loadString() {
                         const mockResponse = findMockResponse(mockMap, this.url)
                         if (mockResponse !== undefined)
                             return typeof mockResponse === 'string' ? mockResponse : JSON.stringify(mockResponse)
-                        return proxyFetch(this.url).then(res => res.text())
+                        try {
+                            return await proxyFetch(this.url, this).then(res => res.text())
+                        } catch (error) {
+                            writeLog('warn', `Request.loadString fallback: ${this.url}`)
+                            return JSON.stringify(createMockApiResponse(this.url, error), null, 2)
+                        }
                     }
                     async load() {
                         const mockResponse = findMockResponse(mockMap, this.url)
@@ -2433,15 +2756,20 @@
                         if (String(this.url).startsWith('data:')) {
                             return new MockData(dataUrlToBase64(this.url), dataUrlContentType(this.url))
                         }
-                        const response = await proxyFetch(this.url)
-                        const contentType = response.headers.get('content-type') || 'application/octet-stream'
-                        const buffer = await response.arrayBuffer()
-                        const bytes = new Uint8Array(buffer)
-                        let binary = ''
-                        bytes.forEach(byte => {
-                            binary += String.fromCharCode(byte)
-                        })
-                        return new MockData(btoa(binary), contentType)
+                        try {
+                            const response = await proxyFetch(this.url, this)
+                            const contentType = response.headers.get('content-type') || 'application/octet-stream'
+                            const buffer = await response.arrayBuffer()
+                            const bytes = new Uint8Array(buffer)
+                            let binary = ''
+                            bytes.forEach(byte => {
+                                binary += String.fromCharCode(byte)
+                            })
+                            return new MockData(btoa(binary), contentType)
+                        } catch (error) {
+                            writeLog('warn', `Request.load fallback: ${this.url}`)
+                            return MockData.fromString(JSON.stringify(createMockApiResponse(this.url, error), null, 2))
+                        }
                     }
                     async loadImage() {
                         const data = await this.load()
@@ -2453,6 +2781,7 @@
                     MockSize,
                     writeLog,
                     renderWebView,
+                    presentAlert,
                     isDarkAppearance,
                     scriptName,
                     parameter,
@@ -2513,6 +2842,9 @@
                     Calendar: hostMocks.Calendar,
                     CalendarEvent: hostMocks.CalendarEvent,
                     Reminder: hostMocks.Reminder,
+                    Contact: hostMocks.Contact,
+                    ContactsContainer: hostMocks.ContactsContainer,
+                    ContactsGroup: hostMocks.ContactsGroup,
                     Contacts: hostMocks.Contacts,
                     Mail: hostMocks.Mail,
                     Message: hostMocks.Message,
@@ -2653,10 +2985,14 @@
                         }
                     },
                     SFSymbol: {
-                        named: name => ({
-                            image: new MockImage(name, 'sf-symbol', createSymbolPngDataUrl(name)),
-                            applyFont: () => {},
-                        }),
+                        named: name => {
+                            const image = new MockImage(name, 'sf-symbol', createSfSymbolPngDataUrl(name))
+                            image.size = {width: 18, height: 18}
+                            return {
+                                image,
+                                applyFont: () => {},
+                            }
+                        },
                     },
                     importModule: name => sandbox.require(name),
                     require: name => {

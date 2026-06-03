@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-04 01:35:57",
+  "generatedAt": "2026-06-04 03:47:17",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -25,7 +25,19 @@
       },
       "desc": "B站榜单",
       "version": "1.0.0",
-      "build": "2026-06-04 00:58:47"
+      "build": "2026-06-04 02:52:38"
+    },
+    {
+      "id": "CursorMonitor",
+      "fileName": "CursorMonitor.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/CursorMonitor.js",
+      "name": {
+        "zh": "Cursor监控",
+        "en": "CursorMonitor"
+      },
+      "desc": "Cursor监控",
+      "version": "1.0.0",
+      "build": "2026-06-04 03:42:25"
     },
     {
       "id": "ScriptUpdater",
@@ -37,7 +49,7 @@
       },
       "desc": "Scriptable 脚本订阅更新器",
       "version": "1.0.0",
-      "build": "2026-06-04 01:27:11"
+      "build": "2026-06-04 03:47:16"
     },
     {
       "id": "Seiun.Env",
@@ -49,7 +61,7 @@
       },
       "desc": "Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts",
       "version": "2.0.0",
-      "build": "2026-06-04 01:35:56"
+      "build": "2026-06-04 03:21:46"
     }
   ]
 }

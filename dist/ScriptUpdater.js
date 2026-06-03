@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/04
- * build    :  2026-06-04 01:43:15
+ * build    :  2026-06-04 03:47:16
  * desc     :  Scriptable 脚本订阅更新器
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -23,26 +23,26 @@ var RAW_BASE_URL =
   "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist";
 var DEFAULT_SUBSCRIPTION_URL = `${RAW_BASE_URL}/subscription.json`;
 var dependencyFileName = "Seiun.Env.js";
-function getBootstrapFileManager() {
-  const isICloud = MODULE.filename.includes("Documents/iCloud~");
-  return FileManager[isICloud ? "iCloud" : "local"]();
-}
-function getScriptDocumentPath(fileName) {
-  const fm = getBootstrapFileManager();
-  return fm.joinPath(fm.documentsDirectory(), fileName);
-}
-function reopenCurrentScript() {
-  Safari.open(`scriptable:///run/${encodeURIComponent(Script.name())}`);
-}
-function canLoadSeiunEnvFromRuntime() {
+function canLoadRuntime() {
   return typeof require !== "undefined";
 }
+function getScriptFileManager() {
+  return MODULE.filename.includes("Documents/iCloud~")
+    ? FileManager.iCloud()
+    : FileManager.local();
+}
+function getScriptPath(fileName) {
+  const fm = getScriptFileManager();
+  return fm.joinPath(fm.documentsDirectory(), fileName);
+}
 async function ensureSeiunEnv() {
-  if (canLoadSeiunEnvFromRuntime()) return true;
-  const fm = getBootstrapFileManager();
-  const envPath = getScriptDocumentPath(dependencyFileName);
+  if (canLoadRuntime()) return true;
+  const fm = getScriptFileManager();
+  const envPath = getScriptPath(dependencyFileName);
   if (fm.fileExists(envPath)) return true;
-  const req = new Request(`${RAW_BASE_URL}/${dependencyFileName}`);
+  const req = new Request(
+    `${RAW_BASE_URL.replace(/\/+$/, "")}/${dependencyFileName}`,
+  );
   const source = await req.loadString();
   fm.writeString(envPath, source);
   const alert = new Alert();
@@ -50,7 +50,7 @@ async function ensureSeiunEnv() {
   alert.message = "Seiun.Env.js 已下载，脚本将重新打开。";
   alert.addAction("确定");
   await alert.presentAlert();
-  reopenCurrentScript();
+  Safari.open(`scriptable:///run/${encodeURIComponent(Script.name())}`);
   Script.complete();
   return false;
 }
@@ -99,11 +99,10 @@ EndAwait(async () => {
       });
     }
     getFileManager() {
-      const isICloud = MODULE.filename.includes("Documents/iCloud~");
-      return FileManager[isICloud ? "iCloud" : "local"]();
+      return getScriptFileManager();
     }
     getScriptPath(fileName) {
-      return getScriptDocumentPath(fileName);
+      return getScriptPath(fileName);
     }
     getSubscriptions() {
       const fromSettings = this.settings.subscriptionSettings?.urls;
@@ -132,7 +131,7 @@ EndAwait(async () => {
       return uniqueUrls;
     }
     readLocalMeta(fileName, remote) {
-      if (canLoadSeiunEnvFromRuntime()) {
+      if (canLoadRuntime()) {
         return {
           installedVersion: remote?.version || "",
           installedBuild: remote?.build || "",
@@ -209,13 +208,19 @@ EndAwait(async () => {
         return { shouldUpdate: true, reason: "未安装" };
       }
       if (hasVersion) {
-        if (localVersion && localVersion === remoteVersion) {
-          return { shouldUpdate: false, reason: "无需更新" };
+        if (!localVersion || localVersion !== remoteVersion) {
+          return {
+            shouldUpdate: true,
+            reason: `版本 ${localVersion || "-"} -> ${remoteVersion}`,
+          };
         }
-        return {
-          shouldUpdate: true,
-          reason: `版本 ${localVersion || "-"} -> ${remoteVersion}`,
-        };
+        if (this.isRemoteBuildNewer(remoteBuild, localBuild)) {
+          return {
+            shouldUpdate: true,
+            reason: `Build ${localBuild || "-"} -> ${remoteBuild}`,
+          };
+        }
+        return { shouldUpdate: false, reason: "无需更新" };
       }
       if (remoteBuild && localBuild && localBuild >= remoteBuild) {
         return { shouldUpdate: false, reason: "无需更新" };
@@ -226,6 +231,11 @@ EndAwait(async () => {
           ? `Build ${localBuild} -> ${remoteBuild || "unknown"}`
           : "未安装",
       };
+    }
+    isRemoteBuildNewer(remoteBuild, localBuild) {
+      if (!remoteBuild || !localBuild)
+        return Boolean(remoteBuild && !localBuild);
+      return remoteBuild > localBuild;
     }
     async downloadScript(script, force = false) {
       const decision = this.shouldUpdateScript(script, force);
@@ -288,10 +298,10 @@ body {
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
 }
-.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 2px 2px 16px; }
+.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin: 2px 2px 16px; }
 .title { font-size: 28px; line-height: 1.1; font-weight: 720; }
 .subtitle { margin-top: 4px; color: var(--muted); font-size: 13px; }
-.toolbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.toolbar { display: flex; gap: 8px; flex-wrap: nowrap; justify-content: flex-end; }
 .add-panel { display: none; gap: 8px; margin: 0 2px 12px; }
 .add-panel.visible { display: flex; }
 .add-panel input { flex: 1; min-width: 0; border: 0; border-radius: 8px; padding: 9px 10px; color: var(--text); background: var(--card); font-size: 13px; box-shadow: inset 0 0 0 0.5px var(--line); }
@@ -303,6 +313,7 @@ button {
   background: var(--blue);
   font-size: 14px;
   font-weight: 650;
+  white-space: nowrap;
 }
 button.secondary { color: var(--blue); background: rgba(0,122,255,0.12); }
 button.green { background: var(--green); }
@@ -310,6 +321,8 @@ button.red { background: rgba(255,59,48,0.12); color: var(--red); }
 .message { margin: 0 2px 12px; color: var(--green); font-size: 13px; min-height: 18px; }
 .section { margin: 14px 0 20px; }
 .section-title { margin: 0 4px 8px; color: var(--muted); font-size: 12px; font-weight: 650; text-transform: uppercase; }
+.section-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 4px 8px; }
+.section-title-row .section-title { margin: 0; }
 .card { background: var(--card); border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; }
 .row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-top: 0.5px solid var(--line); }
 .row:first-child { border-top: 0; }
@@ -333,7 +346,6 @@ button.red { background: rgba(255,59,48,0.12); color: var(--red); }
     <div class="subtitle">管理 Scriptable 脚本源与本地下载</div>
   </div>
   <div class="toolbar">
-    <button class="secondary" onclick="showAddSubscription()">添加</button>
     <button class="green" onclick="invoke('updateAll')">全部更新</button>
     <button onclick="invoke('forceUpdateAll')">强制全部</button>
   </div>
@@ -351,6 +363,10 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':
 function scriptNeedsUpdate(script) {
   return scriptStatus(script).action !== 'forceUpdateScript';
 }
+function isRemoteBuildNewer(remoteBuild, localBuild) {
+  if (!remoteBuild || !localBuild) return !!(remoteBuild && !localBuild);
+  return remoteBuild > localBuild;
+}
 function scriptStatus(script) {
   const remoteVersion = String(script.version || '').trim();
   const localVersion = String(script.installedVersion || '').trim();
@@ -359,7 +375,9 @@ function scriptStatus(script) {
   const isInstalled = !!(localVersion || localBuild);
   if (!isInstalled) return {text: '未安装', className: 'install', action: 'updateScript', button: '安装', buttonClass: 'green'};
   const hasVersion = !!(remoteVersion && remoteVersion !== remoteBuild);
-  const needsUpdate = hasVersion ? !(localVersion && localVersion === remoteVersion) : !(remoteBuild && localBuild && localBuild >= remoteBuild);
+  const needsUpdate = hasVersion
+    ? !(localVersion && localVersion === remoteVersion) || isRemoteBuildNewer(remoteBuild, localBuild)
+    : isRemoteBuildNewer(remoteBuild, localBuild);
   return needsUpdate
     ? {text: '可更新', className: 'update', action: 'updateScript', button: '更新', buttonClass: ''}
     : {text: '已最新', className: 'current', action: 'forceUpdateScript', button: '强制', buttonClass: 'secondary'};
@@ -412,7 +430,7 @@ function render() {
         return '<section class="section"><div class="section-title">' + escapeHtml(manifest.title) + '</div><div class="card">' + scripts + '</div></section>';
       }).join('')
     : '<section class="section"><div class="card"><div class="empty">添加订阅后会在这里展示脚本</div></div></section>';
-  app.innerHTML = '<section class="section"><div class="section-title">订阅链接</div><div class="card">' + subscriptionRows + '</div></section>' + manifests;
+  app.innerHTML = '<section class="section"><div class="section-title-row"><div class="section-title">订阅链接</div><button class="secondary" onclick="showAddSubscription()">添加</button></div><div class="card">' + subscriptionRows + '</div></section>' + manifests;
 }
 window.applyState = next => { state = next; render(); };
 render();

@@ -11,7 +11,7 @@
  * changelog:
  */
 
-import type {SeiunEnv, WidgetBase as WidgetBaseType} from '@app/env/types'
+import type {SeiunEnv} from '@app/env/types'
 
 declare const importModule: (moduleName: string) => SeiunEnv
 
@@ -295,4 +295,4 @@ class BilibiliMonitor extends WidgetBase {
     }
 }
 
-EndAwait(() => Runing(BilibiliMonitor as unknown as typeof WidgetBaseType, args.widgetParameter, false))
+EndAwait(() => Runing(BilibiliMonitor, args.widgetParameter, false))

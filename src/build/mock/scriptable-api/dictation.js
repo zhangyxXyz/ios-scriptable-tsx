@@ -1,7 +1,7 @@
 ;(function () {
     ScriptableMock.register('Dictation', () => ({
         Dictation: {
-            start: async () => '',
+            start: async () => 'Playground dictation sample text.',
         },
     }))
 })()

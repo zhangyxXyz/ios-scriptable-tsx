@@ -1,8 +1,14 @@
 ;(function () {
     ScriptableMock.register('Safari', context => ({
         Safari: {
-            open: ScriptableMock.createLog(context.writeLog, 'Safari.open'),
-            openInApp: async url => context.writeLog('log', `Safari.openInApp ${url}`),
+            open: async url => {
+                context.writeLog('log', `Safari.open ${url}`)
+                return true
+            },
+            openInApp: async url => {
+                context.writeLog('log', `Safari.openInApp ${url}`)
+                return true
+            },
         },
     }))
 })()

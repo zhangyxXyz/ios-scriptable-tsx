@@ -186,7 +186,10 @@ function createStackUI(deps: any) {
                         center: () => widgetText.centerAlignText(),
                         right: () => widgetText.rightAlignText(),
                     }
-                    isDefined(textAlign) && textAlignMap[textAlign]()
+                    if (isDefined(textAlign)) {
+                        textAlignMap[textAlign]?.()
+                        widgetText.textAlign = textAlign
+                    }
                     isDefined(onClick) && runOnClick(widgetText, onClick)
                 } catch (err) {
                     console.error(`[GenrateView][wtext]`, err)
@@ -236,7 +239,10 @@ function createStackUI(deps: any) {
                         center: () => widgetDate.centerAlignText(),
                         right: () => widgetDate.rightAlignText(),
                     }
-                    isDefined(textAlign) && textAlignMap[textAlign]()
+                    if (isDefined(textAlign)) {
+                        textAlignMap[textAlign]?.()
+                        widgetDate.textAlign = textAlign
+                    }
                     isDefined(onClick) && runOnClick(widgetDate, onClick)
                 } catch (err) {
                     console.error(`[GenrateView][wdate]`, err)

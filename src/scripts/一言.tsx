@@ -11,7 +11,7 @@
  * changelog:
  */
 
-import type {SeiunEnv, WidgetBase as WidgetBaseType} from '@app/env/types'
+import type {SeiunEnv} from '@app/env/types'
 
 declare const importModule: (moduleName: string) => SeiunEnv
 
@@ -20,7 +20,7 @@ type SettingValue<T> = {
     type: string
 }
 
-type YiyanSettings = {
+type OneWordSettings = {
     basicSettings: {
         apiUrl: SettingValue<string>
         filterTypes: SettingValue<string[]>
@@ -64,13 +64,13 @@ const hitokotoTypes = [
     {label: '抖机灵', value: 'l'},
 ] as const
 
-class Yiyan extends WidgetBase {
+class OneWord extends WidgetBase {
     widgetParam = args.widgetParameter
     splitWidgetParam: string[] = []
     httpData: HitokotoResponse | null = null
     isRequestSuccess = false
 
-    currentSettings: YiyanSettings = {
+    currentSettings: OneWordSettings = {
         basicSettings: {
             apiUrl: {val: 'https://v1.hitokoto.cn', type: this.settingValTypeString},
             filterTypes: {val: [], type: this.settingValTypeArray},
@@ -97,8 +97,7 @@ class Yiyan extends WidgetBase {
     }
 
     async getData() {
-        const storage = (this as unknown as {storage: {getStorage: Function; setStorage: Function}}).storage
-        const cachedWord = storage.getStorage('word', 1) as HitokotoResponse | null
+        const cachedWord = this.storage.getStorage<HitokotoResponse>('word', 1)
         if (cachedWord) {
             console.log('[+] 请求间隔时间过小，使用缓存数据')
             this.httpData = cachedWord
@@ -117,12 +116,12 @@ class Yiyan extends WidgetBase {
             const url = `${apiUrl}${Utils.isEmpty(types) ? '' : `?${types}`}`
             const data = await this.$request.get<HitokotoResponse>(url)
             console.log(`[+] 数据请求成功：${url}`)
-            storage.setStorage('word', data)
+            this.storage.setStorage('word', data)
             this.httpData = data
             this.isRequestSuccess = true
         } catch (error) {
             console.log(`[+] getData 出错，尝试使用缓存数据：${error}`)
-            this.httpData = storage.getStorage('word') as HitokotoResponse | null
+            this.httpData = this.storage.getStorage<HitokotoResponse>('word')
         }
 
         console.log(this.httpData)
@@ -307,4 +306,4 @@ class Yiyan extends WidgetBase {
     }
 }
 
-EndAwait(() => Runing(Yiyan as unknown as typeof WidgetBaseType, args.widgetParameter, false))
+EndAwait(() => Runing(OneWord, args.widgetParameter, false))

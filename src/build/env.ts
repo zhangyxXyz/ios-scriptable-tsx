@@ -23,7 +23,9 @@ export function loadEnvFiles(projectRootPath: string): void {
             try {
                 const env = dotenv.config({path: envPath})
                 dotenvExpand.expand(env)
-            } catch (err) {}
+            } catch {
+                // Missing or unreadable dotenv files are expected in local builds.
+            }
         }
         // console.log(localPath, basePath)
         load(localPath)
