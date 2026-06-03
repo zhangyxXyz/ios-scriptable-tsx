@@ -19,7 +19,7 @@ function createPinyinRuntime(deps: any) {
      */
     async function loadPinyinDict(url: any = null) {
         const PINYIN_DICT_URL =
-            url || 'https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable/master/data/pinyinDict.js'
+            url || 'https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/data/pinyinDict.js'
 
         if (pinyinGlobal.pinyinDict) return pinyinGlobal.pinyinDict
         const cachedDict = globalStorage.getStorage(CACHE_KEY, -1)

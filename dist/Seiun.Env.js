@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-04 00:58:47
+ * build    :  2026-06-04 01:35:56
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -6098,7 +6098,7 @@ function createPinyinRuntime(deps) {
   async function loadPinyinDict(url = null) {
     const PINYIN_DICT_URL =
       url ||
-      "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable/master/data/pinyinDict.js";
+      "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/data/pinyinDict.js";
     if (pinyinGlobal.pinyinDict) return pinyinGlobal.pinyinDict;
     const cachedDict = globalStorage.getStorage(CACHE_KEY, -1);
     if (cachedDict) {
