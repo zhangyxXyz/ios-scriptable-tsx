@@ -56,6 +56,9 @@ export interface CompileOptions {
     /**在编译中添加额外的头部，一般是作者信息*/
     header?: string
 
+    /**Raw URL base for subscription entries, e.g. GitHub raw dist directory.*/
+    subscriptionRawBaseUrl?: string
+
     /**是否加密代码*/
     encrypt?: boolean
 
@@ -104,6 +107,34 @@ const _compileOptions = {
 
 compile(merge(_compileOptions, compileOptions || {}))
 
+function registerWatchCleanup(closeServer: () => Promise<void>): void {
+    let isClosing = false
+
+    const cleanup = async (signal: NodeJS.Signals): Promise<void> => {
+        if (isClosing) return
+        isClosing = true
+
+        try {
+            await closeServer()
+            console.log(`[watch] Playground server closed by ${signal}`)
+        } catch (error) {
+            console.error(`[watch] Failed to close Playground server:`, error)
+        }
+
+        if (signal === 'SIGUSR2') {
+            process.kill(process.pid, signal)
+            return
+        }
+        process.exit(0)
+    }
+
+    ;(['SIGINT', 'SIGTERM', 'SIGBREAK', 'SIGHUP', 'SIGUSR2'] as NodeJS.Signals[]).forEach(signal => {
+        process.once(signal, () => {
+            void cleanup(signal)
+        })
+    })
+}
+
 async function compile(options: CompileOptions) {
     const {
         rootPath,
@@ -118,6 +149,7 @@ async function compile(options: CompileOptions) {
         encrypt = false,
         encryptOptions = {},
         header = '',
+        subscriptionRawBaseUrl = '',
         entryFilter = [],
     } = options
 
@@ -126,10 +158,11 @@ async function compile(options: CompileOptions) {
 
     if (watch) {
         /**创建服务器*/
-        createServer({
+        const playgroundServer = createServer({
             staticDir: outputDir,
             showQrcode,
         })
+        registerWatchCleanup(playgroundServer.close)
     }
 
     // 编译时，把 process.env 环境变量替换成 dotenv 文件参数
@@ -307,7 +340,62 @@ const MODULE = module;${topLevelAwaitRuntime}
     }
 
     /**所有输出的文件信息集合*/
-    let outputFilesInfo: OutputFile[] = []
+    function readHeaderField(source: string, field: string) {
+        const match = source.match(new RegExp(`^\\s*\\*\\s*${field}\\s*:\\s*(.*)$`, 'm'))
+        return match ? match[1].trim() : ''
+    }
+
+    function readAssignment(source: string, field: string) {
+        const match = source.match(new RegExp(`\\bthis\\.${field}\\s*=\\s*["'\`]([^"'\`]+)["'\`]`))
+        return match ? match[1].trim() : ''
+    }
+
+    function joinRawUrl(baseUrl: string, fileName: string) {
+        if (!baseUrl) return fileName
+        return `${baseUrl.replace(/\/+$/, '')}/${fileName}`
+    }
+
+    async function generateSubscriptionManifest(rawBaseUrl: string) {
+        const buildTime = formatCompileTime(new Date())
+        const files = (await fs.promises.readdir(outputDir))
+            .filter(file => file.endsWith('.js'))
+            .sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
+
+        const scripts = files.map(file => {
+            const source = fs.readFileSync(path.resolve(outputDir, file), 'utf8')
+            const build = readHeaderField(source, 'build') || buildTime
+            const version = readHeaderField(source, 'version') || build
+            const zhName = readAssignment(source, 'name') || path.basename(file, '.js')
+            const enName = readAssignment(source, 'en') || path.basename(file, '.js')
+            const desc = readHeaderField(source, 'desc') || zhName || enName
+
+            return {
+                id: path.basename(file, '.js'),
+                fileName: file,
+                rawUrl: joinRawUrl(rawBaseUrl, file),
+                name: {
+                    zh: zhName,
+                    en: enName,
+                },
+                desc,
+                version,
+                build,
+            }
+        })
+
+        const manifest = {
+            schemaVersion: 1,
+            generatedAt: buildTime,
+            rawBaseUrl: rawBaseUrl || '',
+            scripts,
+        }
+        const manifestPath = path.resolve(outputDir, 'subscription.json')
+        await ensureFile(manifestPath)
+        await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, {encoding: 'utf8'})
+        console.log(`订阅清单已生成: ${manifestPath}`)
+    }
+
+    const outputFilesInfo: OutputFile[] = []
 
     try {
         /**计算输入文件路径集合*/
@@ -438,5 +526,8 @@ await __topLevelAwait__();
     }
 
     console.log('加密代码结束')
+    await generateSubscriptionManifest(
+        process.env.SCRIPTABLE_RAW_BASE_URL || process.env.SUBSCRIPTION_RAW_BASE_URL || subscriptionRawBaseUrl,
+    )
     console.log('打包完成')
 }

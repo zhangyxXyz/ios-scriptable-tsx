@@ -8,3 +8,4 @@ import './scripts/Seiun.Env'
  */
 import './scripts/BilibiliMonitor'
 import './scripts/一言'
+import './scripts/ScriptUpdater'
