@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-04 04:11:22",
+  "generatedAt": "2026-06-04 05:19:38",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -38,6 +38,18 @@
       "desc": "Cursor监控",
       "version": "1.0.0",
       "build": "2026-06-04 04:11:22"
+    },
+    {
+      "id": "InfoCollection",
+      "fileName": "InfoCollection.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/InfoCollection.js",
+      "name": {
+        "zh": "信息合集",
+        "en": "InfoCollection"
+      },
+      "desc": "信息合集",
+      "version": "1.0.0",
+      "build": "2026-06-04 05:19:37"
     },
     {
       "id": "ScriptUpdater",
