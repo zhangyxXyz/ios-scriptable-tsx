@@ -16,6 +16,7 @@ Write, debug, and bundle [Scriptable](https://scriptable.app/) scripts with Type
 - Local runtime state is written to `.cache`, including `.cache/keychain.json`, `.cache/Documents`, `.cache/Library`, `.cache/iCloud`, `.cache/images`, and `.cache/tmp`.
 - `Appearance` controls the inner Scriptable rendering for Widget / WebView. The Playground shell has its own Light / Dark / Auto theme.
 - Offline Scriptable Docs are available inside the Playground.
+- Builds generate `dist/subscription.json`, which `ScriptUpdater.js` can use inside Scriptable to manage subscriptions, compare versions, and update scripts.
 
 ## Quick Start
 
@@ -45,6 +46,44 @@ npm run build
 ```
 
 Generated files are written to `dist`. Copy the business script and `Seiun.Env.js` into the same Scriptable directory on iOS.
+
+## Build Outputs And Subscriptions
+
+The regular build parses static imports in `src/index.ts` and outputs each entry as a separate `dist/*.js` file. After the scripts are written, the builder also generates `dist/subscription.json` for subscription-based updates:
+
+- `rawUrl`: the remote raw URL for the script. By default, it is inferred from GitHub `origin` and the current branch as `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/dist/<file>`.
+- `name.zh` / `name.en`: Chinese and English names, read from `this.name` and `this.en` on the script class when available.
+- `desc`: the `desc` field from the script header comment, or the script name when omitted.
+- `version`: the `version` field from the script header comment, or the build time when no version is declared.
+- `build`: the build timestamp.
+
+To pin the subscription raw base URL, set it before building:
+
+```bash
+$env:SUBSCRIPTION_RAW_BASE_URL='https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist'
+npm run dev
+```
+
+The builder writes candidate files to `dist/.tmp` first, then compares them with the existing files in `dist`. For comparison, the new file's build time is temporarily replaced with the old file's build time and an MD5 hash is calculated. If the content matches, the official `dist` file is not overwritten, which avoids meaningless diffs when only the build timestamp changed. Files without an old build time, or files with real content changes, are overwritten. `dist/.tmp` is removed after a successful build.
+
+## Script Updater
+
+`dist/ScriptUpdater.js` is the subscription updater. Add it to Scriptable and open "Subscription Management" from the app settings. It uses this repository's `dist/subscription.json` by default, and it can also manage multiple subscription URLs.
+
+The subscription manager groups scripts by subscription source. Each script row uses three lines:
+
+- Line 1: Chinese name / English name, plus an "Update Available" or "Current" status.
+- Line 2: local build / remote build.
+- Line 3: local version / remote version.
+
+Update rules:
+
+- If the remote script has a version, the updater compares versions first; matching versions are treated as "No update needed".
+- If no version is available, it compares build times.
+- When an update is available, the row button shows "Update"; otherwise it shows "Force" for a manual overwrite.
+- "Update All" only downloads scripts that need updates; "Force All" overwrites all scripts.
+
+On first real-device launch, if `Seiun.Env.js` is missing locally, the updater downloads it and reopens the script. In the Playground, the updater treats the current `dist` outputs as the local scripts and does not depend on stale files under `.cache/Documents`.
 
 ## Playground Preview
 
