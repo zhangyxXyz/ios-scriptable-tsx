@@ -2879,6 +2879,9 @@
                             this.respectScreenScale = true
                             this.fillColor = '#000000'
                             this.strokeColor = '#000000'
+                            this.textColor = '#000000'
+                            this.textFont = new MockFont('system', 12, 400)
+                            this.textAlign = 'left'
                             this.currentPath = null
                         }
                         set size(value) {
@@ -2950,6 +2953,62 @@
                         setStrokeColor(color) {
                             this.strokeColor = colorToCss(color) || '#000000'
                             this.ctx.strokeStyle = this.strokeColor
+                        }
+                        setTextColor(color) {
+                            this.textColor = colorToCss(color) || '#000000'
+                            this.ctx.fillStyle = this.textColor
+                        }
+                        fontCss() {
+                            const font = this.textFont || new MockFont('system', 12, 400)
+                            const size = Number(font.size || 12)
+                            const weight = Number(font.weight || 400)
+                            const family = String(font.name || 'system').toLowerCase().includes('mono')
+                                ? 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
+                                : '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif'
+                            return `${weight} ${size}px ${family}`
+                        }
+                        setFont(font) {
+                            this.textFont = font || new MockFont('system', 12, 400)
+                            this.ctx.font = this.fontCss()
+                        }
+                        setFontSize(size) {
+                            this.textFont = new MockFont(this.textFont?.name || 'system', Number(size || 12), this.textFont?.weight || 400)
+                            this.ctx.font = this.fontCss()
+                        }
+                        setTextAlignedLeft() {
+                            this.textAlign = 'left'
+                            this.ctx.textAlign = 'left'
+                        }
+                        setTextAlignedCenter() {
+                            this.textAlign = 'center'
+                            this.ctx.textAlign = 'center'
+                        }
+                        setTextAlignedRight() {
+                            this.textAlign = 'right'
+                            this.ctx.textAlign = 'right'
+                        }
+                        prepareText() {
+                            this.ctx.fillStyle = this.textColor || '#000000'
+                            this.ctx.font = this.fontCss()
+                            this.ctx.textAlign = this.textAlign || 'left'
+                            this.ctx.textBaseline = 'top'
+                        }
+                        drawText(text, point) {
+                            this.prepareText()
+                            this.ctx.fillText(String(text ?? ''), Number(point?.x || 0), Number(point?.y || 0))
+                        }
+                        drawTextInRect(text, rect) {
+                            this.prepareText()
+                            const x = Number(rect?.x || 0)
+                            const y = Number(rect?.y || 0)
+                            const width = Number(rect?.width || 0)
+                            const drawX =
+                                this.textAlign === 'center'
+                                    ? x + width / 2
+                                    : this.textAlign === 'right'
+                                      ? x + width
+                                      : x
+                            this.ctx.fillText(String(text ?? ''), drawX, y)
                         }
                         setLineWidth(width) {
                             this.ctx.lineWidth = Number(width || 1)

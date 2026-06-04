@@ -129,8 +129,8 @@ export interface SettingItem {
     /** 类型特定配置。 */
     config?: SettingItemConfig
 
-    /** 自定义点击行为；提供后接管默认 webview 输入界面。 */
-    onAction?: (option: Record<string, unknown>) => void | Promise<void>
+    /** 自定义点击行为；提供后接管默认 webview 输入界面。返回 true 时由脚本层自行表示动作已处理。 */
+    onAction?: (webView: WebView, item: SettingItem) => void | boolean | Promise<void | boolean>
 
     /** 唯一标识符，通常由 env 自动生成。 */
     id?: string
@@ -197,6 +197,7 @@ export interface SeiunGenrateView {
 export interface WidgetStorage {
     getStorage<T = unknown>(key: string, expirationMinutes?: number, isDelStorageWhenTimeExceed?: boolean): T | null
     setStorage<T = unknown>(key: string, value: T): void
+    removeStorage(key: string): void
 }
 
 export declare class WidgetBase {
@@ -233,6 +234,7 @@ export declare class WidgetBase {
     changeBgMode2OnLineBg(urls: string[]): void
     getImageByUrl(url: string): Promise<Image>
     getWidgetBackgroundImage(widget: ListWidget): Promise<boolean>
+    notify(title: string, body: string, url?: string | null, opts?: Record<string, unknown>): Promise<void>
     reopenScript(): void
     setWidgetConfig(): Promise<void>
     presentSettings(...args: unknown[]): Promise<void>
