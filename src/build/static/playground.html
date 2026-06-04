@@ -1115,6 +1115,7 @@
 
         <script src="/mock/scriptable-api/registry.js"></script>
         <script src="/mock/scriptable-api/device.js"></script>
+        <script src="/mock/scriptable-api/date-formatter.js"></script>
         <script src="/mock/scriptable-api/location.js"></script>
         <script src="/mock/scriptable-api/photos.js"></script>
         <script src="/mock/scriptable-api/pasteboard.js"></script>
@@ -2814,6 +2815,7 @@
                         complete: () => writeLog('ok', 'Script.complete called'),
                     },
                     Device: hostMocks.Device,
+                    DateFormatter: hostMocks.DateFormatter,
                     Location: hostMocks.Location,
                     FileManager: {
                         local: () => fm,
