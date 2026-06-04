@@ -868,7 +868,7 @@ export function createServer(params: CreateServerParams): PlaygroundServer {
             const method = String(body.method || 'GET').toUpperCase()
             const headers = {
                 'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari',
+                    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_7_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/604.1',
                 ...(body.headers || {}),
             }
             const response = await fetch(url, {

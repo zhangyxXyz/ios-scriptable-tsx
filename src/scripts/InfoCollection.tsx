@@ -65,6 +65,11 @@ type WeatherInfo = {
         feelsLike?: string | number
         windDir?: string
     }
+    data?: {
+        title?: string
+        summary?: string
+    }
+    message?: string
 }
 
 type LunarInfo = {
@@ -88,10 +93,45 @@ type WebViewEvaluate = {
     evaluateJavaScript<T = unknown>(script: string, useCallback?: boolean): Promise<T>
 }
 
+const lunarDayNames = [
+    '',
+    '初一',
+    '初二',
+    '初三',
+    '初四',
+    '初五',
+    '初六',
+    '初七',
+    '初八',
+    '初九',
+    '初十',
+    '十一',
+    '十二',
+    '十三',
+    '十四',
+    '十五',
+    '十六',
+    '十七',
+    '十八',
+    '十九',
+    '二十',
+    '廿一',
+    '廿二',
+    '廿三',
+    '廿四',
+    '廿五',
+    '廿六',
+    '廿七',
+    '廿八',
+    '廿九',
+    '三十',
+]
+
 class InfoCollection extends WidgetBase {
     name = '信息合集'
     en = 'InfoCollection'
     widgetParam = args.widgetParameter
+    progressBarWidth = 24
 
     padding = {top: 10, left: 10, bottom: 10, right: 10}
     locationInfo: LocationInfo | null = null
@@ -171,11 +211,13 @@ class InfoCollection extends WidgetBase {
                     url: areaReqUrl,
                     headers: {Referer: 'https://lbs.qq.com/'},
                 })
-                console.log('[+]腾讯位置 API 请求成功：' + areaReqUrl)
+                console.log(
+                    `[+]腾讯位置 API 请求成功：location=${location.latitude},${location.longitude}&hasKey=${Boolean(apiKey)}`,
+                )
                 storage.setStorage('area', area)
                 this.areaInfo = area
             } catch (error) {
-                console.log(`[+]getLocationArea 出错，尝试使用缓存数据：${error}`)
+                console.log(`[+]getLocationArea 出错，尝试使用缓存数据：${this.sanitizeUrlKeys(error)}`)
                 this.areaInfo = storage.getStorage<AreaInfo>('area')
             }
         }
@@ -183,8 +225,14 @@ class InfoCollection extends WidgetBase {
     }
 
     async getWeather() {
+        if (!this.currentSettings.accountSettings.weatherKey.val) {
+            console.log('[+]和风天气 API key 未配置，跳过天气请求')
+            this.weatherInfo = {message: '请配置和风天气 API key'}
+            return
+        }
+
         const storageWeather = storage.getStorage<WeatherInfo>('weather', 1)
-        if (storageWeather) {
+        if (storageWeather?.now) {
             console.log('[+]天气请求间隔过短，使用缓存数据')
             this.weatherInfo = storageWeather
         } else {
@@ -193,23 +241,37 @@ class InfoCollection extends WidgetBase {
                 if (!location) throw new Error('定位不可用')
                 const weatherReqUrl = `https://devapi.heweather.net/v7/weather/now?location=${location.longitude},${location.latitude}&key=${this.currentSettings.accountSettings.weatherKey.val}&lang=zh-cn`
                 const weather = await this.$request.get<WeatherInfo>(weatherReqUrl)
-                console.log('[+]天气信息请求成功：' + weatherReqUrl)
+                console.log(
+                    `[+]天气信息请求成功：location=${location.longitude},${location.latitude}&lang=zh-cn&hasKey=${Boolean(
+                        this.currentSettings.accountSettings.weatherKey.val,
+                    )}`,
+                )
                 storage.setStorage('weather', weather)
                 this.weatherInfo = weather
             } catch (error) {
-                console.log(`[+]天气信息请求失败，尝试使用缓存数据：${error}`)
+                console.log(`[+]天气信息请求失败，尝试使用缓存数据：${this.sanitizeUrlKeys(error)}`)
                 this.weatherInfo = storage.getStorage<WeatherInfo>('weather')
             }
         }
-        console.log(this.weatherInfo)
+        console.log(this.sanitizeUrlKeys(this.weatherInfo))
+    }
+
+    sanitizeUrlKeys(value: unknown) {
+        if (typeof value === 'string') return value.replace(/([?&]key=)[^&\s"]+/g, '$1***')
+        try {
+            return JSON.parse(JSON.stringify(value).replace(/([?&]key=)[^&\s"]+/g, '$1***'))
+        } catch {
+            return String(value).replace(/([?&]key=)[^&\s"]+/g, '$1***')
+        }
     }
 
     async getLunar(day: number) {
         try {
             const requestUrl = 'https://wannianrili.51240.com/'
             const defaultHeaders = {
-                'user-agent':
-                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36',
+                'User-Agent':
+                    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_7_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/604.1',
+                'Accept-Language': 'zh-CN,zh;q=0.9',
             }
             const html = await this.$request.get<string>({url: requestUrl, headers: defaultHeaders}, 'STRING')
 
@@ -221,10 +283,17 @@ class InfoCollection extends WidgetBase {
                     let holidayText = ''
                     let lunarYearText = ''
                     try {
-                        infoLunarText = document.querySelector('div#wnrl_k_you_id_${day}.wnrl_k_you .wnrl_k_you_id_wnrl_nongli').innerText
-                        holidayText = document.querySelectorAll('div.wnrl_k_zuo div.wnrl_riqi')[${day}].querySelector('.wnrl_td_bzl').innerText
-                        lunarYearText = document.querySelector('div.wnrl_k_you_id_wnrl_nongli_ganzhi').innerText
-                        lunarYearText = lunarYearText.slice(0, lunarYearText.indexOf('\\u5e74') + 1)
+                        const dayPanel =
+                            document.querySelector('#wnrl_k_you_id_${day}.wnrl_k_you') ||
+                            document.querySelector('.wnrl_k_you[style*="block"]') ||
+                            document.querySelectorAll('.wnrl_k_you')[${day}]
+                        infoLunarText = dayPanel?.querySelector('.wnrl_k_you_id_wnrl_nongli')?.innerText || ''
+                        const dayCell = document.querySelectorAll('div.wnrl_k_zuo div.wnrl_riqi')[${day}]
+                        holidayText = dayCell?.querySelector('.wnrl_td_bzl')?.innerText || ''
+                        lunarYearText = dayPanel?.querySelector('.wnrl_k_you_id_wnrl_nongli_ganzhi')?.innerText || ''
+                        lunarYearText = lunarYearText.includes('\\u5e74')
+                            ? lunarYearText.slice(0, lunarYearText.indexOf('\\u5e74') + 1)
+                            : lunarYearText
                         if (infoLunarText.search(holidayText) !== -1) {
                             holidayText = ''
                         }
@@ -236,6 +305,9 @@ class InfoCollection extends WidgetBase {
                 getData()`
 
             const response = await webview.evaluateJavaScript<LunarInfo>(getData, false)
+            if (!response.infoLunarText && !response.lunarYearText && !response.holidayText) {
+                Object.assign(response, this.getFallbackLunarInfo(new Date()))
+            }
             console.log('[+]农历请求成功')
             storage.setStorage('lunar', response)
             this.lunarInfo = response
@@ -244,6 +316,23 @@ class InfoCollection extends WidgetBase {
             this.lunarInfo = storage.getStorage<LunarInfo>('lunar')
         }
         console.log(JSON.stringify(this.lunarInfo))
+    }
+
+    getFallbackLunarInfo(date: Date): LunarInfo {
+        try {
+            const monthDay = new Intl.DateTimeFormat('zh-u-ca-chinese', {month: 'long', day: 'numeric'}).format(date)
+            const year = new Intl.DateTimeFormat('zh-u-ca-chinese', {year: 'numeric'}).format(date)
+            const dayMatch = monthDay.match(/(\d+)/)
+            const day = dayMatch ? parseInt(dayMatch[1]) : 0
+            const month = monthDay.replace(/\d+日?/, '')
+            return {
+                infoLunarText: `${month}${lunarDayNames[day] || dayMatch?.[1] || ''}`,
+                lunarYearText: year.replace(/^\d+/, ''),
+                holidayText: '',
+            }
+        } catch {
+            return {infoLunarText: '', lunarYearText: '', holidayText: ''}
+        }
     }
 
     async getHoney() {
@@ -279,8 +368,8 @@ class InfoCollection extends WidgetBase {
     }
 
     renderProgress(progress: number) {
-        const used = '▓'.repeat(Math.floor(progress * 24))
-        const left = '░'.repeat(24 - used.length)
+        const used = '▓'.repeat(Math.floor(progress * this.progressBarWidth))
+        const left = '░'.repeat(this.progressBarWidth - used.length)
         return `${used}${left} ${Math.floor(progress * 100)}%`
     }
 
@@ -420,7 +509,7 @@ class InfoCollection extends WidgetBase {
         })
     }
 
-    renderCommon(widget: ListWidget) {
+    async renderCommon(widget: ListWidget) {
         const time = new Date()
         const dfTime = new DateFormatter()
         dfTime.locale = 'zh-cn'
@@ -434,6 +523,10 @@ class InfoCollection extends WidgetBase {
         const city = areaInfo.result?.address_component?.city || ''
         const district = areaInfo.result?.address_component?.district || ''
         const weatherNow = weatherInfo.now || {}
+        const weatherText = weatherNow.text || weatherInfo.message || weatherInfo.data?.title || ''
+        const weatherTemp = weatherNow.temp ?? ''
+        const weatherFeelsLike = weatherNow.feelsLike ?? ''
+        const weatherWindDir = weatherNow.windDir || weatherInfo.data?.summary || ''
 
         GenrateView.setListWidget(widget)
         return (
@@ -465,30 +558,34 @@ class InfoCollection extends WidgetBase {
                     textColor={new Color(this.currentSettings.displaySettings.weatherInfoColorHex.val)}
                     font={new Font('Menlo', 11)}
                     textAlign="left">
-                    {`[🌤]${city}·${district} ${weatherNow.text || ''} T:${weatherNow.temp || ''}°  F:${weatherNow.feelsLike || ''}° ${weatherNow.windDir || ''}`}
+                    {`[🌤]${city}·${district} ${weatherText} T:${weatherTemp}°  F:${weatherFeelsLike}° ${weatherWindDir}`}
                 </wtext>
                 <wtext
                     textColor={new Color(this.currentSettings.displaySettings.batteryInfoColorHex.val)}
-                    font={new Font('Menlo', 11)}
-                    textAlign="left">
+                    font={new Font('Menlo', 10)}
+                    textAlign="left"
+                    maxLine={1}
+                    scale={0.75}>
                     {`[${Device.isCharging() ? '⚡️' : '🔋'}]${this.renderBattery()} Battery`}
                 </wtext>
                 <wtext
                     textColor={new Color(this.currentSettings.displaySettings.yearProgressColorHex.val)}
-                    font={new Font('Menlo', 11)}
-                    textAlign="left">
+                    font={new Font('Menlo', 10)}
+                    textAlign="left"
+                    maxLine={1}
+                    scale={0.75}>
                     {`[⏳]${this.renderYearProgress()} YearProgress`}
                 </wtext>
             </wbox>
         )
     }
 
-    renderMedium(widget: ListWidget) {
-        return this.renderCommon(widget)
+    async renderMedium(widget: ListWidget) {
+        return await this.renderCommon(widget)
     }
 
-    renderLarge(widget: ListWidget) {
-        return this.renderCommon(widget)
+    async renderLarge(widget: ListWidget) {
+        return await this.renderCommon(widget)
     }
 
     async render() {
@@ -497,10 +594,10 @@ class InfoCollection extends WidgetBase {
         await this.init()
         switch (this.widgetFamily) {
             case 'medium':
-                this.renderMedium(widget)
+                await this.renderMedium(widget)
                 break
             case 'large':
-                this.renderLarge(widget)
+                await this.renderLarge(widget)
                 break
             default:
                 await Utils.renderUnsupport(widget)
