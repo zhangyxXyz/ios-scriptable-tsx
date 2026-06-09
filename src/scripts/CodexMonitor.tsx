@@ -27,6 +27,12 @@ type CodexSettings = {
         pollIntervalMinutes: SettingValue<number>
         showUpdateTime: SettingValue<string>
     }
+    requestSettings: {
+        requestMode: SettingValue<string>
+        doneHubBaseUrl: SettingValue<string>
+        doneHubApiKey: SettingValue<string>
+        doneHubChannelId: SettingValue<number>
+    }
 }
 
 type CodexCredential = {
@@ -98,6 +104,7 @@ type CodexStorage = WidgetStorage & {
 
 const USAGE_URL = 'https://chatgpt.com/backend-api/wham/usage'
 const PROBE_URL = 'https://developers.openai.com/codex'
+const DONE_HUB_USAGE_PATH = '/api/codex/usage'
 const CACHE_KEY = 'codex_usage_status'
 const CREDENTIAL_KEY = 'CodexMonitor.credential'
 const CODEX_DESKTOP_USER_AGENT = 'Codex Desktop/26.601.2237.0 (Windows NT 10.0; x64)'
@@ -124,6 +131,12 @@ class CodexMonitor extends WidgetBase {
         displaySettings: {
             pollIntervalMinutes: {val: 5, type: this.settingValTypeInt},
             showUpdateTime: {val: '显示', type: this.settingValTypeString},
+        },
+        requestSettings: {
+            requestMode: {val: '官方', type: this.settingValTypeString},
+            doneHubBaseUrl: {val: '', type: this.settingValTypeString},
+            doneHubApiKey: {val: '', type: this.settingValTypeString},
+            doneHubChannelId: {val: 0, type: this.settingValTypeInt},
         },
     }
 
@@ -167,6 +180,57 @@ class CodexMonitor extends WidgetBase {
             },
         ])
 
+        this.registerSettingCategory('requestSettings', '请求设置', [
+            {
+                title: '请求方式',
+                desc: '官方直连使用 Codex access token；Done Hub 使用代理额度接口',
+                icon: {name: 'arrow.triangle.2.circlepath', color: '#2F80ED'},
+                type: 'select',
+                option: {requestMode: '官方'},
+                config: {
+                    selectOptions: [
+                        {label: '官方', value: '官方'},
+                        {label: 'Done Hub', value: 'Done Hub'},
+                    ],
+                    defaultShowContent: '官方',
+                    multiple: false,
+                },
+            },
+            {
+                title: 'Done Hub 地址',
+                desc: '例如 https://hub.example.com，不要以 / 结尾',
+                icon: {name: 'link', color: '#56CCF2'},
+                type: 'text',
+                option: {doneHubBaseUrl: ''},
+                config: {
+                    placeholder: 'https://hub.example.com',
+                    style: 'compact',
+                },
+            },
+            {
+                title: 'Done Hub Key',
+                desc: '填写 done-hub 用户令牌 sk-...；建议单独创建只给监控用的 key',
+                icon: {name: 'lock.shield', color: '#F2C94C'},
+                type: 'text',
+                option: {doneHubApiKey: ''},
+                config: {
+                    placeholder: 'sk-...',
+                    style: 'compact',
+                },
+            },
+            {
+                title: '渠道 ID',
+                desc: 'done-hub 后台 Codex 渠道的 channel_id',
+                icon: {name: 'number', color: '#27C46A'},
+                type: 'text',
+                option: {doneHubChannelId: '0'},
+                config: {
+                    placeholder: '1',
+                    style: 'compact',
+                },
+            },
+        ])
+
         this.registerSetting([
             {
                 title: '账号管理',
@@ -177,6 +241,15 @@ class CodexMonitor extends WidgetBase {
                 onAction: async () => {
                     await this.presentAuthPage()
                     this.syncDefaultAccountSetting()
+                    return true
+                },
+            },
+            {
+                title: '请求设置',
+                desc: '选择官方直连或 Done Hub 代理，并配置代理参数',
+                icon: {name: 'network', color: '#27C46A'},
+                onAction: async () => {
+                    await this.presentSettings(['requestSettings'])
                     return true
                 },
             },
@@ -251,6 +324,11 @@ class CodexMonitor extends WidgetBase {
     }
 
     getCacheKey(account = this.currentAccount) {
+        if (this.isDoneHubMode()) {
+            const baseUrl = this.getDoneHubBaseUrl() || 'donehub'
+            const channelId = this.getDoneHubChannelId() || 0
+            return `${CACHE_KEY}_donehub_${baseUrl}_${channelId}`.replace(/[^A-Za-z0-9_-]/g, '_')
+        }
         const identity = account?.accountName || account?.accountId || 'default'
         return `${CACHE_KEY}_${identity.replace(/[^A-Za-z0-9_-]/g, '_')}`
     }
@@ -287,6 +365,23 @@ class CodexMonitor extends WidgetBase {
         const defaultAccount = store.accounts.find(account => account.accountName === store.defaultAccountName) || store.accounts[0] || null
         this.currentAccount = defaultAccount
         return defaultAccount
+    }
+
+    isDoneHubMode() {
+        return this.currentSettings.requestSettings.requestMode.val === 'Done Hub'
+    }
+
+    getDoneHubBaseUrl() {
+        return String(this.currentSettings.requestSettings.doneHubBaseUrl.val || '').trim().replace(/\/+$/, '')
+    }
+
+    getDoneHubApiKey() {
+        return String(this.currentSettings.requestSettings.doneHubApiKey.val || '').trim()
+    }
+
+    getDoneHubChannelId() {
+        const value = Number(this.currentSettings.requestSettings.doneHubChannelId.val)
+        return Number.isFinite(value) ? Math.floor(value) : 0
     }
 
     parseCredentialFromInput(input: string, accountNameInput?: string): CodexCredential {
@@ -380,7 +475,7 @@ class CodexMonitor extends WidgetBase {
         return text.length > 80 ? `${text.slice(0, 77)}...` : text
     }
 
-    async requestUsage(credential: CodexCredential) {
+    async requestOfficialUsage(credential: CodexCredential) {
         const headers: Record<string, string> = {
             Authorization: `Bearer ${credential.accessToken}`,
             originator: 'Codex Desktop',
@@ -412,6 +507,49 @@ class CodexMonitor extends WidgetBase {
         return data
     }
 
+    async requestDoneHubUsage() {
+        const baseUrl = this.getDoneHubBaseUrl()
+        const apiKey = this.getDoneHubApiKey()
+        const channelId = this.getDoneHubChannelId()
+        if (!baseUrl) throw new Error('请配置 Done Hub 地址')
+        if (!apiKey) throw new Error('请配置 Done Hub Key')
+        if (channelId <= 0) throw new Error('请配置 Done Hub 渠道 ID')
+
+        const request = new Request(`${baseUrl}${DONE_HUB_USAGE_PATH}?channel_id=${encodeURIComponent(String(channelId))}`)
+        request.method = 'GET'
+        request.headers = {
+            Authorization: apiKey.startsWith('Bearer ') ? apiKey : `Bearer ${apiKey}`,
+            Accept: 'application/json',
+        }
+        request.timeoutInterval = 20
+
+        let payload: unknown
+        try {
+            payload = await request.loadJSON()
+        } catch (error) {
+            const statusCode = Number(request.response?.statusCode ?? 0)
+            if (statusCode > 0) throw new Error(`Done Hub 请求失败: HTTP ${statusCode}`)
+            throw error
+        }
+
+        const statusCode = Number(request.response?.statusCode ?? 0)
+        const response = payload as {success?: boolean; message?: string; data?: {usage?: CodexUsageStatus}}
+        if (response?.success === false) throw new Error(response.message || 'Done Hub 请求失败')
+        const data = response?.data?.usage || (payload as CodexUsageStatus)
+        if (!data || typeof data !== 'object' || !data.rate_limit) {
+            if (statusCode > 0) throw new Error(`Done Hub 响应异常: HTTP ${statusCode}`)
+            throw new Error('Done Hub 响应缺少 rate_limit')
+        }
+        console.log(`Done Hub Codex额度请求成功: HTTP ${statusCode || 'unknown'}`)
+        return data
+    }
+
+    async requestUsage(credential: CodexCredential | null) {
+        if (this.isDoneHubMode()) return await this.requestDoneHubUsage()
+        if (!credential) throw new Error('请先配置鉴权')
+        return await this.requestOfficialUsage(credential)
+    }
+
     getCachedUsage(ignoreFreshness = false) {
         const interval = ignoreFreshness ? undefined : this.getPollIntervalMinutes()
         return this.storage.getStorage<CodexUsageCache>(this.getCacheKey(), interval)
@@ -435,8 +573,9 @@ class CodexMonitor extends WidgetBase {
     }
 
     async loadUsage() {
-        const credential = this.readCredential()
-        if (!credential) {
+        const isDoneHub = this.isDoneHubMode()
+        const credential = isDoneHub ? null : this.readCredential()
+        if (!isDoneHub && !credential) {
             const cache = this.getAnyCachedUsage()
             if (cache?.usage) {
                 this.useCache(cache, true, '未配置鉴权，显示缓存')
@@ -452,7 +591,7 @@ class CodexMonitor extends WidgetBase {
             return
         }
 
-        if (this.isCredentialExpired(credential)) {
+        if (!isDoneHub && this.isCredentialExpired(credential)) {
             const cache = this.getAnyCachedUsage()
             if (cache?.usage) {
                 this.useCache(cache, true, '鉴权已过期，显示缓存')
@@ -462,14 +601,26 @@ class CodexMonitor extends WidgetBase {
             return
         }
 
-        const probe = await this.probeCodexSite()
-        if (!probe.ok) {
-            const cache = this.getAnyCachedUsage()
-            if (cache?.usage) {
-                this.useCache(cache, true, '网络障碍/使用缓存')
+        if (!isDoneHub) {
+            const probe = await this.probeCodexSite()
+            if (!probe.ok) {
+                const cache = this.getAnyCachedUsage()
+                if (cache?.usage) {
+                    this.useCache(cache, true, '网络障碍/使用缓存')
+                    return
+                }
+                this.statusMessage = probe.message
                 return
             }
-            this.statusMessage = probe.message
+        }
+
+        if (isDoneHub && (!this.getDoneHubBaseUrl() || !this.getDoneHubApiKey() || this.getDoneHubChannelId() <= 0)) {
+            const cache = this.getAnyCachedUsage()
+            if (cache?.usage) {
+                this.useCache(cache, true, '代理未配置/使用缓存')
+                return
+            }
+            this.statusMessage = '请配置 Done Hub'
             return
         }
 
@@ -481,7 +632,7 @@ class CodexMonitor extends WidgetBase {
             this.dataFetchTime = fetchedAt
             this.isRequestSuccess = true
             this.isDataExpired = false
-            this.statusMessage = '在线'
+            this.statusMessage = isDoneHub ? 'Done Hub 在线' : '在线'
         } catch (error) {
             console.log(`请求Codex额度失败: ${error}`)
             const cache = this.getAnyCachedUsage()
@@ -567,6 +718,7 @@ class CodexMonitor extends WidgetBase {
     }
 
     getAccountLabel() {
+        if (this.isDoneHubMode()) return `@DoneHub#${this.getDoneHubChannelId() || '--'}`
         return this.currentAccount?.accountName ? `@${this.currentAccount.accountName}` : '@未配置'
     }
 
