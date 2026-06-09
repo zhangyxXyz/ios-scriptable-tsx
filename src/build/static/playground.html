@@ -751,6 +751,10 @@
             .stack.column {
                 flex-direction: column;
             }
+            .stack:not(.column) > .stack.column {
+                flex: 1 1 0;
+                width: auto;
+            }
             .text {
                 flex: 0 1 auto;
                 min-width: 0;

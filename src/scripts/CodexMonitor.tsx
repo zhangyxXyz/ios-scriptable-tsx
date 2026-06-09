@@ -6,7 +6,7 @@
  * author   :  seiun
  * date     :  2026/06/05
  * desc     :  Codex额度监控
- * version  :  1.0.0
+ * version  :  1.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -35,11 +35,17 @@ type CodexSettings = {
     }
 }
 
+type CodexRequestMode = '官方' | 'Done Hub'
+
 type CodexCredential = {
     accountName: string
-    accessToken: string
+    requestMode?: CodexRequestMode
+    accessToken?: string
     accountId: string | null
     expiresAt: number | null
+    doneHubBaseUrl?: string
+    doneHubApiKey?: string
+    doneHubChannelId?: number
     savedAt: number
 }
 
@@ -234,22 +240,13 @@ class CodexMonitor extends WidgetBase {
         this.registerSetting([
             {
                 title: '账号管理',
-                desc: '添加 Codex 鉴权账号，设置默认账号；Parameter 可填账号编号',
+                desc: '管理官方账号和 Done Hub 请求配置；Parameter 可填官方账号编号',
                 icon: {name: 'key.fill', color: '#F2C94C'},
                 type: 'text',
                 option: {defaultAccount: this.currentSettings.accountSettings.defaultAccount.val},
                 onAction: async () => {
                     await this.presentAuthPage()
                     this.syncDefaultAccountSetting()
-                    return true
-                },
-            },
-            {
-                title: '请求设置',
-                desc: '选择官方直连或 Done Hub 代理，并配置代理参数',
-                icon: {name: 'network', color: '#27C46A'},
-                onAction: async () => {
-                    await this.presentSettings(['requestSettings'])
                     return true
                 },
             },
@@ -290,13 +287,19 @@ class CodexMonitor extends WidgetBase {
 
     getAccountStore(): CodexAccountStore {
         try {
-            if (!Keychain.contains(CREDENTIAL_KEY)) return {version: 2, defaultAccountName: '请选择或者添加账号', accounts: []}
+            if (!Keychain.contains(CREDENTIAL_KEY)) {
+                const legacyDoneHub = this.getLegacyDoneHubAccount(0)
+                const accounts = legacyDoneHub ? [legacyDoneHub] : []
+                return {version: 3, defaultAccountName: accounts[0]?.accountName || '请选择或者添加账号', accounts}
+            }
             const raw = Keychain.get(CREDENTIAL_KEY)
             const parsed = JSON.parse(raw) as Partial<CodexAccountStore> & Partial<CodexCredential>
             if (Array.isArray(parsed.accounts)) {
-                const accounts = parsed.accounts.filter(account => account?.accessToken)
+                const accounts = parsed.accounts.map(account => this.normalizeAccount(account)).filter(account => this.isAccountConfigured(account))
+                const legacyDoneHub = this.getLegacyDoneHubAccount(accounts.length)
+                if (legacyDoneHub && !accounts.some(account => this.isSameRequestAccount(account, legacyDoneHub))) accounts.push(legacyDoneHub)
                 return {
-                    version: Number(parsed.version ?? 2),
+                    version: Number(parsed.version ?? 3),
                     defaultAccountName: String(parsed.defaultAccountName || accounts[0]?.accountName || '请选择或者添加账号'),
                     accounts,
                 }
@@ -304,6 +307,7 @@ class CodexMonitor extends WidgetBase {
             if (parsed.accessToken) {
                 const legacyAccount: CodexCredential = {
                     accountName: parsed.accountName || parsed.accountId || 'Default',
+                    requestMode: '官方',
                     accessToken: parsed.accessToken,
                     accountId: parsed.accountId ?? null,
                     expiresAt: parsed.expiresAt ?? null,
@@ -320,13 +324,73 @@ class CodexMonitor extends WidgetBase {
         } catch (error) {
             console.log(`读取鉴权失败: ${error}`)
         }
-        return {version: 2, defaultAccountName: '请选择或者添加账号', accounts: []}
+        return {version: 3, defaultAccountName: '请选择或者添加账号', accounts: []}
+    }
+
+    normalizeAccount(account: Partial<CodexCredential> | null | undefined): CodexCredential {
+        const requestMode: CodexRequestMode = account?.requestMode === 'Done Hub' || account?.doneHubBaseUrl ? 'Done Hub' : '官方'
+        const accountName = String(account?.accountName || (requestMode === 'Done Hub' ? 'Done Hub' : account?.accountId || 'Default')).trim()
+        if (requestMode === 'Done Hub') {
+            return {
+                accountName,
+                requestMode,
+                accessToken: '',
+                accountId: null,
+                expiresAt: null,
+                doneHubBaseUrl: String(account?.doneHubBaseUrl || '').trim().replace(/\/+$/, ''),
+                doneHubApiKey: String(account?.doneHubApiKey || '').trim(),
+                doneHubChannelId: Number(account?.doneHubChannelId || 0),
+                savedAt: account?.savedAt ?? Math.floor(Date.now() / 1000),
+            }
+        }
+        return {
+            accountName,
+            requestMode,
+            accessToken: String(account?.accessToken || ''),
+            accountId: account?.accountId ?? null,
+            expiresAt: account?.expiresAt ?? null,
+            savedAt: account?.savedAt ?? Math.floor(Date.now() / 1000),
+        }
+    }
+
+    isAccountConfigured(account: CodexCredential | null | undefined) {
+        if (!account?.accountName) return false
+        if (this.getAccountMode(account) === 'Done Hub') {
+            return Boolean(account.doneHubBaseUrl && account.doneHubApiKey && Number(account.doneHubChannelId) > 0)
+        }
+        return Boolean(account.accessToken)
+    }
+
+    isSameRequestAccount(left: CodexCredential, right: CodexCredential) {
+        if (this.getAccountMode(left) !== this.getAccountMode(right)) return false
+        if (this.getAccountMode(left) === 'Done Hub') {
+            return left.doneHubBaseUrl === right.doneHubBaseUrl && Number(left.doneHubChannelId || 0) === Number(right.doneHubChannelId || 0)
+        }
+        return left.accountId === right.accountId && left.accountName === right.accountName
+    }
+
+    getLegacyDoneHubAccount(index: number): CodexCredential | null {
+        const baseUrl = String(this.currentSettings.requestSettings.doneHubBaseUrl.val || '').trim().replace(/\/+$/, '')
+        const apiKey = String(this.currentSettings.requestSettings.doneHubApiKey.val || '').trim()
+        const channelId = Number(this.currentSettings.requestSettings.doneHubChannelId.val || 0)
+        if (!baseUrl || !apiKey || !Number.isFinite(channelId) || channelId <= 0) return null
+        return {
+            accountName: `Done Hub ${index + 1}`,
+            requestMode: 'Done Hub',
+            accessToken: '',
+            accountId: null,
+            expiresAt: null,
+            doneHubBaseUrl: baseUrl,
+            doneHubApiKey: apiKey,
+            doneHubChannelId: Math.floor(channelId),
+            savedAt: Math.floor(Date.now() / 1000),
+        }
     }
 
     getCacheKey(account = this.currentAccount) {
-        if (this.isDoneHubMode()) {
-            const baseUrl = this.getDoneHubBaseUrl() || 'donehub'
-            const channelId = this.getDoneHubChannelId() || 0
+        if (this.isDoneHubMode(account)) {
+            const baseUrl = this.getDoneHubBaseUrl(account) || 'donehub'
+            const channelId = this.getDoneHubChannelId(account) || 0
             return `${CACHE_KEY}_donehub_${baseUrl}_${channelId}`.replace(/[^A-Za-z0-9_-]/g, '_')
         }
         const identity = account?.accountName || account?.accountId || 'default'
@@ -334,11 +398,11 @@ class CodexMonitor extends WidgetBase {
     }
 
     saveAccountStore(store: CodexAccountStore) {
-        const accounts = store.accounts.filter(account => account?.accessToken && account?.accountName)
+        const accounts = store.accounts.map(account => this.normalizeAccount(account)).filter(account => this.isAccountConfigured(account))
         const defaultAccountName = accounts.some(account => account.accountName === store.defaultAccountName)
             ? store.defaultAccountName
             : accounts[0]?.accountName || '请选择或者添加账号'
-        Keychain.set(CREDENTIAL_KEY, JSON.stringify({version: 2, defaultAccountName, accounts}))
+        Keychain.set(CREDENTIAL_KEY, JSON.stringify({version: 3, defaultAccountName, accounts}))
         this.currentSettings.accountSettings.defaultAccount.val = defaultAccountName
     }
 
@@ -367,20 +431,28 @@ class CodexMonitor extends WidgetBase {
         return defaultAccount
     }
 
-    isDoneHubMode() {
-        return this.currentSettings.requestSettings.requestMode.val === 'Done Hub'
+    getAccountMode(account = this.currentAccount): CodexRequestMode {
+        return account?.requestMode === 'Done Hub' ? 'Done Hub' : '官方'
     }
 
-    getDoneHubBaseUrl() {
-        return String(this.currentSettings.requestSettings.doneHubBaseUrl.val || '').trim().replace(/\/+$/, '')
+    isDoneHubMode(account = this.currentAccount) {
+        return this.getAccountMode(account) === 'Done Hub'
     }
 
-    getDoneHubApiKey() {
-        return String(this.currentSettings.requestSettings.doneHubApiKey.val || '').trim()
+    getRequestModeLabel() {
+        return this.getAccountMode()
     }
 
-    getDoneHubChannelId() {
-        const value = Number(this.currentSettings.requestSettings.doneHubChannelId.val)
+    getDoneHubBaseUrl(account = this.currentAccount) {
+        return String(account?.doneHubBaseUrl || '').trim().replace(/\/+$/, '')
+    }
+
+    getDoneHubApiKey(account = this.currentAccount) {
+        return String(account?.doneHubApiKey || '').trim()
+    }
+
+    getDoneHubChannelId(account = this.currentAccount) {
+        const value = Number(account?.doneHubChannelId || 0)
         return Number.isFinite(value) ? Math.floor(value) : 0
     }
 
@@ -394,6 +466,7 @@ class CodexMonitor extends WidgetBase {
         const accountName = (accountNameInput || accountId || `Account ${this.getAccounts().length + 1}`).trim()
         return {
             accountName,
+            requestMode: '官方',
             accessToken,
             accountId,
             expiresAt,
@@ -411,6 +484,47 @@ class CodexMonitor extends WidgetBase {
             store.accounts.push(credential)
         }
         if (setDefault || !store.defaultAccountName || store.defaultAccountName === '请选择或者添加账号') {
+            store.defaultAccountName = credential.accountName
+        }
+        this.saveAccountStore(store)
+        this.currentAccount = credential
+        return credential
+    }
+
+    saveAccountFromForm(form: {
+        accountName?: string
+        requestMode?: string
+        authInput?: string
+        doneHubBaseUrl?: string
+        doneHubApiKey?: string
+        doneHubChannelId?: string
+        setDefault?: boolean
+    }) {
+        const requestMode: CodexRequestMode = form.requestMode === 'Done Hub' ? 'Done Hub' : '官方'
+        if (requestMode === '官方') {
+            return this.saveCredentialFromInput(form.authInput || '', form.accountName || '', Boolean(form.setDefault))
+        }
+
+        const store = this.getAccountStore()
+        const accountName = (form.accountName || `Done Hub ${store.accounts.length + 1}`).trim()
+        if (!accountName) throw new Error('账号标识不能为空')
+        const credential = this.normalizeAccount({
+            accountName,
+            requestMode,
+            doneHubBaseUrl: form.doneHubBaseUrl || '',
+            doneHubApiKey: form.doneHubApiKey || '',
+            doneHubChannelId: Number(form.doneHubChannelId || 0),
+            savedAt: Math.floor(Date.now() / 1000),
+        })
+        if (!this.isAccountConfigured(credential)) throw new Error('请完整填写 Done Hub 地址、Key 和渠道 ID')
+
+        const existingIndex = store.accounts.findIndex(account => account.accountName === credential.accountName)
+        if (existingIndex >= 0) {
+            store.accounts[existingIndex] = credential
+        } else {
+            store.accounts.push(credential)
+        }
+        if (form.setDefault || !store.defaultAccountName || store.defaultAccountName === '请选择或者添加账号') {
             store.defaultAccountName = credential.accountName
         }
         this.saveAccountStore(store)
@@ -475,7 +589,13 @@ class CodexMonitor extends WidgetBase {
         return text.length > 80 ? `${text.slice(0, 77)}...` : text
     }
 
+    getHttpStatusLabel(request: Request) {
+        const statusCode = Number(request.response?.statusCode ?? 0)
+        return statusCode > 0 ? String(statusCode) : 'OK'
+    }
+
     async requestOfficialUsage(credential: CodexCredential) {
+        if (!credential.accessToken) throw new Error('请配置 access token')
         const headers: Record<string, string> = {
             Authorization: `Bearer ${credential.accessToken}`,
             originator: 'Codex Desktop',
@@ -498,19 +618,19 @@ class CodexMonitor extends WidgetBase {
             if (statusCode > 0) throw new Error(`请求失败: HTTP ${statusCode}`)
             throw error
         }
-        const statusCode = Number(request.response?.statusCode ?? 0)
         if (!data || typeof data !== 'object' || !data.rate_limit) {
+            const statusCode = Number(request.response?.statusCode ?? 0)
             if (statusCode > 0) throw new Error(`请求失败: HTTP ${statusCode}`)
             throw new Error('响应缺少 rate_limit')
         }
-        console.log(`Codex额度请求成功: HTTP ${statusCode || 'unknown'}`)
+        console.log(`Codex额度请求成功: HTTP ${this.getHttpStatusLabel(request)}`)
         return data
     }
 
-    async requestDoneHubUsage() {
-        const baseUrl = this.getDoneHubBaseUrl()
-        const apiKey = this.getDoneHubApiKey()
-        const channelId = this.getDoneHubChannelId()
+    async requestDoneHubUsage(credential: CodexCredential) {
+        const baseUrl = this.getDoneHubBaseUrl(credential)
+        const apiKey = this.getDoneHubApiKey(credential)
+        const channelId = this.getDoneHubChannelId(credential)
         if (!baseUrl) throw new Error('请配置 Done Hub 地址')
         if (!apiKey) throw new Error('请配置 Done Hub Key')
         if (channelId <= 0) throw new Error('请配置 Done Hub 渠道 ID')
@@ -532,21 +652,21 @@ class CodexMonitor extends WidgetBase {
             throw error
         }
 
-        const statusCode = Number(request.response?.statusCode ?? 0)
         const response = payload as {success?: boolean; message?: string; data?: {usage?: CodexUsageStatus}}
         if (response?.success === false) throw new Error(response.message || 'Done Hub 请求失败')
         const data = response?.data?.usage || (payload as CodexUsageStatus)
         if (!data || typeof data !== 'object' || !data.rate_limit) {
+            const statusCode = Number(request.response?.statusCode ?? 0)
             if (statusCode > 0) throw new Error(`Done Hub 响应异常: HTTP ${statusCode}`)
             throw new Error('Done Hub 响应缺少 rate_limit')
         }
-        console.log(`Done Hub Codex额度请求成功: HTTP ${statusCode || 'unknown'}`)
+        console.log(`Done Hub Codex额度请求成功: HTTP ${this.getHttpStatusLabel(request)}`)
         return data
     }
 
     async requestUsage(credential: CodexCredential | null) {
-        if (this.isDoneHubMode()) return await this.requestDoneHubUsage()
         if (!credential) throw new Error('请先配置鉴权')
+        if (this.isDoneHubMode(credential)) return await this.requestDoneHubUsage(credential)
         return await this.requestOfficialUsage(credential)
     }
 
@@ -573,9 +693,9 @@ class CodexMonitor extends WidgetBase {
     }
 
     async loadUsage() {
-        const isDoneHub = this.isDoneHubMode()
-        const credential = isDoneHub ? null : this.readCredential()
-        if (!isDoneHub && !credential) {
+        const credential = this.readCredential()
+        const isDoneHub = this.isDoneHubMode(credential)
+        if (!credential) {
             const cache = this.getAnyCachedUsage()
             if (cache?.usage) {
                 this.useCache(cache, true, '未配置鉴权，显示缓存')
@@ -614,7 +734,7 @@ class CodexMonitor extends WidgetBase {
             }
         }
 
-        if (isDoneHub && (!this.getDoneHubBaseUrl() || !this.getDoneHubApiKey() || this.getDoneHubChannelId() <= 0)) {
+        if (isDoneHub && (!this.getDoneHubBaseUrl(credential) || !this.getDoneHubApiKey(credential) || this.getDoneHubChannelId(credential) <= 0)) {
             const cache = this.getAnyCachedUsage()
             if (cache?.usage) {
                 this.useCache(cache, true, '代理未配置/使用缓存')
@@ -632,7 +752,7 @@ class CodexMonitor extends WidgetBase {
             this.dataFetchTime = fetchedAt
             this.isRequestSuccess = true
             this.isDataExpired = false
-            this.statusMessage = isDoneHub ? 'Done Hub 在线' : '在线'
+            this.statusMessage = '在线'
         } catch (error) {
             console.log(`请求Codex额度失败: ${error}`)
             const cache = this.getAnyCachedUsage()
@@ -717,9 +837,21 @@ class CodexMonitor extends WidgetBase {
         return 'Codex'
     }
 
-    getAccountLabel() {
-        if (this.isDoneHubMode()) return `@DoneHub#${this.getDoneHubChannelId() || '--'}`
-        return this.currentAccount?.accountName ? `@${this.currentAccount.accountName}` : '@未配置'
+    getTitleAccountLabel() {
+        return this.currentAccount?.accountName ? ` @${this.currentAccount.accountName}` : ''
+    }
+
+    getRequestTypeStatusPrefix() {
+        if (!this.currentAccount) return ''
+        return `${this.getAccountMode(this.currentAccount)} · `
+    }
+
+    getHeaderTitleText() {
+        return `${this.getTitleText()}${this.getTitleAccountLabel()} | ${this.getPlanLabel()}`
+    }
+
+    getSmallSubtitleText() {
+        return `${this.getAccountMode(this.currentAccount)} | ${this.getPlanLabel()}`
     }
 
     getCreditText() {
@@ -730,10 +862,10 @@ class CodexMonitor extends WidgetBase {
     }
 
     getLayoutMetrics() {
-        const contentWidth = this.widgetFamily === 'large' ? 320 : 310
-        const cardGap = this.widgetFamily === 'large' ? 24 : 22
-        const cardWidth = Math.floor((contentWidth - cardGap) / 2)
-        return {contentWidth, cardGap, cardWidth}
+        const padding = {top: 10, right: 10, bottom: 10, left: 10}
+        const cardGap = 12
+        const progressWidth = 124
+        return {padding, cardGap, progressWidth}
     }
 
     estimateTextWidth(text: string, fontSize: number, min: number, max: number) {
@@ -776,9 +908,9 @@ class CodexMonitor extends WidgetBase {
                 this.currentAccount = null
                 this.syncDefaultAccountSetting()
                 await webView.evaluateJavaScript(
-                    `window.setStatus('已清除全部鉴权', 'warn'); window.setSavedInfo('未配置'); window.renderAccounts(${JSON.stringify(
-                        this.getAccountListHtml(),
-                    )});`,
+                    `window.setStatus('已清除全部鉴权', 'warn'); window.setSavedInfo(${JSON.stringify(
+                        this.getSavedInfoHtml(null),
+                    )}); window.renderAccounts(${JSON.stringify(this.getAccountListHtml())});`,
                     false,
                 )
             } else if (action.startsWith('account_')) {
@@ -801,14 +933,26 @@ class CodexMonitor extends WidgetBase {
                     `(function(){
                         return {
                             accountName: document.getElementById('accountName').value || '',
+                            requestMode: document.getElementById('requestMode').value || '官方',
                             authInput: document.getElementById('authInput').value || '',
+                            doneHubBaseUrl: document.getElementById('doneHubBaseUrl').value || '',
+                            doneHubApiKey: document.getElementById('doneHubApiKey').value || '',
+                            doneHubChannelId: document.getElementById('doneHubChannelId').value || '',
                             setDefault: document.getElementById('setDefault').checked
                         };
                     })()`,
                     false,
-                )) as {accountName?: string; authInput?: string; setDefault?: boolean}
+                )) as {
+                    accountName?: string
+                    requestMode?: string
+                    authInput?: string
+                    doneHubBaseUrl?: string
+                    doneHubApiKey?: string
+                    doneHubChannelId?: string
+                    setDefault?: boolean
+                }
                 try {
-                    const credential = this.saveCredentialFromInput(form.authInput || '', form.accountName || '', Boolean(form.setDefault))
+                    const credential = this.saveAccountFromForm(form)
                     await webView.evaluateJavaScript(
                         `window.setStatus(${JSON.stringify(`保存成功：${credential.accountName}`)}, 'ok'); window.setSavedInfo(${JSON.stringify(
                             this.getSavedInfoHtml(credential),
@@ -832,7 +976,7 @@ class CodexMonitor extends WidgetBase {
 
         const actionAlert = new Alert()
         actionAlert.title = account.accountName || '账号操作'
-        actionAlert.message = `编号: ${index}\n${account.accountId || '未识别 account id'}`
+        actionAlert.message = `编号: ${index}\n模式: ${this.getAccountMode(account)}\n${this.getAccountSummary(account)}`
         actionAlert.addAction('设为默认')
         actionAlert.addAction('修改')
         actionAlert.addAction('复制')
@@ -868,8 +1012,17 @@ class CodexMonitor extends WidgetBase {
         const account = store.accounts[index]
         if (!account) return null
 
+        if (this.isDoneHubMode(account)) return await this.editDoneHubAccount(index)
+        return await this.editOfficialAccount(index)
+    }
+
+    async editOfficialAccount(index: number) {
+        const store = this.getAccountStore()
+        const account = store.accounts[index]
+        if (!account) return null
+
         const alert = new Alert()
-        alert.title = '修改账号'
+        alert.title = '修改官方账号'
         alert.message = '可修改账号标识，或替换 access token'
         alert.addTextField('账号标识名字', account.accountName || '')
         alert.addTextField('access token / auth.json（留空不变）', '')
@@ -887,6 +1040,48 @@ class CodexMonitor extends WidgetBase {
         if (tokenInput) {
             nextAccount = this.parseCredentialFromInput(tokenInput, nextName)
         }
+        nextAccount.requestMode = '官方'
+
+        store.accounts[index] = nextAccount
+        if (store.defaultAccountName === oldName) store.defaultAccountName = nextName
+        this.saveAccountStore(store)
+        return {message: `已修改：${nextName}`, type: 'ok'}
+    }
+
+    async editDoneHubAccount(index: number) {
+        const store = this.getAccountStore()
+        const account = store.accounts[index]
+        if (!account) return null
+
+        const alert = new Alert()
+        alert.title = '修改 Done Hub 账号'
+        alert.message = '修改账号标识或 Done Hub 请求参数'
+        alert.addTextField('账号标识名字', account.accountName || '')
+        alert.addTextField('Done Hub 地址', account.doneHubBaseUrl || '')
+        alert.addTextField('Done Hub Key（留空不变）', '')
+        alert.addTextField('渠道 ID', String(account.doneHubChannelId || ''))
+        alert.addAction('确定')
+        alert.addCancelAction('取消')
+        const result = await alert.presentAlert()
+        if (result === -1) return null
+
+        const oldName = account.accountName
+        const nextName = alert.textFieldValue(0).trim()
+        const baseUrl = alert.textFieldValue(1).trim().replace(/\/+$/, '')
+        const apiKeyInput = alert.textFieldValue(2).trim()
+        const channelId = Number(alert.textFieldValue(3).trim())
+        if (!nextName) return {message: '账号标识不能为空', type: 'bad'}
+
+        const nextAccount = this.normalizeAccount({
+            ...account,
+            accountName: nextName,
+            requestMode: 'Done Hub',
+            doneHubBaseUrl: baseUrl,
+            doneHubApiKey: apiKeyInput || account.doneHubApiKey || '',
+            doneHubChannelId: channelId,
+            savedAt: Math.floor(Date.now() / 1000),
+        })
+        if (!this.isAccountConfigured(nextAccount)) return {message: 'Done Hub 参数不完整', type: 'bad'}
 
         store.accounts[index] = nextAccount
         if (store.defaultAccountName === oldName) store.defaultAccountName = nextName
@@ -939,11 +1134,31 @@ class CodexMonitor extends WidgetBase {
     }
 
     getSavedInfoHtml(current: CodexCredential | null) {
-        return current
-            ? `Name: ${this.escapeHtml(current.accountName)}<br>Account: ${this.escapeHtml(current.accountId ?? '未识别')}<br>Expires: ${
-                  current.expiresAt ? this.escapeHtml(Utils.time('yyyy-MM-dd HH:mm', new Date(current.expiresAt * 1000))) : '未知'
-              }`
-            : '未配置'
+        return current ? this.getAccountDetailHtml(current) : '未配置默认账号'
+    }
+
+    maskSecret(value: string) {
+        if (!value) return '未配置'
+        if (value.length <= 10) return `${value.slice(0, 2)}***`
+        return `${value.slice(0, 6)}...${value.slice(-4)}`
+    }
+
+    getAccountSummary(account: CodexCredential) {
+        if (this.isDoneHubMode(account)) {
+            return `${account.doneHubBaseUrl || '未配置地址'} / channel ${account.doneHubChannelId || '--'}`
+        }
+        return account.accountId || '未识别 account id'
+    }
+
+    getAccountDetailHtml(account: CodexCredential) {
+        if (this.isDoneHubMode(account)) {
+            return `模式: <b>Done Hub</b><br>Name: ${this.escapeHtml(account.accountName)}<br>地址: ${this.escapeHtml(
+                account.doneHubBaseUrl || '未配置',
+            )}<br>渠道 ID: ${this.escapeHtml(account.doneHubChannelId || '未配置')}<br>Key: ${this.escapeHtml(this.maskSecret(account.doneHubApiKey || ''))}`
+        }
+        return `模式: <b>官方</b><br>Name: ${this.escapeHtml(account.accountName)}<br>Account: ${this.escapeHtml(account.accountId ?? '未识别')}<br>Expires: ${
+            account.expiresAt ? this.escapeHtml(Utils.time('yyyy-MM-dd HH:mm', new Date(account.expiresAt * 1000))) : '未知'
+        }`
     }
 
     getAccountListHtml() {
@@ -954,12 +1169,18 @@ class CodexMonitor extends WidgetBase {
         return store.accounts
             .map((account, index) => {
                 const isDefault = account.accountName === store.defaultAccountName
-                const expires = account.expiresAt ? Utils.time('yyyy-MM-dd HH:mm', new Date(account.expiresAt * 1000)) : '未知'
+                const mode = this.getAccountMode(account)
+                const meta = this.isDoneHubMode(account)
+                    ? `编号: ${index} | 地址: ${account.doneHubBaseUrl || '未配置'} | 渠道: ${account.doneHubChannelId || '--'}`
+                    : `编号: ${index} | Account: ${account.accountId ?? '未识别'} | Expires: ${
+                          account.expiresAt ? Utils.time('yyyy-MM-dd HH:mm', new Date(account.expiresAt * 1000)) : '未知'
+                      }`
                 return `<div class="account" onclick="act('account_${index}')">
   <div class="account-main">
     <div class="account-name">${this.escapeHtml(account.accountName)}${isDefault ? '<span class="badge">默认</span>' : ''}</div>
-    <div class="account-meta">编号: ${index} | Account: ${this.escapeHtml(account.accountId ?? '未识别')} | Expires: ${this.escapeHtml(expires)}</div>
+    <div class="account-meta">${this.escapeHtml(meta)}</div>
   </div>
+  <div class="mode-badge">${this.escapeHtml(mode)}</div>
   <div class="arrow">›</div>
 </div>`
             })
@@ -975,46 +1196,63 @@ class CodexMonitor extends WidgetBase {
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
-:root{color-scheme:light dark;--bg:#f4f5f7;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#0f9f58;--danger:#d92d20}
-@media(prefers-color-scheme:dark){:root{--bg:#08090b;--card:#181a1f;--text:#f5f7fb;--muted:#a7acb7;--line:#2b2f38}}
+:root{color-scheme:light dark;--bg:#f4f5f7;--card:#fff;--field:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#0f9f58;--danger:#d92d20}
+@media(prefers-color-scheme:dark){:root{--bg:#08090b;--card:#181a1f;--field:#111318;--text:#f5f7fb;--muted:#a7acb7;--line:#2b2f38}}
 *{box-sizing:border-box}body{margin:0;padding:18px;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;color:var(--text)}
 .title{font-size:28px;font-weight:750;margin:18px 2px 6px}.sub{font-size:14px;line-height:1.45;color:var(--muted);margin:0 2px 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
 .label{font-size:13px;color:var(--muted);margin-bottom:8px}.saved{font-family:"SF Mono",ui-monospace,monospace;font-size:12px;line-height:1.45;color:var(--muted)}
-input,textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--text);padding:12px;font-family:"SF Mono",ui-monospace,monospace;font-size:12px;outline:none}textarea{min-height:170px;margin-top:10px}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--text);padding:12px;font-family:"SF Mono",ui-monospace,monospace;font-size:12px;outline:none}textarea{min-height:150px;margin-top:10px}select{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;font-size:15px;color-scheme:dark}option{background:var(--field);color:var(--text)}
 .row{display:flex;gap:10px;margin-top:12px}.btn{flex:1;border:0;border-radius:8px;padding:12px 10px;font-size:15px;font-weight:650;color:#fff;background:#2563eb}.btn.secondary{background:#374151}.btn.warn{background:var(--danger)}
 .hint{font-size:12px;color:var(--muted);line-height:1.5}.status{font-size:13px;font-weight:650;margin-top:10px}.status.ok{color:var(--accent)}.status.bad,.status.warn{color:var(--danger)}
-.check{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin-top:10px}.check input{width:auto}.account{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}.account:first-child{border-top:0}.account:active{opacity:.72}.account-main{flex:1;min-width:0}.account-name{font-size:15px;font-weight:700}.account-meta{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;color:var(--muted);line-height:1.45;word-break:break-all}.badge{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px}.arrow{font-size:24px;color:var(--muted)}.empty{color:var(--muted);font-size:13px;padding:8px 0}
+.check{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin-top:10px}.check input{width:auto}.field{margin-top:10px}.mode-fields{display:none}.mode-fields.active{display:block}.account{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}.account:first-child{border-top:0}.account:active{opacity:.72}.account-main{flex:1;min-width:0}.account-name{font-size:15px;font-weight:700}.account-meta{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;color:var(--muted);line-height:1.45;word-break:break-all}.badge,.mode-badge{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px}.mode-badge{margin-left:0;background:#374151;white-space:nowrap}.arrow{font-size:24px;color:var(--muted)}.empty{color:var(--muted);font-size:13px;padding:8px 0}
 </style>
 </head>
 <body>
-<div class="title">Codex 鉴权</div>
-<p class="sub">粘贴桌面 Codex 的 <b>auth.json</b> 内容，或只粘贴 <b>access_token</b>。脚本只保存 access token、account id 和过期时间到 Scriptable Keychain。</p>
+<div class="title">Codex 账号管理</div>
+<p class="sub">每个账号都可以选择 <b>官方</b> 或 <b>Done Hub</b> 模式。默认账号决定 Widget 使用哪种请求方式；Parameter 可填账号编号临时切换。</p>
 <div class="card">
-  <div class="label">当前状态</div>
+  <div class="label">当前默认账号</div>
   <div id="savedInfo" class="saved">${savedInfo}</div>
   <div id="status" class="status"></div>
 </div>
 <div class="card">
-  <div class="label">保存账号</div>
-  <input id="accountName" spellcheck="false" placeholder="账号标识名字，例如 Pro / Team / 小号">
-  <textarea id="authInput" spellcheck="false" placeholder='粘贴 {"tokens":{"access_token":"..."}} 或 Bearer eyJ...'></textarea>
+  <div class="label">添加账号</div>
+  <select id="requestMode" onchange="toggleModeFields()">
+    <option value="官方">官方</option>
+    <option value="Done Hub">Done Hub</option>
+  </select>
+  <input class="field" id="accountName" spellcheck="false" placeholder="账号标识名字，例如 Pro / Team / Done Hub">
+  <div id="officialFields" class="mode-fields active">
+    <textarea id="authInput" spellcheck="false" placeholder='粘贴 {"tokens":{"access_token":"..."}} 或 Bearer eyJ...'></textarea>
+  </div>
+  <div id="doneHubFields" class="mode-fields">
+    <input class="field" id="doneHubBaseUrl" spellcheck="false" placeholder="Done Hub 地址，例如 https://hub.example.com">
+    <input class="field" id="doneHubApiKey" spellcheck="false" placeholder="Done Hub Key，sk-...">
+    <input class="field" id="doneHubChannelId" inputmode="numeric" spellcheck="false" placeholder="渠道 ID，例如 1">
+  </div>
   <label class="check"><input id="setDefault" type="checkbox" checked> 保存后设为默认账号</label>
-  <div class="row"><button class="btn" onclick="act('save')">保存鉴权</button><button class="btn warn" onclick="act('clear')">清除</button></div>
+  <div class="row"><button class="btn" onclick="act('save')">保存账号</button><button class="btn warn" onclick="act('clear')">清除全部</button></div>
 </div>
 <div class="card">
   <div class="label">账号列表</div>
   <div id="accountList">${accountListHtml}</div>
 </div>
 <div class="card">
-  <div class="hint">桌面端路径通常是 <b>~/.codex/auth.json</b>。Parameter 填 <b>0</b> 使用第一个账号，填 <b>1</b> 使用第二个账号；不填则使用默认账号。</div>
+  <div class="hint">官方模式的桌面端路径通常是 <b>~/.codex/auth.json</b>。Parameter 填 <b>0</b> 使用第一个账号，填 <b>1</b> 使用第二个账号；不填则使用默认账号。</div>
   <div class="row"><button class="btn secondary" onclick="act('open')">打开 ChatGPT</button><button class="btn secondary" onclick="act('docs')">官方鉴权文档</button></div>
 </div>
 <script>
 function act(name){ window.__codexAction = name; }
+function toggleModeFields(){
+  var mode=document.getElementById('requestMode').value;
+  document.getElementById('officialFields').className='mode-fields'+(mode==='官方'?' active':'');
+  document.getElementById('doneHubFields').className='mode-fields'+(mode==='Done Hub'?' active':'');
+}
 window.setStatus=function(text,type){var el=document.getElementById('status');el.innerText=text;el.className='status '+(type||'');}
 window.setSavedInfo=function(html){document.getElementById('savedInfo').innerHTML=html;}
 window.renderAccounts=function(html){document.getElementById('accountList').innerHTML=html;}
+toggleModeFields();
 </script>
 </body>
 </html>`
@@ -1043,13 +1281,12 @@ window.renderAccounts=function(html){document.getElementById('accountList').inne
         bar.addSpacer()
     }
 
-    renderRowCard(parent: WidgetStack, row: UsageRow, width: number) {
+    renderRowCard(parent: WidgetStack, row: UsageRow, progressWidth: number) {
         const card = parent.addStack()
         card.layoutVertically()
         card.setPadding(9, 10, 9, 10)
         card.backgroundColor = Color.dynamic(new Color('#FFFFFF', 0.78), new Color('#20232A', 0.92))
         card.cornerRadius = 8
-        card.size = new Size(width, 84)
 
         const title = card.addText(row.title)
         title.textColor = this.widgetColor
@@ -1075,7 +1312,7 @@ window.renderAccounts=function(html){document.getElementById('accountList').inne
         remaining.lineLimit = 1
 
         card.addSpacer(3)
-        this.renderProgressBar(card, row.remainingPercent, width - 20)
+        this.renderProgressBar(card, row.remainingPercent, progressWidth)
         card.addSpacer(5)
 
         const reset = card.addText(`重置 ${this.formatResetTime(row.resetAt)}`)
@@ -1119,7 +1356,7 @@ window.renderAccounts=function(html){document.getElementById('accountList').inne
         widget.addSpacer(4)
         const subTitleRow = widget.addStack()
         subTitleRow.layoutHorizontally()
-        const accountText = `${this.getAccountLabel()} | ${this.getPlanLabel()}`
+        const accountText = this.getSmallSubtitleText()
         const account = subTitleRow.addText(accountText)
         account.textColor = this.widgetColor
         account.font = Font.mediumSystemFont(11)
@@ -1129,10 +1366,13 @@ window.renderAccounts=function(html){document.getElementById('accountList').inne
         subTitleRow.addSpacer()
 
         widget.addSpacer(8)
-        const value = widget.addText(worst ? `${Math.round(worst.remainingPercent)}%` : '--')
+        const valueRow = widget.addStack()
+        valueRow.layoutHorizontally()
+        const value = valueRow.addText(worst ? `${Math.round(worst.remainingPercent)}%` : '--')
         value.textColor = worst && worst.remainingPercent < 20 ? Color.red() : this.widgetColor
         value.font = Font.boldSystemFont(36)
         value.minimumScaleFactor = 0.7
+        valueRow.addSpacer()
         widget.addSpacer(4)
         const label = widget.addText(worst ? worst.title.replace('Codex ', '') : this.statusMessage)
         label.textColor = this.widgetColor
@@ -1165,13 +1405,12 @@ window.renderAccounts=function(html){document.getElementById('accountList').inne
 
     async renderCommon(widget: ListWidget, maxRows: number) {
         GenrateView.setListWidget(widget)
-        widget.setPadding(13, 14, 12, 14)
-        const {contentWidth, cardGap, cardWidth} = this.getLayoutMetrics()
+        const {padding, cardGap, progressWidth} = this.getLayoutMetrics()
+        widget.setPadding(padding.top, padding.left, padding.bottom, padding.right)
 
         const header = widget.addStack()
         header.layoutHorizontally()
         header.centerAlignContent()
-        header.size = new Size(contentWidth, 24)
         if (CODEX_ICON_URL) {
             try {
                 const iconImage = await this.getImageByUrl(CODEX_ICON_URL)
@@ -1185,7 +1424,7 @@ window.renderAccounts=function(html){document.getElementById('accountList').inne
                 console.log(`加载Codex图标失败: ${error}`)
             }
         }
-        const headerTitleText = `${this.getTitleText()} ${this.getAccountLabel()} | ${this.getPlanLabel()}`
+        const headerTitleText = this.getHeaderTitleText()
         const title = header.addText(headerTitleText)
         title.textColor = this.widgetColor
         title.font = Font.boldSystemFont(15)
@@ -1209,8 +1448,8 @@ window.renderAccounts=function(html){document.getElementById('accountList').inne
                 const rowStack = widget.addStack()
                 rowStack.layoutHorizontally()
                 rowStack.spacing = cardGap
-                this.renderRowCard(rowStack, rows[i], cardWidth)
-                if (rows[i + 1]) this.renderRowCard(rowStack, rows[i + 1], cardWidth)
+                this.renderRowCard(rowStack, rows[i], progressWidth)
+                if (rows[i + 1]) this.renderRowCard(rowStack, rows[i + 1], progressWidth)
                 widget.addSpacer(8)
             }
         }
@@ -1218,21 +1457,21 @@ window.renderAccounts=function(html){document.getElementById('accountList').inne
         const footer = widget.addStack()
         footer.layoutHorizontally()
         footer.centerAlignContent()
-        footer.setPadding(0, 5, 0, 0)
-        footer.size = new Size(contentWidth, 16)
+        footer.setPadding(0, 0, 0, 0)
         const credit = footer.addText(`账户余额：${this.getCreditText()}`)
         credit.textColor = this.widgetColor
         credit.font = Font.mediumSystemFont(10)
         credit.textOpacity = 0.62
         credit.lineLimit = 1
         credit.minimumScaleFactor = 0.75
-        credit.size = new Size(112, 16)
+        credit.size = new Size(96, 16)
         footer.addSpacer()
 
+        const requestTypePrefix = this.getRequestTypeStatusPrefix()
         const statusText =
             this.currentSettings.displaySettings.showUpdateTime.val === '显示'
-                ? `${this.statusMessage}  ↻ ${this.formatUpdateTime()}`
-                : this.statusMessage
+                ? `${requestTypePrefix}${this.statusMessage}  ↻ ${this.formatUpdateTime()}`
+                : `${requestTypePrefix}${this.statusMessage}`
         const status = footer.addText(statusText)
         status.textColor = this.getStatusColor()
         status.font = new Font('SF Mono', 10)
