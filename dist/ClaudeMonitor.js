@@ -1,13 +1,13 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
-// icon-color: black; icon-glyph: terminal;
+// icon-color: orange; icon-glyph: bolt.horizontal.circle;
 
 /*
  * author   :  seiun
- * date     :  2026/06/05
- * build    :  2026-06-10 02:41:29
- * desc     :  Codex额度监控
- * version  :  1.0.1
+ * date     :  2026/06/10
+ * build    :  2026-06-10 02:40:21
+ * desc     :  Claude额度监控
+ * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -18,25 +18,29 @@ function EndAwait(promiseFunc) {
   __topLevelAwait__ = promiseFunc;
 }
 
-// src/scripts/CodexMonitor.tsx
+// src/scripts/ClaudeMonitor.tsx
 var dependencyFileName = "Seiun.Env.js";
 var runtimeRequire = typeof require === "undefined" ? importModule : require;
-var { WidgetBase, Runing, Utils, GenrateView, h } =
+var { WidgetBase, Runing, Utils, GenrateView } =
   runtimeRequire(dependencyFileName);
-var USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
-var PROBE_URL = "https://developers.openai.com/codex";
-var DONE_HUB_USAGE_PATH = "/api/codex/usage";
-var CACHE_KEY = "codex_usage_status";
-var CREDENTIAL_KEY = "CodexMonitor.credential";
-var CODEX_DESKTOP_USER_AGENT =
-  "Codex Desktop/26.601.2237.0 (Windows NT 10.0; x64)";
-var CODEX_ICON_URL =
-  "https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/codex.png";
-var CodexMonitor = class extends WidgetBase {
+var API_BASE = "https://api.anthropic.com";
+var ANTHROPIC_VERSION = "2023-06-01";
+var OAUTH_BETA = "oauth-2025-04-20";
+var CLAUDE_CODE_USER_AGENT_FALLBACK = "claude-code/2.1.162";
+var CLAUDE_CODE_NPM_LATEST_URL =
+  "https://registry.npmjs.org/@anthropic-ai%2Fclaude-code/latest";
+var DONE_HUB_USAGE_PATH = "/api/claudecode/usage";
+var CACHE_KEY = "claude_usage_status";
+var USER_AGENT_CACHE_KEY = "claude_code_user_agent";
+var CREDENTIAL_KEY = "ClaudeMonitor.credential";
+var CLAUDE_USAGE_URL = "https://claude.ai/settings/usage";
+var CLAUDE_ICON_URL =
+  "https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/claude.png";
+var ClaudeMonitor = class extends WidgetBase {
   constructor(scriptName) {
     super(scriptName);
-    this.name = "Codex监控";
-    this.en = "CodexMonitor";
+    this.name = "Claude监控";
+    this.en = "ClaudeMonitor";
     this.widgetParam = args.widgetParameter;
     this.usageStatus = null;
     this.dataFetchTime = null;
@@ -76,10 +80,7 @@ var CodexMonitor = class extends WidgetBase {
         icon: { name: "timer", color: "#2F80ED" },
         type: "text",
         option: { pollIntervalMinutes: "5" },
-        config: {
-          placeholder: "5",
-          style: "compact",
-        },
+        config: { placeholder: "5", style: "compact" },
       },
       {
         title: "更新时间",
@@ -100,7 +101,7 @@ var CodexMonitor = class extends WidgetBase {
     this.registerSettingCategory("requestSettings", "请求设置", [
       {
         title: "请求方式",
-        desc: "官方直连使用 Codex access token；Done Hub 使用代理额度接口",
+        desc: "官方直连使用本地 Claude 鉴权；Done Hub 使用代理额度接口",
         icon: { name: "arrow.triangle.2.circlepath", color: "#2F80ED" },
         type: "select",
         option: { requestMode: "官方" },
@@ -119,10 +120,7 @@ var CodexMonitor = class extends WidgetBase {
         icon: { name: "link", color: "#56CCF2" },
         type: "text",
         option: { doneHubBaseUrl: "" },
-        config: {
-          placeholder: "https://hub.example.com",
-          style: "compact",
-        },
+        config: { placeholder: "https://hub.example.com", style: "compact" },
       },
       {
         title: "Done Hub Key",
@@ -130,27 +128,21 @@ var CodexMonitor = class extends WidgetBase {
         icon: { name: "lock.shield", color: "#F2C94C" },
         type: "text",
         option: { doneHubApiKey: "" },
-        config: {
-          placeholder: "sk-...",
-          style: "compact",
-        },
+        config: { placeholder: "sk-...", style: "compact" },
       },
       {
         title: "渠道 ID",
-        desc: "done-hub 后台 Codex 渠道的 channel_id",
+        desc: "done-hub 后台 ClaudeCode 渠道的 channel_id",
         icon: { name: "number", color: "#27C46A" },
         type: "text",
         option: { doneHubChannelId: "0" },
-        config: {
-          placeholder: "1",
-          style: "compact",
-        },
+        config: { placeholder: "1", style: "compact" },
       },
     ]);
     this.registerSetting([
       {
         title: "账号管理",
-        desc: "管理官方账号和 Done Hub 请求配置；Parameter 可填官方账号编号",
+        desc: "管理官方账号和 Done Hub 请求配置；Parameter 可填账号编号",
         icon: { name: "key.fill", color: "#F2C94C" },
         type: "text",
         option: {
@@ -177,7 +169,7 @@ var CodexMonitor = class extends WidgetBase {
         icon: { name: "trash", color: "#EB5757" },
         onAction: async () => {
           this.storage.removeStorage(this.getCacheKey());
-          await this.notify("已清除缓存", "下次刷新会重新探测网络并请求额度");
+          await this.notify("已清除缓存", "下次刷新会重新请求 Claude 额度");
           return true;
         },
       },
@@ -203,7 +195,7 @@ var CodexMonitor = class extends WidgetBase {
         const legacyDoneHub = this.getLegacyDoneHubAccount(0);
         const accounts = legacyDoneHub ? [legacyDoneHub] : [];
         return {
-          version: 3,
+          version: 2,
           defaultAccountName: accounts[0]?.accountName || "请选择或者添加账号",
           accounts,
         };
@@ -223,7 +215,7 @@ var CodexMonitor = class extends WidgetBase {
         )
           accounts.push(legacyDoneHub);
         return {
-          version: Number(parsed.version ?? 3),
+          version: Number(parsed.version ?? 2),
           defaultAccountName: String(
             parsed.defaultAccountName ||
               accounts[0]?.accountName ||
@@ -232,15 +224,8 @@ var CodexMonitor = class extends WidgetBase {
           accounts,
         };
       }
-      if (parsed.accessToken) {
-        const legacyAccount = {
-          accountName: parsed.accountName || parsed.accountId || "Default",
-          requestMode: "官方",
-          accessToken: parsed.accessToken,
-          accountId: parsed.accountId ?? null,
-          expiresAt: parsed.expiresAt ?? null,
-          savedAt: parsed.savedAt ?? Math.floor(Date.now() / 1e3),
-        };
+      if (parsed.token) {
+        const legacyAccount = this.normalizeAccount(parsed);
         const store = {
           version: 2,
           defaultAccountName: legacyAccount.accountName,
@@ -250,10 +235,10 @@ var CodexMonitor = class extends WidgetBase {
         return store;
       }
     } catch (error) {
-      console.log(`读取鉴权失败: ${error}`);
+      console.log(`读取Claude鉴权失败: ${error}`);
     }
     return {
-      version: 3,
+      version: 2,
       defaultAccountName: "请选择或者添加账号",
       accounts: [],
     };
@@ -263,19 +248,12 @@ var CodexMonitor = class extends WidgetBase {
       account?.requestMode === "Done Hub" || account?.doneHubBaseUrl
         ? "Done Hub"
         : "官方";
-    const accountName = String(
-      account?.accountName ||
-        (requestMode === "Done Hub"
-          ? "Done Hub"
-          : account?.accountId || "Default"),
-    ).trim();
     if (requestMode === "Done Hub") {
       return {
-        accountName,
+        accountName: String(account?.accountName || "Done Hub").trim(),
+        authMode: "OAuth",
         requestMode,
-        accessToken: "",
-        accountId: null,
-        expiresAt: null,
+        token: "",
         doneHubBaseUrl: String(account?.doneHubBaseUrl || "")
           .trim()
           .replace(/\/+$/, ""),
@@ -284,29 +262,37 @@ var CodexMonitor = class extends WidgetBase {
         savedAt: account?.savedAt ?? Math.floor(Date.now() / 1e3),
       };
     }
+    const token = String(account?.token || "").trim();
+    const authMode =
+      account?.authMode === "API Key" || token.startsWith("sk-ant-api")
+        ? "API Key"
+        : "OAuth";
+    const accountName = String(
+      account?.accountName ||
+        (authMode === "OAuth" ? "Claude Code" : "Anthropic API"),
+    ).trim();
     return {
       accountName,
+      authMode,
       requestMode,
-      accessToken: String(account?.accessToken || ""),
-      accountId: account?.accountId ?? null,
-      expiresAt: account?.expiresAt ?? null,
+      token,
       savedAt: account?.savedAt ?? Math.floor(Date.now() / 1e3),
     };
   }
   isAccountConfigured(account) {
     if (!account?.accountName) return false;
-    if (this.getAccountMode(account) === "Done Hub") {
+    if (this.isDoneHubMode(account)) {
       return Boolean(
         account.doneHubBaseUrl &&
         account.doneHubApiKey &&
         Number(account.doneHubChannelId) > 0,
       );
     }
-    return Boolean(account.accessToken);
+    return Boolean(account.token);
   }
   isSameRequestAccount(left, right) {
     if (this.getAccountMode(left) !== this.getAccountMode(right)) return false;
-    if (this.getAccountMode(left) === "Done Hub") {
+    if (this.isDoneHubMode(left)) {
       return (
         left.doneHubBaseUrl === right.doneHubBaseUrl &&
         Number(left.doneHubChannelId || 0) ===
@@ -314,8 +300,7 @@ var CodexMonitor = class extends WidgetBase {
       );
     }
     return (
-      left.accountId === right.accountId &&
-      left.accountName === right.accountName
+      left.accountName === right.accountName && left.authMode === right.authMode
     );
   }
   getLegacyDoneHubAccount(index) {
@@ -332,29 +317,14 @@ var CodexMonitor = class extends WidgetBase {
     );
     if (!baseUrl || !apiKey || !Number.isFinite(channelId) || channelId <= 0)
       return null;
-    return {
+    return this.normalizeAccount({
       accountName: `Done Hub ${index + 1}`,
       requestMode: "Done Hub",
-      accessToken: "",
-      accountId: null,
-      expiresAt: null,
       doneHubBaseUrl: baseUrl,
       doneHubApiKey: apiKey,
       doneHubChannelId: Math.floor(channelId),
       savedAt: Math.floor(Date.now() / 1e3),
-    };
-  }
-  getCacheKey(account = this.currentAccount) {
-    if (this.isDoneHubMode(account)) {
-      const baseUrl = this.getDoneHubBaseUrl(account) || "donehub";
-      const channelId = this.getDoneHubChannelId(account) || 0;
-      return `${CACHE_KEY}_donehub_${baseUrl}_${channelId}`.replace(
-        /[^A-Za-z0-9_-]/g,
-        "_",
-      );
-    }
-    const identity = account?.accountName || account?.accountId || "default";
-    return `${CACHE_KEY}_${identity.replace(/[^A-Za-z0-9_-]/g, "_")}`;
+    });
   }
   saveAccountStore(store) {
     const accounts = store.accounts
@@ -367,13 +337,10 @@ var CodexMonitor = class extends WidgetBase {
       : accounts[0]?.accountName || "请选择或者添加账号";
     Keychain.set(
       CREDENTIAL_KEY,
-      JSON.stringify({ version: 3, defaultAccountName, accounts }),
+      JSON.stringify({ version: 2, defaultAccountName, accounts }),
     );
     this.currentSettings.accountSettings.defaultAccount.val =
       defaultAccountName;
-  }
-  getAccounts() {
-    return this.getAccountStore().accounts;
   }
   getDefaultAccountName() {
     const store = this.getAccountStore();
@@ -406,14 +373,23 @@ var CodexMonitor = class extends WidgetBase {
     this.currentAccount = defaultAccount;
     return defaultAccount;
   }
+  getCacheKey(account = this.currentAccount) {
+    if (this.isDoneHubMode(account)) {
+      const baseUrl = this.getDoneHubBaseUrl(account) || "donehub";
+      const channelId = this.getDoneHubChannelId(account) || 0;
+      return `${CACHE_KEY}_donehub_${baseUrl}_${channelId}`.replace(
+        /[^A-Za-z0-9_-]/g,
+        "_",
+      );
+    }
+    const identity = account?.accountName || "default";
+    return `${CACHE_KEY}_${identity.replace(/[^A-Za-z0-9_-]/g, "_")}`;
+  }
   getAccountMode(account = this.currentAccount) {
     return account?.requestMode === "Done Hub" ? "Done Hub" : "官方";
   }
   isDoneHubMode(account = this.currentAccount) {
     return this.getAccountMode(account) === "Done Hub";
-  }
-  getRequestModeLabel() {
-    return this.getAccountMode();
   }
   getDoneHubBaseUrl(account = this.currentAccount) {
     return String(account?.doneHubBaseUrl || "")
@@ -427,27 +403,34 @@ var CodexMonitor = class extends WidgetBase {
     const value = Number(account?.doneHubChannelId || 0);
     return Number.isFinite(value) ? Math.floor(value) : 0;
   }
+  extractToken(input) {
+    const raw = input.trim();
+    if (!raw) return "";
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.claudeAiOauth?.accessToken)
+        return parsed.claudeAiOauth.accessToken.trim();
+      if (parsed.apiKey) return parsed.apiKey.trim();
+    } catch {}
+    return raw.replace(/^Bearer\s+/i, "").trim();
+  }
   parseCredentialFromInput(input, accountNameInput) {
-    const accessToken = this.extractAccessToken(input);
-    if (!accessToken) throw new Error("未找到 access token");
-    const payload = this.decodeJwtPayload(accessToken);
-    const authInfo = payload["https://api.openai.com/auth"];
-    const accountId =
-      typeof authInfo?.chatgpt_account_id === "string"
-        ? authInfo.chatgpt_account_id
-        : null;
-    const expiresAt = typeof payload.exp === "number" ? payload.exp : null;
+    const token = this.extractToken(input);
+    if (!token) throw new Error("未找到 Claude token 或 API key");
+    const authMode = token.startsWith("sk-ant-api") ? "API Key" : "OAuth";
+    if (authMode === "OAuth" && !token.startsWith("sk-ant-oat")) {
+      console.log(
+        "Claude OAuth token 通常以 sk-ant-oat 开头，仍按 OAuth 模式保存",
+      );
+    }
     const accountName = (
       accountNameInput ||
-      accountId ||
-      `Account ${this.getAccounts().length + 1}`
+      (authMode === "OAuth" ? "Claude Code" : "Anthropic API")
     ).trim();
     return {
       accountName,
-      requestMode: "官方",
-      accessToken,
-      accountId,
-      expiresAt,
+      authMode,
+      token,
       savedAt: Math.floor(Date.now() / 1e3),
     };
   }
@@ -516,90 +499,138 @@ var CodexMonitor = class extends WidgetBase {
     this.currentAccount = credential;
     return credential;
   }
-  extractAccessToken(input) {
-    const value = input.trim();
-    if (!value) return null;
+  async getClaudeCodeUserAgent() {
+    const cache = this.storage.getStorage(USER_AGENT_CACHE_KEY, 24 * 60);
+    if (cache?.userAgent && this.isValidClaudeUserAgent(cache.userAgent))
+      return cache.userAgent;
     try {
-      const parsed = JSON.parse(value);
-      const token = parsed.tokens?.access_token;
-      if (typeof token === "string" && token.includes(".")) return token.trim();
-    } catch {}
-    const bearerMatch = value.match(/Bearer\s+([A-Za-z0-9._-]+)/);
-    if (bearerMatch?.[1]) return bearerMatch[1];
-    const tokenMatch = value.match(/eyJ[A-Za-z0-9._-]+/);
-    return tokenMatch?.[0] ?? null;
-  }
-  decodeJwtPayload(token) {
-    const payload = token.split(".")[1];
-    if (!payload) throw new Error("access token 格式异常");
-    let base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-    while (base64.length % 4 !== 0) base64 += "=";
-    const data = Data.fromBase64String(base64);
-    if (!data) throw new Error("access token payload 解码失败");
-    const raw = data.toRawString();
-    if (!raw) throw new Error("access token payload 不是 UTF-8");
-    return JSON.parse(raw);
-  }
-  isCredentialExpired(credential) {
-    if (!credential?.expiresAt) return false;
-    return credential.expiresAt <= Math.floor(Date.now() / 1e3) + 60;
-  }
-  async probeCodexSite() {
-    try {
-      const request = new Request(PROBE_URL);
+      const request = new Request(CLAUDE_CODE_NPM_LATEST_URL);
       request.method = "GET";
+      request.headers = { Accept: "application/json" };
       request.timeoutInterval = 8;
-      await request.loadString();
-      const statusCode = Number(request.response?.statusCode ?? 0);
-      if (statusCode > 0) {
-        console.log(`Codex官网探测成功: HTTP ${statusCode}`);
-        return { ok: true, message: `官网 HTTP ${statusCode}` };
+      const data = await request.loadJSON();
+      const version = this.extractSemver(data.version || "");
+      if (version) {
+        const userAgent = `claude-code/${version}`;
+        this.storage.setStorage(USER_AGENT_CACHE_KEY, {
+          userAgent,
+          version,
+          fetchedAt: Date.now(),
+        });
+        return userAgent;
       }
-      return { ok: true, message: "官网可访问" };
     } catch (error) {
-      const message = `官网探测失败: ${this.shortError(error)}`;
-      console.log(message);
-      return { ok: false, message };
+      console.log(`获取Claude Code npm版本失败: ${error}`);
     }
+    return CLAUDE_CODE_USER_AGENT_FALLBACK;
   }
-  shortError(error) {
-    const text = String(error ?? "");
-    return text.length > 80 ? `${text.slice(0, 77)}...` : text;
+  extractSemver(value) {
+    return value.match(/\b\d+\.\d+\.\d+\b/)?.[0] ?? null;
   }
-  getHttpStatusLabel(request) {
-    const statusCode = Number(request.response?.statusCode ?? 0);
-    return statusCode > 0 ? String(statusCode) : "OK";
+  isValidClaudeUserAgent(value) {
+    return /^claude-code\/\d+\.\d+\.\d+$/.test(value);
   }
-  async requestOfficialUsage(credential) {
-    if (!credential.accessToken) throw new Error("请配置 access token");
+  async getRequestHeaders(credential) {
     const headers = {
-      Authorization: `Bearer ${credential.accessToken}`,
-      originator: "Codex Desktop",
-      "User-Agent": CODEX_DESKTOP_USER_AGENT,
-      "Accept-Language": "zh-CN,zh;q=0.9",
+      Accept: "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "User-Agent": await this.getClaudeCodeUserAgent(),
     };
-    if (credential.accountId) {
-      headers["ChatGPT-Account-Id"] = credential.accountId;
+    if (credential.authMode === "API Key") {
+      headers["x-api-key"] = credential.token;
+      headers["anthropic-version"] = ANTHROPIC_VERSION;
+    } else {
+      headers.Authorization = `Bearer ${credential.token}`;
+      headers["anthropic-beta"] = OAUTH_BETA;
     }
-    const request = new Request(USAGE_URL);
+    return headers;
+  }
+  async requestJson(url, headers) {
+    const request = new Request(url);
     request.method = "GET";
     request.headers = headers;
     request.timeoutInterval = 15;
-    let data = null;
+    let data;
     try {
       data = await request.loadJSON();
     } catch (error) {
-      const statusCode = Number(request.response?.statusCode ?? 0);
-      if (statusCode > 0) throw new Error(`请求失败: HTTP ${statusCode}`);
+      const statusCode2 = Number(request.response?.statusCode ?? 0);
+      if (statusCode2 > 0)
+        throw new Error(
+          `请求失败: HTTP ${statusCode2}${this.getRetryAfterText(request)}`,
+        );
       throw error;
     }
-    if (!data || typeof data !== "object" || !data.rate_limit) {
-      const statusCode = Number(request.response?.statusCode ?? 0);
-      if (statusCode > 0) throw new Error(`请求失败: HTTP ${statusCode}`);
-      throw new Error("响应缺少 rate_limit");
+    const statusCode = Number(request.response?.statusCode ?? 0);
+    if (statusCode >= 400) {
+      throw new Error(
+        `请求失败: HTTP ${statusCode}${this.getAnthropicErrorText(data)}${this.getRetryAfterText(request)}`,
+      );
     }
-    console.log(`Codex额度请求成功: HTTP ${this.getHttpStatusLabel(request)}`);
     return data;
+  }
+  getAnthropicErrorText(data) {
+    const payload = data;
+    const message = payload?.error?.message;
+    const type = payload?.error?.type;
+    if (message && type) return ` (${type}: ${message})`;
+    if (message) return ` (${message})`;
+    return "";
+  }
+  getRetryAfterText(request) {
+    const headers = request.response?.headers || {};
+    const retryAfter = headers["Retry-After"] || headers["retry-after"];
+    return retryAfter ? `，Retry-After ${retryAfter}s` : "";
+  }
+  async requestOAuthUsage(credential) {
+    const data = await this.requestJson(
+      `${API_BASE}/api/oauth/usage`,
+      await this.getRequestHeaders(credential),
+    );
+    return this.parseOAuthUsage(data);
+  }
+  parseOAuthUsage(data) {
+    const fiveHour = this.extractOAuthPeriod(
+      "five-hour",
+      "5 小时使用限额",
+      data.five_hour,
+    );
+    const oneWeek = this.extractOAuthPeriod(
+      "seven-day",
+      "7 天使用限额",
+      data.seven_day,
+    );
+    const additional = [
+      this.extractOAuthPeriod(
+        "seven-day-sonnet",
+        "Sonnet 7 天限额",
+        data.seven_day_sonnet || void 0,
+      ),
+      this.extractOAuthPeriod(
+        "seven-day-opus",
+        "Opus 7 天限额",
+        data.seven_day_opus || void 0,
+      ),
+      this.extractOAuthPeriod(
+        "seven-day-oauth-apps",
+        "OAuth Apps 7 天限额",
+        data.seven_day_oauth_apps || void 0,
+      ),
+      this.extractOAuthPeriod(
+        "seven-day-cowork",
+        "Cowork 7 天限额",
+        data.seven_day_cowork || void 0,
+      ),
+      this.extractOAuthPeriod(
+        "seven-day-omelette",
+        "Omelette 7 天限额",
+        data.seven_day_omelette || void 0,
+      ),
+      this.extractExtraUsagePeriod(data.extra_usage || void 0),
+    ].filter((period) => Boolean(period));
+    if (!fiveHour && !oneWeek && additional.length === 0)
+      throw new Error("响应缺少 utilization");
+    return { fiveHour, oneWeek, additional };
   }
   async requestDoneHubUsage(credential) {
     const baseUrl = this.getDoneHubBaseUrl(credential);
@@ -630,22 +661,97 @@ var CodexMonitor = class extends WidgetBase {
     if (response?.success === false)
       throw new Error(response.message || "Done Hub 请求失败");
     const data = response?.data?.usage || payload;
-    if (!data || typeof data !== "object" || !data.rate_limit) {
-      const statusCode = Number(request.response?.statusCode ?? 0);
-      if (statusCode > 0)
-        throw new Error(`Done Hub 响应异常: HTTP ${statusCode}`);
-      throw new Error("Done Hub 响应缺少 rate_limit");
-    }
     console.log(
-      `Done Hub Codex额度请求成功: HTTP ${this.getHttpStatusLabel(request)}`,
+      `Done Hub Claude额度请求成功: HTTP ${this.getHttpStatusLabel(request)}`,
     );
-    return data;
+    return this.parseOAuthUsage(data);
+  }
+  async requestApiKeyUsage(credential) {
+    const now = /* @__PURE__ */ new Date();
+    const fiveHoursAgo = new Date(now.getTime() - 5 * 60 * 60 * 1e3);
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1e3);
+    const [fiveHour, oneWeek] = await Promise.all([
+      this.requestPeriodCost(
+        credential,
+        "five-hour",
+        "最近 5 小时用量",
+        fiveHoursAgo,
+        now,
+      ),
+      this.requestPeriodCost(
+        credential,
+        "seven-day",
+        "最近 7 天用量",
+        oneWeekAgo,
+        now,
+      ),
+    ]);
+    return { fiveHour, oneWeek, additional: [] };
+  }
+  async requestPeriodCost(credential, key, title, start, end) {
+    const params = `start_time=${encodeURIComponent(start.toISOString())}&end_time=${encodeURIComponent(end.toISOString())}`;
+    const data = await this.requestJson(
+      `${API_BASE}/v1/usage?${params}`,
+      await this.getRequestHeaders(credential),
+    );
+    return {
+      key,
+      title,
+      used: this.extractAnthropicCost(data),
+      limit: null,
+      unit: "usd",
+      resetsAt: null,
+    };
   }
   async requestUsage(credential) {
     if (!credential) throw new Error("请先配置鉴权");
     if (this.isDoneHubMode(credential))
       return await this.requestDoneHubUsage(credential);
-    return await this.requestOfficialUsage(credential);
+    if (credential.authMode === "OAuth")
+      return await this.requestOAuthUsage(credential);
+    return await this.requestApiKeyUsage(credential);
+  }
+  getHttpStatusLabel(request) {
+    const statusCode = Number(request.response?.statusCode ?? 0);
+    return statusCode > 0 ? String(statusCode) : "OK";
+  }
+  extractOAuthPeriod(key, title, windowInfo) {
+    if (!windowInfo || typeof windowInfo.utilization !== "number") return null;
+    return {
+      key,
+      title,
+      used: this.clampPercent(windowInfo.utilization),
+      limit: 100,
+      unit: "percent",
+      resetsAt: this.parseDateMs(windowInfo.resets_at),
+    };
+  }
+  extractExtraUsagePeriod(extraUsage) {
+    if (!extraUsage?.is_enabled || typeof extraUsage.utilization !== "number")
+      return null;
+    return {
+      key: "extra-usage",
+      title: "Extra Usage",
+      used: this.clampPercent(extraUsage.utilization),
+      limit: 100,
+      unit: "percent",
+      resetsAt: null,
+    };
+  }
+  extractAnthropicCost(data) {
+    if (typeof data.total_cost === "number") return data.total_cost;
+    if (!Array.isArray(data.data)) return 0;
+    return data.data.reduce((sum, entry) => {
+      if (typeof entry.cost === "number") return sum + entry.cost;
+      const inputCost = ((entry.input_tokens ?? 0) / 1e6) * 3;
+      const outputCost = ((entry.output_tokens ?? 0) / 1e6) * 15;
+      return sum + inputCost + outputCost;
+    }, 0);
+  }
+  parseDateMs(value) {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date.getTime();
   }
   getCachedUsage(ignoreFreshness = false) {
     const interval = ignoreFreshness ? void 0 : this.getPollIntervalMinutes();
@@ -671,7 +777,6 @@ var CodexMonitor = class extends WidgetBase {
   }
   async loadUsage() {
     const credential = this.readCredential();
-    const isDoneHub = this.isDoneHubMode(credential);
     if (!credential) {
       const cache = this.getAnyCachedUsage();
       if (cache?.usage) {
@@ -684,41 +789,6 @@ var CodexMonitor = class extends WidgetBase {
     const freshCache = this.getCachedUsage();
     if (freshCache?.usage) {
       this.useCache(freshCache, false, "使用缓存");
-      return;
-    }
-    if (!isDoneHub && this.isCredentialExpired(credential)) {
-      const cache = this.getAnyCachedUsage();
-      if (cache?.usage) {
-        this.useCache(cache, true, "鉴权已过期，显示缓存");
-        return;
-      }
-      this.statusMessage = "鉴权已过期";
-      return;
-    }
-    if (!isDoneHub) {
-      const probe = await this.probeCodexSite();
-      if (!probe.ok) {
-        const cache = this.getAnyCachedUsage();
-        if (cache?.usage) {
-          this.useCache(cache, true, "网络障碍/使用缓存");
-          return;
-        }
-        this.statusMessage = probe.message;
-        return;
-      }
-    }
-    if (
-      isDoneHub &&
-      (!this.getDoneHubBaseUrl(credential) ||
-        !this.getDoneHubApiKey(credential) ||
-        this.getDoneHubChannelId(credential) <= 0)
-    ) {
-      const cache = this.getAnyCachedUsage();
-      if (cache?.usage) {
-        this.useCache(cache, true, "代理未配置/使用缓存");
-        return;
-      }
-      this.statusMessage = "请配置 Done Hub";
       return;
     }
     try {
@@ -734,7 +804,7 @@ var CodexMonitor = class extends WidgetBase {
       this.isDataExpired = false;
       this.statusMessage = "在线";
     } catch (error) {
-      console.log(`请求Codex额度失败: ${error}`);
+      console.log(`请求Claude额度失败: ${error}`);
       const cache = this.getAnyCachedUsage();
       if (cache?.usage) {
         this.useCache(
@@ -749,70 +819,32 @@ var CodexMonitor = class extends WidgetBase {
       this.statusMessage = String(error);
     }
   }
-  getWindowLabel(seconds) {
-    const minutes = Number(seconds ?? 0) / 60;
-    if (Math.abs(minutes - 300) <= 15) return "5 小时";
-    if (Math.abs(minutes - 10080) <= 504) return "每周";
-    if (Math.abs(minutes - 1440) <= 72) return "每日";
-    if (minutes >= 4e4 && minutes <= 46e3) return "每月";
-    if (minutes >= 60) return `${Math.round(minutes / 60)} 小时`;
-    if (minutes > 0) return `${Math.round(minutes)} 分钟`;
-    return "额度";
-  }
-  normalizeWindow(title, windowInfo, fallbackKey) {
-    if (!windowInfo) return null;
-    const used = this.clampPercent(windowInfo.used_percent ?? 0);
-    const windowLabel = this.getWindowLabel(windowInfo.limit_window_seconds);
-    return {
-      key: `${fallbackKey}-${windowLabel}`,
-      title: `${title ? `${title} ` : ""}${windowLabel}使用限额`,
-      usedPercent: used,
-      remainingPercent: this.clampPercent(100 - used),
-      resetAt:
-        typeof windowInfo.reset_at === "number" ? windowInfo.reset_at : null,
-      windowLabel,
-    };
-  }
   getUsageRows() {
     const rows = [];
-    const core = this.usageStatus?.rate_limit;
-    const primary = this.normalizeWindow(
-      "",
-      core?.primary_window,
-      "core-primary",
-    );
-    const secondary = this.normalizeWindow(
-      "",
-      core?.secondary_window,
-      "core-secondary",
-    );
-    if (primary) rows.push(primary);
-    if (secondary) rows.push(secondary);
-    const additional = this.usageStatus?.additional_rate_limits ?? [];
-    for (const item of additional) {
-      const name = item.limit_name?.trim() || "模型";
-      const p = this.normalizeWindow(
-        name,
-        item.rate_limit?.primary_window,
-        `${name}-primary`,
-      );
-      const s = this.normalizeWindow(
-        name,
-        item.rate_limit?.secondary_window,
-        `${name}-secondary`,
-      );
-      if (p) rows.push(p);
-      if (s) rows.push(s);
-    }
+    if (this.usageStatus?.fiveHour) rows.push(this.usageStatus.fiveHour);
+    if (this.usageStatus?.oneWeek) rows.push(this.usageStatus.oneWeek);
+    rows.push(...(this.usageStatus?.additional ?? []));
     return rows;
   }
   clampPercent(value) {
     if (!Number.isFinite(value)) return 0;
     return Math.max(0, Math.min(100, value));
   }
-  formatResetTime(seconds) {
-    if (!seconds) return "未知";
-    return Utils.time("yyyy年MM月dd日 HH:mm", new Date(seconds * 1e3));
+  getRemainingPercent(row) {
+    if (row.unit !== "percent") return null;
+    return this.clampPercent(100 - row.used);
+  }
+  getValueText(row) {
+    if (row.unit === "percent")
+      return `${Math.round(this.getRemainingPercent(row) ?? 0)}%`;
+    return `$${row.used.toFixed(row.used >= 1 ? 2 : 4)}`;
+  }
+  getValueLabel(row) {
+    return row.unit === "percent" ? "剩余" : "已用";
+  }
+  formatResetTime(ms) {
+    if (!ms) return "未知";
+    return Utils.time("yyyy年MM月dd日 HH:mm", new Date(ms));
   }
   formatUpdateTime() {
     if (!this.dataFetchTime) return "暂无缓存";
@@ -822,12 +854,13 @@ var CodexMonitor = class extends WidgetBase {
     if (this.isRequestSuccess) return new Color("#27C46A");
     return Color.red();
   }
-  getPlanLabel() {
-    const planType = this.usageStatus?.plan_type;
-    return planType ? String(planType).toUpperCase() : "未连接";
+  getAuthModeLabel() {
+    if (this.getUsageRows().length > 0) return "PRO";
+    if (this.isDoneHubMode()) return "Claude Code";
+    return this.currentAccount?.authMode || "未连接";
   }
   getTitleText() {
-    return "Codex";
+    return "Claude";
   }
   getTitleAccountLabel() {
     return this.currentAccount?.accountName
@@ -835,33 +868,238 @@ var CodexMonitor = class extends WidgetBase {
       : "";
   }
   getHeaderTitleText() {
-    return `${this.getTitleText()}${this.getTitleAccountLabel()} | ${this.getPlanLabel()}`;
+    return `${this.getTitleText()}${this.getTitleAccountLabel()} | ${this.getAuthModeLabel()}`;
   }
   getSmallSubtitleText() {
-    return `${this.getAccountMode(this.currentAccount)} | ${this.getPlanLabel()}`;
+    return `${this.getAuthModeLabel()} | ${this.currentAccount?.accountName || "未配置"}`;
   }
-  getCreditText() {
-    const credits = this.usageStatus?.credits;
-    if (!credits) return "无额度数据";
-    if (credits.unlimited) return "无限";
-    return `${credits.balance ?? 0} $`;
+  getFooterText() {
+    if (this.currentSettings.displaySettings.showUpdateTime.val === "显示") {
+      return `${this.statusMessage}  ↻ ${this.formatUpdateTime()}`;
+    }
+    return this.statusMessage;
   }
   getLayoutMetrics() {
-    const padding = { top: 10, right: 10, bottom: 10, left: 10 };
-    const cardGap = 12;
-    const progressWidth = 124;
-    return { padding, cardGap, progressWidth };
+    return {
+      padding: { top: 10, right: 10, bottom: 10, left: 10 },
+      cardGap: 12,
+      progressWidth: 124,
+    };
   }
-  estimateTextWidth(text, fontSize, min, max) {
-    let asciiCount = 0;
-    let wideCount = 0;
-    for (const char of text) {
-      if (char.charCodeAt(0) <= 127) asciiCount += 1;
-      else wideCount += 1;
+  async addClaudeIcon(stack, size) {
+    try {
+      const iconImage = await this.getImageByUrl(CLAUDE_ICON_URL);
+      if (iconImage) {
+        const icon = stack.addImage(iconImage);
+        icon.imageSize = new Size(size, size);
+        icon.cornerRadius = Math.max(3, Math.floor(size / 5));
+        return;
+      }
+    } catch (error) {
+      console.log(`加载Claude图标失败: ${error}`);
     }
-    const asciiWidth = asciiCount * fontSize * 0.62;
-    const wideWidth = wideCount * fontSize;
-    return Math.max(min, Math.min(Math.ceil(asciiWidth + wideWidth), max));
+    const fallback = stack.addImage(
+      SFSymbol.named("bolt.horizontal.circle.fill").image,
+    );
+    fallback.imageSize = new Size(size, size);
+    fallback.tintColor = new Color("#D97706");
+  }
+  renderProgressBar(stack, percent, width) {
+    const bar = stack.addStack();
+    bar.layoutHorizontally();
+    bar.backgroundColor = new Color("#DADDE3", 0.35);
+    bar.cornerRadius = 4;
+    bar.size = new Size(width, 7);
+    const fillWidth = Math.max(
+      3,
+      Math.round((width * this.clampPercent(percent)) / 100),
+    );
+    const fill = bar.addStack();
+    fill.backgroundColor =
+      percent < 20
+        ? new Color("#EB5757")
+        : percent < 50
+          ? new Color("#F2C94C")
+          : new Color("#27C46A");
+    fill.cornerRadius = 4;
+    fill.size = new Size(fillWidth, 7);
+    bar.addSpacer();
+  }
+  renderRowCard(parent, row, progressWidth) {
+    const card = parent.addStack();
+    card.layoutVertically();
+    card.setPadding(9, 10, 9, 10);
+    card.backgroundColor = Color.dynamic(
+      new Color("#FFFFFF", 0.78),
+      new Color("#20232A", 0.92),
+    );
+    card.cornerRadius = 8;
+    const title = card.addText(row.title);
+    title.textColor = this.widgetColor;
+    title.font = Font.mediumSystemFont(9);
+    title.textOpacity = 0.68;
+    title.lineLimit = 1;
+    title.minimumScaleFactor = 0.75;
+    card.addSpacer(2);
+    const valueRow = card.addStack();
+    valueRow.layoutHorizontally();
+    valueRow.centerAlignContent();
+    const value = valueRow.addText(this.getValueText(row));
+    value.textColor =
+      row.unit === "percent" && (this.getRemainingPercent(row) ?? 100) < 20
+        ? Color.red()
+        : this.widgetColor;
+    value.font = Font.boldSystemFont(row.unit === "percent" ? 19 : 17);
+    value.minimumScaleFactor = 0.65;
+    value.lineLimit = 1;
+    valueRow.addSpacer(4);
+    const label = valueRow.addText(this.getValueLabel(row));
+    label.textColor = this.widgetColor;
+    label.font = Font.boldSystemFont(13);
+    label.minimumScaleFactor = 0.8;
+    label.lineLimit = 1;
+    card.addSpacer(3);
+    if (row.unit === "percent") {
+      this.renderProgressBar(
+        card,
+        this.getRemainingPercent(row) ?? 0,
+        progressWidth,
+      );
+      card.addSpacer(5);
+      const reset = card.addText(`重置 ${this.formatResetTime(row.resetsAt)}`);
+      reset.textColor = this.widgetColor;
+      reset.font = Font.systemFont(9);
+      reset.textOpacity = 0.55;
+      reset.lineLimit = 1;
+      reset.minimumScaleFactor = 0.7;
+    } else {
+      const detail = card.addText("官方 usage API");
+      detail.textColor = this.widgetColor;
+      detail.font = Font.systemFont(9);
+      detail.textOpacity = 0.55;
+      detail.lineLimit = 1;
+    }
+  }
+  async renderSmall(widget) {
+    const rows = this.getUsageRows();
+    const primary = rows[0] || null;
+    GenrateView.setListWidget(widget);
+    widget.setPadding(12, 12, 12, 12);
+    widget.addSpacer(2);
+    const titleRow = widget.addStack();
+    titleRow.layoutHorizontally();
+    titleRow.centerAlignContent();
+    await this.addClaudeIcon(titleRow, 20);
+    titleRow.addSpacer(6);
+    const title = titleRow.addText(this.getTitleText());
+    title.textColor = this.widgetColor;
+    title.font = Font.boldSystemFont(14);
+    title.textOpacity = 0.78;
+    title.lineLimit = 1;
+    title.minimumScaleFactor = 0.7;
+    titleRow.addSpacer();
+    widget.addSpacer(4);
+    const subTitle = widget.addText(this.getSmallSubtitleText());
+    subTitle.textColor = this.widgetColor;
+    subTitle.font = Font.mediumSystemFont(11);
+    subTitle.textOpacity = 0.68;
+    subTitle.lineLimit = 1;
+    subTitle.minimumScaleFactor = 0.65;
+    widget.addSpacer(8);
+    const value = widget.addText(primary ? this.getValueText(primary) : "--");
+    value.textColor =
+      primary?.unit === "percent" &&
+      (this.getRemainingPercent(primary) ?? 100) < 20
+        ? Color.red()
+        : this.widgetColor;
+    value.font = Font.boldSystemFont(36);
+    value.minimumScaleFactor = 0.65;
+    widget.addSpacer(4);
+    const label = widget.addText(
+      primary
+        ? `${primary.title} ${this.getValueLabel(primary)}`
+        : this.statusMessage,
+    );
+    label.textColor = this.widgetColor;
+    label.font = Font.systemFont(10);
+    label.textOpacity = 0.58;
+    label.lineLimit = 2;
+    widget.addSpacer();
+    const timeRow = widget.addStack();
+    timeRow.layoutHorizontally();
+    timeRow.addSpacer();
+    const timeIcon = timeRow.addImage(SFSymbol.named("arrow.clockwise").image);
+    timeIcon.imageSize = new Size(8, 8);
+    timeIcon.tintColor = this.getStatusColor();
+    timeIcon.imageOpacity = 0.75;
+    timeRow.addSpacer(4);
+    const time = timeRow.addText(this.formatUpdateTime());
+    time.textColor = this.getStatusColor();
+    time.font = new Font("SF Mono", 9);
+    time.textOpacity = 0.75;
+    return widget;
+  }
+  async renderMedium(widget) {
+    return await this.renderCommon(widget, 2);
+  }
+  async renderLarge(widget) {
+    return await this.renderCommon(widget, 4);
+  }
+  async renderCommon(widget, maxRows) {
+    GenrateView.setListWidget(widget);
+    const { padding, cardGap, progressWidth } = this.getLayoutMetrics();
+    widget.setPadding(padding.top, padding.left, padding.bottom, padding.right);
+    const header = widget.addStack();
+    header.layoutHorizontally();
+    header.centerAlignContent();
+    await this.addClaudeIcon(header, 16);
+    header.addSpacer(6);
+    const title = header.addText(this.getHeaderTitleText());
+    title.textColor = this.widgetColor;
+    title.font = Font.boldSystemFont(15);
+    title.textOpacity = 0.86;
+    title.lineLimit = 1;
+    title.minimumScaleFactor = 0.65;
+    header.addSpacer();
+    widget.addSpacer(10);
+    const rows = this.getUsageRows().slice(0, maxRows);
+    if (rows.length === 0) {
+      widget.addSpacer();
+      const empty = widget.addText(this.statusMessage || "暂无额度数据");
+      empty.textColor = Color.red();
+      empty.font = Font.mediumSystemFont(13);
+      empty.centerAlignText();
+      widget.addSpacer();
+    } else {
+      for (let i = 0; i < rows.length; i += 2) {
+        const rowStack = widget.addStack();
+        rowStack.layoutHorizontally();
+        rowStack.spacing = cardGap;
+        this.renderRowCard(rowStack, rows[i], progressWidth);
+        if (rows[i + 1])
+          this.renderRowCard(rowStack, rows[i + 1], progressWidth);
+        widget.addSpacer(8);
+      }
+    }
+    const footer = widget.addStack();
+    footer.layoutHorizontally();
+    footer.centerAlignContent();
+    const requestMode = footer.addText(
+      this.getAccountMode(this.currentAccount),
+    );
+    requestMode.textColor = this.widgetColor;
+    requestMode.font = Font.mediumSystemFont(10);
+    requestMode.textOpacity = 0.62;
+    requestMode.lineLimit = 1;
+    requestMode.minimumScaleFactor = 0.75;
+    footer.addSpacer();
+    const status = footer.addText(this.getFooterText());
+    status.textColor = this.getStatusColor();
+    status.font = new Font("SF Mono", 10);
+    status.textOpacity = 0.82;
+    status.lineLimit = 1;
+    status.minimumScaleFactor = 0.7;
+    return widget;
   }
   async presentAuthPage() {
     const current = this.readCredential();
@@ -878,8 +1116,8 @@ var CodexMonitor = class extends WidgetBase {
       if (closed) break;
       const action = await webView.evaluateJavaScript(
         `(function(){
-                    var action = window.__codexAction || '';
-                    if (action) window.__codexAction = '';
+                    var action = window.__claudeAction || '';
+                    if (action) window.__claudeAction = '';
                     return action;
                 })()`,
         false,
@@ -906,9 +1144,7 @@ var CodexMonitor = class extends WidgetBase {
           );
         }
       } else if (action === "open") {
-        Safari.open("https://chatgpt.com/");
-      } else if (action === "docs") {
-        Safari.open("https://developers.openai.com/codex/auth");
+        Safari.open(CLAUDE_USAGE_URL);
       } else if (action === "save") {
         const form = await webView.evaluateJavaScript(
           `(function(){
@@ -990,10 +1226,10 @@ ${this.getAccountSummary(account)}`;
     const account = store.accounts[index];
     if (!account) return null;
     const alert = new Alert();
-    alert.title = "修改官方账号";
-    alert.message = "可修改账号标识，或替换 access token";
+    alert.title = "修改 Claude 官方账号";
+    alert.message = "可修改账号标识，或替换 token / API key";
     alert.addTextField("账号标识名字", account.accountName || "");
-    alert.addTextField("access token / auth.json（留空不变）", "");
+    alert.addTextField("token / credentials.json（留空不变）", "");
     alert.addAction("确定");
     alert.addCancelAction("取消");
     const result = await alert.presentAlert();
@@ -1002,10 +1238,9 @@ ${this.getAccountSummary(account)}`;
     const nextName = alert.textFieldValue(0).trim();
     const tokenInput = alert.textFieldValue(1).trim();
     if (!nextName) return { message: "账号标识不能为空", type: "bad" };
-    let nextAccount = { ...account, accountName: nextName };
-    if (tokenInput) {
-      nextAccount = this.parseCredentialFromInput(tokenInput, nextName);
-    }
+    const nextAccount = tokenInput
+      ? this.parseCredentialFromInput(tokenInput, nextName)
+      : { ...account, accountName: nextName };
     nextAccount.requestMode = "官方";
     store.accounts[index] = nextAccount;
     if (store.defaultAccountName === oldName)
@@ -1103,13 +1338,13 @@ ${this.getAccountSummary(account)}`;
   maskSecret(value) {
     if (!value) return "未配置";
     if (value.length <= 10) return `${value.slice(0, 2)}***`;
-    return `${value.slice(0, 6)}...${value.slice(-4)}`;
+    return `${value.slice(0, 8)}...${value.slice(-4)}`;
   }
   getAccountSummary(account) {
     if (this.isDoneHubMode(account)) {
       return `${account.doneHubBaseUrl || "未配置地址"} / channel ${account.doneHubChannelId || "--"}`;
     }
-    return account.accountId || "未识别 account id";
+    return `${account.authMode} / ${this.maskSecret(account.token)}`;
   }
   getAccountDetailHtml(account) {
     if (this.isDoneHubMode(account)) {
@@ -1117,20 +1352,21 @@ ${this.getAccountSummary(account)}`;
         account.doneHubBaseUrl || "未配置",
       )}<br>渠道 ID: ${this.escapeHtml(account.doneHubChannelId || "未配置")}<br>Key: ${this.escapeHtml(this.maskSecret(account.doneHubApiKey || ""))}`;
     }
-    return `模式: <b>官方</b><br>Name: ${this.escapeHtml(account.accountName)}<br>Account: ${this.escapeHtml(account.accountId ?? "未识别")}<br>Expires: ${account.expiresAt ? this.escapeHtml(Utils.time("yyyy-MM-dd HH:mm", new Date(account.expiresAt * 1e3))) : "未知"}`;
+    return `模式: <b>${this.escapeHtml(account.authMode)}</b><br>Name: ${this.escapeHtml(account.accountName)}<br>Token: ${this.escapeHtml(
+      this.maskSecret(account.token),
+    )}<br>Saved: ${this.escapeHtml(Utils.time("yyyy-MM-dd HH:mm", new Date(account.savedAt * 1e3)))}`;
   }
   getAccountListHtml() {
     const store = this.getAccountStore();
-    if (store.accounts.length === 0) {
+    if (store.accounts.length === 0)
       return '<div class="empty">暂无账号，保存鉴权后会出现在这里。</div>';
-    }
     return store.accounts
       .map((account, index) => {
         const isDefault = account.accountName === store.defaultAccountName;
         const mode = this.getAccountMode(account);
         const meta = this.isDoneHubMode(account)
           ? `编号: ${index} | 地址: ${account.doneHubBaseUrl || "未配置"} | 渠道: ${account.doneHubChannelId || "--"}`
-          : `编号: ${index} | Account: ${account.accountId ?? "未识别"} | Expires: ${account.expiresAt ? Utils.time("yyyy-MM-dd HH:mm", new Date(account.expiresAt * 1e3)) : "未知"}`;
+          : `编号: ${index} | ${account.authMode} | ${this.maskSecret(account.token)}`;
         return `<div class="account" onclick="act('account_${index}')">
   <div class="account-main">
     <div class="account-name">${this.escapeHtml(account.accountName)}${isDefault ? '<span class="badge">默认</span>' : ""}</div>
@@ -1151,21 +1387,21 @@ ${this.getAccountSummary(account)}`;
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
-:root{color-scheme:light dark;--bg:#f4f5f7;--card:#fff;--field:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#0f9f58;--danger:#d92d20}
+:root{color-scheme:light dark;--bg:#f4f5f7;--card:#fff;--field:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#d97706;--danger:#d92d20}
 @media(prefers-color-scheme:dark){:root{--bg:#08090b;--card:#181a1f;--field:#111318;--text:#f5f7fb;--muted:#a7acb7;--line:#2b2f38}}
 *{box-sizing:border-box}body{margin:0;padding:18px;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;color:var(--text)}
 .title{font-size:28px;font-weight:750;margin:18px 2px 6px}.sub{font-size:14px;line-height:1.45;color:var(--muted);margin:0 2px 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
 .label{font-size:13px;color:var(--muted);margin-bottom:8px}.saved{font-family:"SF Mono",ui-monospace,monospace;font-size:12px;line-height:1.45;color:var(--muted)}
 input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--text);padding:12px;font-family:"SF Mono",ui-monospace,monospace;font-size:12px;outline:none}textarea{min-height:150px;margin-top:10px}select{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;font-size:15px;color-scheme:dark}option{background:var(--field);color:var(--text)}
-.row{display:flex;gap:10px;margin-top:12px}.btn{flex:1;border:0;border-radius:8px;padding:12px 10px;font-size:15px;font-weight:650;color:#fff;background:#2563eb}.btn.secondary{background:#374151}.btn.warn{background:var(--danger)}
+.row{display:flex;gap:10px;margin-top:12px}.btn{flex:1;border:0;border-radius:8px;padding:12px 10px;font-size:15px;font-weight:650;color:#fff;background:#d97706}.btn.secondary{background:#374151}.btn.warn{background:var(--danger)}
 .hint{font-size:12px;color:var(--muted);line-height:1.5}.status{font-size:13px;font-weight:650;margin-top:10px}.status.ok{color:var(--accent)}.status.bad,.status.warn{color:var(--danger)}
 .check{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin-top:10px}.check input{width:auto}.field{margin-top:10px}.mode-fields{display:none}.mode-fields.active{display:block}.account{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}.account:first-child{border-top:0}.account:active{opacity:.72}.account-main{flex:1;min-width:0}.account-name{font-size:15px;font-weight:700}.account-meta{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;color:var(--muted);line-height:1.45;word-break:break-all}.badge,.mode-badge{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px}.mode-badge{margin-left:0;background:#374151;white-space:nowrap}.arrow{font-size:24px;color:var(--muted)}.empty{color:var(--muted);font-size:13px;padding:8px 0}
 </style>
 </head>
 <body>
-<div class="title">Codex 账号管理</div>
-<p class="sub">每个账号都可以选择 <b>官方</b> 或 <b>Done Hub</b> 模式。默认账号决定 Widget 使用哪种请求方式；Parameter 可填账号编号临时切换。</p>
+<div class="title">Claude 账号管理</div>
+<p class="sub">每个账号都可以选择 <b>官方</b> 或 <b>Done Hub</b> 模式。官方可粘贴 Claude Code OAuth token 或 Anthropic API key；Done Hub 填代理额度接口参数。</p>
 <div class="card">
   <div class="label">当前默认账号</div>
   <div id="savedInfo" class="saved">${savedInfo}</div>
@@ -1179,7 +1415,7 @@ input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;
   </select>
   <input class="field" id="accountName" spellcheck="false" placeholder="账号标识名字，例如 Pro / Team / Done Hub">
   <div id="officialFields" class="mode-fields active">
-    <textarea id="authInput" spellcheck="false" placeholder='粘贴 {"tokens":{"access_token":"..."}} 或 Bearer eyJ...'></textarea>
+    <textarea id="authInput" spellcheck="false" placeholder='粘贴 {"claudeAiOauth":{"accessToken":"sk-ant-oat..."}} 或 sk-ant-api...'></textarea>
   </div>
   <div id="doneHubFields" class="mode-fields">
     <input class="field" id="doneHubBaseUrl" spellcheck="false" placeholder="Done Hub 地址，例如 https://hub.example.com">
@@ -1194,11 +1430,11 @@ input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;
   <div id="accountList">${accountListHtml}</div>
 </div>
 <div class="card">
-  <div class="hint">官方模式的桌面端路径通常是 <b>~/.codex/auth.json</b>。Parameter 填 <b>0</b> 使用第一个账号，填 <b>1</b> 使用第二个账号；不填则使用默认账号。</div>
-  <div class="row"><button class="btn secondary" onclick="act('open')">打开 ChatGPT</button><button class="btn secondary" onclick="act('docs')">官方鉴权文档</button></div>
+  <div class="hint">桌面端 Claude Code 凭据通常在 <b>~/.claude/.credentials.json</b>；如果是 macOS Keychain，也可把 Keychain 中的同结构 JSON 或 token 粘贴进来。Parameter 填 <b>0</b> 使用第一个账号，填 <b>1</b> 使用第二个账号。</div>
+  <div class="row"><button class="btn secondary" onclick="act('open')">打开 Claude 用量页</button></div>
 </div>
 <script>
-function act(name){ window.__codexAction = name; }
+function act(name){ window.__claudeAction = name; }
 function toggleModeFields(){
   var mode=document.getElementById('requestMode').value;
   document.getElementById('officialFields').className='mode-fields'+(mode==='官方'?' active':'');
@@ -1220,228 +1456,6 @@ toggleModeFields();
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
   }
-  renderProgressBar(stack, percent, width) {
-    const bar = stack.addStack();
-    bar.layoutHorizontally();
-    bar.backgroundColor = new Color("#DADDE3", 0.35);
-    bar.cornerRadius = 4;
-    bar.size = new Size(width, 7);
-    const fillWidth = Math.max(
-      3,
-      Math.round((width * this.clampPercent(percent)) / 100),
-    );
-    const fill = bar.addStack();
-    fill.backgroundColor =
-      percent < 20
-        ? new Color("#EB5757")
-        : percent < 50
-          ? new Color("#F2C94C")
-          : new Color("#27C46A");
-    fill.cornerRadius = 4;
-    fill.size = new Size(fillWidth, 7);
-    bar.addSpacer();
-  }
-  renderRowCard(parent, row, progressWidth) {
-    const card = parent.addStack();
-    card.layoutVertically();
-    card.setPadding(9, 10, 9, 10);
-    card.backgroundColor = Color.dynamic(
-      new Color("#FFFFFF", 0.78),
-      new Color("#20232A", 0.92),
-    );
-    card.cornerRadius = 8;
-    const title = card.addText(row.title);
-    title.textColor = this.widgetColor;
-    title.font = Font.mediumSystemFont(9);
-    title.textOpacity = 0.68;
-    title.lineLimit = 1;
-    title.minimumScaleFactor = 0.75;
-    card.addSpacer(2);
-    const percentRow = card.addStack();
-    percentRow.layoutHorizontally();
-    percentRow.centerAlignContent();
-    const percent = percentRow.addText(`${Math.round(row.remainingPercent)}%`);
-    percent.textColor = this.widgetColor;
-    percent.font = Font.boldSystemFont(19);
-    percent.minimumScaleFactor = 0.75;
-    percent.lineLimit = 1;
-    percentRow.addSpacer(4);
-    const remaining = percentRow.addText("剩余");
-    remaining.textColor = this.widgetColor;
-    remaining.font = Font.boldSystemFont(13);
-    remaining.minimumScaleFactor = 0.8;
-    remaining.lineLimit = 1;
-    card.addSpacer(3);
-    this.renderProgressBar(card, row.remainingPercent, progressWidth);
-    card.addSpacer(5);
-    const reset = card.addText(`重置 ${this.formatResetTime(row.resetAt)}`);
-    reset.textColor = this.widgetColor;
-    reset.font = Font.systemFont(9);
-    reset.textOpacity = 0.55;
-    reset.lineLimit = 1;
-    reset.minimumScaleFactor = 0.7;
-  }
-  async renderSmall(widget) {
-    const rows = this.getUsageRows();
-    const worst =
-      rows.length > 0
-        ? rows.reduce(
-            (min, row) =>
-              row.remainingPercent < min.remainingPercent ? row : min,
-            rows[0],
-          )
-        : null;
-    GenrateView.setListWidget(widget);
-    widget.setPadding(12, 12, 12, 12);
-    widget.addSpacer(2);
-    const titleRow = widget.addStack();
-    titleRow.layoutHorizontally();
-    titleRow.centerAlignContent();
-    if (CODEX_ICON_URL) {
-      try {
-        const iconImage = await this.getImageByUrl(CODEX_ICON_URL);
-        if (iconImage) {
-          const icon = titleRow.addImage(iconImage);
-          icon.imageSize = new Size(22, 22);
-          icon.cornerRadius = 4;
-          titleRow.addSpacer(6);
-        }
-      } catch (error) {
-        console.log(`加载Codex图标失败: ${error}`);
-      }
-    }
-    const title = titleRow.addText(this.getTitleText());
-    title.textColor = this.widgetColor;
-    title.font = Font.boldSystemFont(14);
-    title.textOpacity = 0.78;
-    title.lineLimit = 1;
-    title.minimumScaleFactor = 0.7;
-    titleRow.addSpacer();
-    widget.addSpacer(4);
-    const subTitleRow = widget.addStack();
-    subTitleRow.layoutHorizontally();
-    const accountText = this.getSmallSubtitleText();
-    const account = subTitleRow.addText(accountText);
-    account.textColor = this.widgetColor;
-    account.font = Font.mediumSystemFont(11);
-    account.textOpacity = 0.68;
-    account.lineLimit = 1;
-    account.minimumScaleFactor = 0.65;
-    subTitleRow.addSpacer();
-    widget.addSpacer(8);
-    const valueRow = widget.addStack();
-    valueRow.layoutHorizontally();
-    const value = valueRow.addText(
-      worst ? `${Math.round(worst.remainingPercent)}%` : "--",
-    );
-    value.textColor =
-      worst && worst.remainingPercent < 20 ? Color.red() : this.widgetColor;
-    value.font = Font.boldSystemFont(36);
-    value.minimumScaleFactor = 0.7;
-    valueRow.addSpacer();
-    widget.addSpacer(4);
-    const label = widget.addText(
-      worst ? worst.title.replace("Codex ", "") : this.statusMessage,
-    );
-    label.textColor = this.widgetColor;
-    label.font = Font.systemFont(10);
-    label.textOpacity = 0.58;
-    label.lineLimit = 2;
-    widget.addSpacer();
-    const timeRow = widget.addStack();
-    timeRow.layoutHorizontally();
-    timeRow.addSpacer();
-    const timeIcon = timeRow.addImage(SFSymbol.named("arrow.clockwise").image);
-    timeIcon.imageSize = new Size(8, 8);
-    timeIcon.tintColor = this.getStatusColor();
-    timeIcon.imageOpacity = 0.75;
-    timeRow.addSpacer(4);
-    const time = timeRow.addText(this.formatUpdateTime());
-    time.textColor = this.getStatusColor();
-    time.font = new Font("SF Mono", 9);
-    time.textOpacity = 0.75;
-    return widget;
-  }
-  async renderMedium(widget) {
-    return await this.renderCommon(widget, 2);
-  }
-  async renderLarge(widget) {
-    return await this.renderCommon(widget, 4);
-  }
-  async renderCommon(widget, maxRows) {
-    GenrateView.setListWidget(widget);
-    const { padding, cardGap, progressWidth } = this.getLayoutMetrics();
-    widget.setPadding(padding.top, padding.left, padding.bottom, padding.right);
-    const header = widget.addStack();
-    header.layoutHorizontally();
-    header.centerAlignContent();
-    if (CODEX_ICON_URL) {
-      try {
-        const iconImage = await this.getImageByUrl(CODEX_ICON_URL);
-        if (iconImage) {
-          const icon = header.addImage(iconImage);
-          icon.imageSize = new Size(16, 16);
-          icon.cornerRadius = 3;
-          header.addSpacer(6);
-        }
-      } catch (error) {
-        console.log(`加载Codex图标失败: ${error}`);
-      }
-    }
-    const headerTitleText = this.getHeaderTitleText();
-    const title = header.addText(headerTitleText);
-    title.textColor = this.widgetColor;
-    title.font = Font.boldSystemFont(15);
-    title.textOpacity = 0.86;
-    title.lineLimit = 1;
-    title.minimumScaleFactor = 0.65;
-    header.addSpacer();
-    widget.addSpacer(10);
-    const rows = this.getUsageRows().slice(0, maxRows);
-    if (rows.length === 0) {
-      widget.addSpacer();
-      const empty = widget.addText(this.statusMessage || "暂无额度数据");
-      empty.textColor = Color.red();
-      empty.font = Font.mediumSystemFont(13);
-      empty.centerAlignText();
-      widget.addSpacer();
-    } else {
-      for (let i = 0; i < rows.length; i += 2) {
-        const rowStack = widget.addStack();
-        rowStack.layoutHorizontally();
-        rowStack.spacing = cardGap;
-        this.renderRowCard(rowStack, rows[i], progressWidth);
-        if (rows[i + 1])
-          this.renderRowCard(rowStack, rows[i + 1], progressWidth);
-        widget.addSpacer(8);
-      }
-    }
-    const footer = widget.addStack();
-    footer.layoutHorizontally();
-    footer.centerAlignContent();
-    footer.setPadding(0, 0, 0, 0);
-    const credit = footer.addText(
-      `账户余额：${this.getCreditText()} · ${this.getAccountMode(this.currentAccount)}`,
-    );
-    credit.textColor = this.widgetColor;
-    credit.font = Font.mediumSystemFont(10);
-    credit.textOpacity = 0.62;
-    credit.lineLimit = 1;
-    credit.minimumScaleFactor = 0.75;
-    credit.size = new Size(96, 16);
-    footer.addSpacer();
-    const statusText =
-      this.currentSettings.displaySettings.showUpdateTime.val === "显示"
-        ? `${this.statusMessage}  ↻ ${this.formatUpdateTime()}`
-        : this.statusMessage;
-    const status = footer.addText(statusText);
-    status.textColor = this.getStatusColor();
-    status.font = new Font("SF Mono", 10);
-    status.textOpacity = 0.82;
-    status.lineLimit = 1;
-    status.minimumScaleFactor = 0.7;
-    return widget;
-  }
   async render() {
     const widget = new ListWidget();
     await this.getWidgetBackgroundImage(widget);
@@ -1460,6 +1474,6 @@ toggleModeFields();
     }
   }
 };
-EndAwait(() => Runing(CodexMonitor, args.widgetParameter, false));
+EndAwait(() => Runing(ClaudeMonitor, args.widgetParameter, false));
 
 await __topLevelAwait__();

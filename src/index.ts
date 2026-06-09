@@ -7,6 +7,7 @@ import './scripts/Seiun.Env'
  * Custom scripts.
  */
 import './scripts/BilibiliMonitor'
+import './scripts/ClaudeMonitor'
 import './scripts/CodexMonitor'
 import './scripts/CursorMonitor'
 import './scripts/InfoCollection'
