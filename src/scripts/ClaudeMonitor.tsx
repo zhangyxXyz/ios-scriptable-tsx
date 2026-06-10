@@ -79,6 +79,22 @@ type ClaudeOAuthUsageResponse = {
     } | null
 }
 
+type DoneHubClaudeUsageData = {
+    usage?: ClaudeOAuthUsageResponse
+    cached?: boolean
+    stale?: boolean
+    empty?: boolean
+    fetched_at?: number
+    warning?: string
+}
+
+class ClaudeUsageWindowEmptyError extends Error {
+    constructor(message = '暂无活跃 ClaudeCode 用量窗口，请发起一次会话后再查询') {
+        super(message)
+        this.name = 'ClaudeUsageWindowEmptyError'
+    }
+}
+
 type AnthropicUsageResponse = {
     data?: Array<{
         input_tokens?: number
@@ -138,6 +154,7 @@ class ClaudeMonitor extends WidgetBase {
     dataFetchTime: number | null = null
     isRequestSuccess = false
     isDataExpired = false
+    isUsageWindowEmpty = false
     statusMessage = '等待刷新'
     currentAccount: ClaudeCredential | null = null
     paramAccountIndex: number | null = null
@@ -622,7 +639,7 @@ class ClaudeMonitor extends WidgetBase {
             this.extractOAuthPeriod('seven-day-omelette', 'Omelette 7 天限额', data.seven_day_omelette || undefined),
             this.extractExtraUsagePeriod(data.extra_usage || undefined),
         ].filter((period): period is UsagePeriod => Boolean(period))
-        if (!fiveHour && !oneWeek && additional.length === 0) throw new Error('响应缺少 utilization')
+        if (!fiveHour && !oneWeek && additional.length === 0) throw new ClaudeUsageWindowEmptyError()
         return {fiveHour, oneWeek, additional}
     }
 
@@ -651,8 +668,11 @@ class ClaudeMonitor extends WidgetBase {
             throw error
         }
 
-        const response = payload as {success?: boolean; message?: string; data?: {usage?: ClaudeOAuthUsageResponse}}
+        const response = payload as {success?: boolean; message?: string; data?: DoneHubClaudeUsageData}
         if (response?.success === false) throw new Error(response.message || 'Done Hub 请求失败')
+        if (response?.data?.empty) {
+            throw new ClaudeUsageWindowEmptyError(response.data.warning || undefined)
+        }
         const data = response?.data?.usage || (payload as ClaudeOAuthUsageResponse)
         console.log(`Done Hub Claude额度请求成功: HTTP ${this.getHttpStatusLabel(request)}`)
         return this.parseOAuthUsage(data)
@@ -749,12 +769,17 @@ class ClaudeMonitor extends WidgetBase {
         this.dataFetchTime = cache.fetchedAt
         this.isRequestSuccess = false
         this.isDataExpired = expired
+        this.isUsageWindowEmpty = false
         this.statusMessage = message
     }
 
     isRateLimitError(error: unknown) {
         const text = String(error ?? '').toLowerCase()
         return text.includes('429') || text.includes('rate limit') || text.includes('too many requests')
+    }
+
+    isUsageWindowEmptyError(error: unknown) {
+        return error instanceof ClaudeUsageWindowEmptyError || String(error ?? '').includes('ClaudeUsageWindowEmptyError')
     }
 
     async loadUsage() {
@@ -783,14 +808,33 @@ class ClaudeMonitor extends WidgetBase {
             this.dataFetchTime = fetchedAt
             this.isRequestSuccess = true
             this.isDataExpired = false
+            this.isUsageWindowEmpty = false
             this.statusMessage = '在线'
         } catch (error) {
             console.log(`请求Claude额度失败: ${error}`)
             const cache = this.getAnyCachedUsage()
             if (cache?.usage) {
-                this.useCache(cache, true, this.isRateLimitError(error) ? '频率限制/使用缓存' : '请求失败/使用缓存')
+                this.useCache(
+                    cache,
+                    true,
+                    this.isUsageWindowEmptyError(error)
+                        ? '暂无活跃窗口/使用缓存'
+                        : this.isRateLimitError(error)
+                          ? '频率限制/使用缓存'
+                          : '请求失败/使用缓存',
+                )
                 return
             }
+            if (this.isUsageWindowEmptyError(error)) {
+                this.usageStatus = null
+                this.dataFetchTime = null
+                this.isRequestSuccess = false
+                this.isDataExpired = false
+                this.isUsageWindowEmpty = true
+                this.statusMessage = '暂无活跃窗口'
+                return
+            }
+            this.isUsageWindowEmpty = false
             this.statusMessage = String(error)
         }
     }
@@ -834,6 +878,7 @@ class ClaudeMonitor extends WidgetBase {
 
     getStatusColor() {
         if (this.isRequestSuccess) return new Color('#27C46A')
+        if (this.isUsageWindowEmpty) return new Color('#F2C94C')
         return Color.red()
     }
 

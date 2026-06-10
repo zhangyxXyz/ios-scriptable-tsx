@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/10
- * build    :  2026-06-10 12:10:33
+ * build    :  2026-06-10 23:28:17
  * desc     :  Claude额度监控
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -23,6 +23,14 @@ var dependencyFileName = "Seiun.Env.js";
 var runtimeRequire = typeof require === "undefined" ? importModule : require;
 var { WidgetBase, Runing, Utils, GenrateView } =
   runtimeRequire(dependencyFileName);
+var ClaudeUsageWindowEmptyError = class extends Error {
+  constructor(
+    message = "暂无活跃 ClaudeCode 用量窗口，请发起一次会话后再查询",
+  ) {
+    super(message);
+    this.name = "ClaudeUsageWindowEmptyError";
+  }
+};
 var API_BASE = "https://api.anthropic.com";
 var ANTHROPIC_VERSION = "2023-06-01";
 var OAUTH_BETA = "oauth-2025-04-20";
@@ -46,6 +54,7 @@ var ClaudeMonitor = class extends WidgetBase {
     this.dataFetchTime = null;
     this.isRequestSuccess = false;
     this.isDataExpired = false;
+    this.isUsageWindowEmpty = false;
     this.statusMessage = "等待刷新";
     this.currentAccount = null;
     this.paramAccountIndex = null;
@@ -629,7 +638,7 @@ var ClaudeMonitor = class extends WidgetBase {
       this.extractExtraUsagePeriod(data.extra_usage || void 0),
     ].filter((period) => Boolean(period));
     if (!fiveHour && !oneWeek && additional.length === 0)
-      throw new Error("响应缺少 utilization");
+      throw new ClaudeUsageWindowEmptyError();
     return { fiveHour, oneWeek, additional };
   }
   async requestDoneHubUsage(credential) {
@@ -660,6 +669,9 @@ var ClaudeMonitor = class extends WidgetBase {
     const response = payload;
     if (response?.success === false)
       throw new Error(response.message || "Done Hub 请求失败");
+    if (response?.data?.empty) {
+      throw new ClaudeUsageWindowEmptyError(response.data.warning || void 0);
+    }
     const data = response?.data?.usage || payload;
     console.log(
       `Done Hub Claude额度请求成功: HTTP ${this.getHttpStatusLabel(request)}`,
@@ -765,6 +777,7 @@ var ClaudeMonitor = class extends WidgetBase {
     this.dataFetchTime = cache.fetchedAt;
     this.isRequestSuccess = false;
     this.isDataExpired = expired;
+    this.isUsageWindowEmpty = false;
     this.statusMessage = message;
   }
   isRateLimitError(error) {
@@ -773,6 +786,12 @@ var ClaudeMonitor = class extends WidgetBase {
       text.includes("429") ||
       text.includes("rate limit") ||
       text.includes("too many requests")
+    );
+  }
+  isUsageWindowEmptyError(error) {
+    return (
+      error instanceof ClaudeUsageWindowEmptyError ||
+      String(error ?? "").includes("ClaudeUsageWindowEmptyError")
     );
   }
   async loadUsage() {
@@ -802,6 +821,7 @@ var ClaudeMonitor = class extends WidgetBase {
       this.dataFetchTime = fetchedAt;
       this.isRequestSuccess = true;
       this.isDataExpired = false;
+      this.isUsageWindowEmpty = false;
       this.statusMessage = "在线";
     } catch (error) {
       console.log(`请求Claude额度失败: ${error}`);
@@ -810,12 +830,24 @@ var ClaudeMonitor = class extends WidgetBase {
         this.useCache(
           cache,
           true,
-          this.isRateLimitError(error)
-            ? "频率限制/使用缓存"
-            : "请求失败/使用缓存",
+          this.isUsageWindowEmptyError(error)
+            ? "暂无活跃窗口/使用缓存"
+            : this.isRateLimitError(error)
+              ? "频率限制/使用缓存"
+              : "请求失败/使用缓存",
         );
         return;
       }
+      if (this.isUsageWindowEmptyError(error)) {
+        this.usageStatus = null;
+        this.dataFetchTime = null;
+        this.isRequestSuccess = false;
+        this.isDataExpired = false;
+        this.isUsageWindowEmpty = true;
+        this.statusMessage = "暂无活跃窗口";
+        return;
+      }
+      this.isUsageWindowEmpty = false;
       this.statusMessage = String(error);
     }
   }
@@ -852,6 +884,7 @@ var ClaudeMonitor = class extends WidgetBase {
   }
   getStatusColor() {
     if (this.isRequestSuccess) return new Color("#27C46A");
+    if (this.isUsageWindowEmpty) return new Color("#F2C94C");
     return Color.red();
   }
   getAuthModeLabel() {
