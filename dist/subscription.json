@@ -88,6 +88,18 @@
       "build": "2026-06-04 04:11:22"
     },
     {
+      "id": "DoneHubMonitor",
+      "fileName": "DoneHubMonitor.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/DoneHubMonitor.js",
+      "name": {
+        "zh": "DoneHub聚合监控",
+        "en": "DoneHubMonitor"
+      },
+      "desc": "Done Hub 聚合额度监控",
+      "version": "1.0.0",
+      "build": "2026-06-11 02:21:06"
+    },
+    {
       "id": "DoubanMonitor",
       "fileName": "DoubanMonitor.js",
       "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/DoubanMonitor.js",
