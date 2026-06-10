@@ -1,15 +1,15 @@
-import {build, BuildOptions, OutputFile} from 'esbuild'
+import { build, BuildOptions, OutputFile } from 'esbuild'
 import fs from 'fs'
 import path from 'path'
-import {promisify} from 'util'
-import {execFileSync} from 'child_process'
-import {createHash} from 'crypto'
-import {merge} from 'lodash'
-import {obfuscate, ObfuscatorOptions} from 'javascript-obfuscator'
-import {createServer} from './server'
-import {loadEnvFiles} from './env'
+import { promisify } from 'util'
+import { execFileSync } from 'child_process'
+import { createHash } from 'crypto'
+import { merge } from 'lodash'
+import { obfuscate, ObfuscatorOptions } from 'javascript-obfuscator'
+import { createServer } from './server'
+import { loadEnvFiles } from './env'
 import compileOptions from '../../scriptable.config'
-import {ensureFile, remove} from 'fs-extra'
+import { ensureFile, remove } from 'fs-extra'
 import * as prettier from 'prettier'
 
 /**打包模式*/
@@ -111,7 +111,7 @@ compile(merge(_compileOptions, compileOptions || {}))
 
 function runGit(rootPath: string, args: string[]) {
     try {
-        return execFileSync('git', args, {cwd: rootPath, encoding: 'utf8'}).trim()
+        return execFileSync('git', args, { cwd: rootPath, encoding: 'utf8' }).trim()
     } catch {
         return ''
     }
@@ -154,11 +154,11 @@ function registerWatchCleanup(closeServer: () => Promise<void>): void {
         process.exit(0)
     }
 
-    ;(['SIGINT', 'SIGTERM', 'SIGBREAK', 'SIGHUP', 'SIGUSR2'] as NodeJS.Signals[]).forEach(signal => {
-        process.once(signal, () => {
-            void cleanup(signal)
+        ; (['SIGINT', 'SIGTERM', 'SIGBREAK', 'SIGHUP', 'SIGUSR2'] as NodeJS.Signals[]).forEach(signal => {
+            process.once(signal, () => {
+                void cleanup(signal)
+            })
         })
-    })
 }
 
 async function compile(options: CompileOptions) {
@@ -256,8 +256,10 @@ async function compile(options: CompileOptions) {
     }
 
     function createSeiunEnvBuildEntry(entryPath: string) {
-        const stripModuleMarker = (source: string) => source.replace(/\r?\nexport\s*\{\s*\}\s*;?\s*$/g, '')
-        let runtimeSource = stripModuleMarker(fs.readFileSync(entryPath, 'utf8'))
+        const normalizeLineEndings = (source: string) => source.replace(/\r\n/g, '\n')
+        const stripModuleMarker = (source: string) => source.replace(/\nexport\s*\{\s*\}\s*;?\s*$/g, '')
+        const readSource = (filePath: string) => stripModuleMarker(normalizeLineEndings(fs.readFileSync(filePath, 'utf8')))
+        let runtimeSource = readSource(entryPath)
         const inlineModules = [
             {
                 requireLine: "const {createWidgetBaseRuntime} = require('./widget-base')\n",
@@ -293,7 +295,7 @@ async function compile(options: CompileOptions) {
 
         for (const moduleInfo of inlineModules) {
             const sourcePath = path.resolve(rootPath, moduleInfo.modulePath)
-            const moduleSource = stripModuleMarker(fs.readFileSync(sourcePath, 'utf8'))
+            const moduleSource = readSource(sourcePath)
                 .replace(/^\/\*[\s\S]*?\*\/\s*/, '')
                 .replace(new RegExp(`\\nmodule\\.exports = \\{\\s*${moduleInfo.exportName},\\s*\\}\\s*$`), '')
             const inlineSource = stripModuleMarker(moduleSource).trimEnd()
@@ -302,7 +304,7 @@ async function compile(options: CompileOptions) {
         }
 
         const generatedEntryPath = path.resolve(rootPath, './node_modules/.cache/ios-scriptable-tsx/Seiun.Env.entry.ts')
-        fs.mkdirSync(path.dirname(generatedEntryPath), {recursive: true})
+        fs.mkdirSync(path.dirname(generatedEntryPath), { recursive: true })
         fs.writeFileSync(generatedEntryPath, runtimeSource, 'utf8')
         return generatedEntryPath
     }
@@ -390,7 +392,7 @@ const MODULE = module;${topLevelAwaitRuntime}
      */
     function readWidgetNamePair(source: string) {
         const match = source.match(/\bthis\.name\s*=\s*["'`]([^"'`]+)["'`]\s*;?\s*this\.en\s*=\s*["'`]([^"'`]+)["'`]/)
-        return match ? {zh: match[1].trim(), en: match[2].trim()} : null
+        return match ? { zh: match[1].trim(), en: match[2].trim() } : null
     }
 
     function joinRawUrl(baseUrl: string, fileName: string) {
@@ -414,7 +416,9 @@ const MODULE = module;${topLevelAwaitRuntime}
         for (const file of files) {
             try {
                 previousOutputTexts.set(path.resolve(file), fs.readFileSync(file, 'utf8'))
-            } catch (_) {}
+            } catch (_) {
+                console.error('快照输出目录失败', _)
+            }
         }
     }
 
@@ -459,15 +463,17 @@ const MODULE = module;${topLevelAwaitRuntime}
         if (previousManifestText) {
             try {
                 const previousManifest = JSON.parse(previousManifestText)
-                const normalizedPrevious = {...previousManifest, generatedAt: '<generatedAt>'}
-                const normalizedNext = {...manifest, generatedAt: '<generatedAt>'}
+                const normalizedPrevious = { ...previousManifest, generatedAt: '<generatedAt>' }
+                const normalizedNext = { ...manifest, generatedAt: '<generatedAt>' }
                 if (JSON.stringify(normalizedPrevious) === JSON.stringify(normalizedNext)) {
                     manifestText = previousManifestText
                 }
-            } catch (_) {}
+            } catch (_) {
+                console.error('解析订阅清单失败', _)
+            }
         }
         await ensureFile(manifestPath)
-        await writeFile(manifestPath, manifestText, {encoding: 'utf8'})
+        await writeFile(manifestPath, manifestText, { encoding: 'utf8' })
         console.log(`订阅清单已生成: ${manifestPath}`)
     }
 
@@ -530,13 +536,13 @@ await __topLevelAwait__();
 
         // esbuild 打包
         for (const inputPath of inputPaths) {
-            const {entryPath, outputPath} = getBuildEntry(inputPath)
+            const { entryPath, outputPath } = getBuildEntry(inputPath)
             const buildEntryPath = outputPath ? createSeiunEnvBuildEntry(entryPath) : entryPath
             const groupOptions: BuildOptions = {
                 ...esbuildOptions,
                 entryPoints: [buildEntryPath],
                 inject: shouldInjectJsxRuntime(buildEntryPath) ? [jsxRuntimeInjectPath] : [],
-                banner: {js: getEntryBanner(buildEntryPath, !outputPath)},
+                banner: { js: getEntryBanner(buildEntryPath, !outputPath) },
             }
             if (outputPath) {
                 delete groupOptions.outdir
@@ -603,14 +609,14 @@ await __topLevelAwait__();
         const compareText = previousBuildTime ? replaceBuildTime(writeText, previousBuildTime) : writeText
 
         await ensureFile(tempPath)
-        await writeFile(tempPath, compareText, {encoding: 'utf8'})
+        await writeFile(tempPath, compareText, { encoding: 'utf8' })
 
         if (previousText && previousBuildTime && md5(previousText) === md5(compareText)) {
             continue
         }
 
         await ensureFile(finalPath)
-        await writeFile(finalPath, writeText, {encoding: 'utf8'})
+        await writeFile(finalPath, writeText, { encoding: 'utf8' })
     }
 
     console.log('加密代码结束')
