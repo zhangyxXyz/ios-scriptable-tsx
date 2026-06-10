@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-04 03:21:46
+ * build    :  2026-06-10 12:18:53
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -4010,6 +4010,26 @@ function createWidgetBaseRuntime(deps2) {
         new Color(this.settings.darkColor),
       );
     }
+    getWidgetSize(size = this.widgetFamily) {
+      const family =
+        size === "large" ? "large" : size === "small" ? "small" : "medium";
+      const screenWidth = Math.round(Device.screenSize().width);
+      const smallWidths = [
+        { min: 430, value: 170 },
+        { min: 414, value: 169 },
+        { min: 390, value: 158 },
+        { min: 375, value: 155 },
+        { min: 360, value: 155 },
+        { min: 320, value: 141 },
+      ];
+      const small =
+        smallWidths.find((item) => screenWidth >= item.min)?.value || 155;
+      const medium = Math.round(small * 2 + 20);
+      const largeHeight = Math.round(small * 2 + 20);
+      if (family === "small") return new Size(small, small);
+      if (family === "large") return new Size(medium, largeHeight);
+      return new Size(medium, small);
+    }
     getColors = (color = "") => {
       const colors = typeof color === "string" ? color.split(",") : color;
       return colors;
@@ -4959,6 +4979,10 @@ function createWidgetBaseRuntime(deps2) {
     Runing: Runing2,
   };
 }
+module.exports = {
+  createWidgetBaseRuntime,
+};
+export {};
 function createStorageRuntime(deps2) {
   const { fm: fm2, hash: hash2, isHttpUrl: isHttpUrl2 } = deps2;
   function setStorageDirectory(dirPath) {

@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/05
- * build    :  2026-06-10 02:41:29
+ * build    :  2026-06-10 12:10:33
  * desc     :  Codex额度监控
  * version  :  1.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -849,8 +849,15 @@ var CodexMonitor = class extends WidgetBase {
   getLayoutMetrics() {
     const padding = { top: 10, right: 10, bottom: 10, left: 10 };
     const cardGap = 12;
-    const progressWidth = 124;
-    return { padding, cardGap, progressWidth };
+    const widgetSize = this.getWidgetSize(
+      this.widgetFamily === "large" ? "large" : "medium",
+    );
+    const contentWidth = Math.floor(
+      widgetSize.width - padding.left - padding.right,
+    );
+    const cardWidth = Math.floor((contentWidth - cardGap) / 2);
+    const progressWidth = cardWidth - 20;
+    return { padding, cardGap, cardWidth, progressWidth };
   }
   estimateTextWidth(text, fontSize, min, max) {
     let asciiCount = 0;
@@ -1241,7 +1248,7 @@ toggleModeFields();
     fill.size = new Size(fillWidth, 7);
     bar.addSpacer();
   }
-  renderRowCard(parent, row, progressWidth) {
+  renderRowCard(parent, row, cardWidth, progressWidth) {
     const card = parent.addStack();
     card.layoutVertically();
     card.setPadding(9, 10, 9, 10);
@@ -1250,6 +1257,7 @@ toggleModeFields();
       new Color("#20232A", 0.92),
     );
     card.cornerRadius = 8;
+    card.size = new Size(cardWidth, 84);
     const title = card.addText(row.title);
     title.textColor = this.widgetColor;
     title.font = Font.mediumSystemFont(9);
@@ -1370,7 +1378,8 @@ toggleModeFields();
   }
   async renderCommon(widget, maxRows) {
     GenrateView.setListWidget(widget);
-    const { padding, cardGap, progressWidth } = this.getLayoutMetrics();
+    const { padding, cardGap, cardWidth, progressWidth } =
+      this.getLayoutMetrics();
     widget.setPadding(padding.top, padding.left, padding.bottom, padding.right);
     const header = widget.addStack();
     header.layoutHorizontally();
@@ -1410,9 +1419,9 @@ toggleModeFields();
         const rowStack = widget.addStack();
         rowStack.layoutHorizontally();
         rowStack.spacing = cardGap;
-        this.renderRowCard(rowStack, rows[i], progressWidth);
+        this.renderRowCard(rowStack, rows[i], cardWidth, progressWidth);
         if (rows[i + 1])
-          this.renderRowCard(rowStack, rows[i + 1], progressWidth);
+          this.renderRowCard(rowStack, rows[i + 1], cardWidth, progressWidth);
         widget.addSpacer(8);
       }
     }

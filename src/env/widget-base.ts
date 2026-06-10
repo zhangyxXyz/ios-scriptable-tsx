@@ -3,7 +3,7 @@
  */
 
 function createWidgetBaseRuntime(deps: any) {
-    const {DEFAULT_TRUNCATE_LENGTH, Storage, globalStorage, isInICloud, isHttpUrl, isEmpty, hash} = deps
+    const { DEFAULT_TRUNCATE_LENGTH, Storage, globalStorage, isInICloud, isHttpUrl, isEmpty, hash } = deps
 
     class WidgetBase {
         [key: string]: any
@@ -84,7 +84,7 @@ function createWidgetBaseRuntime(deps: any) {
         }
 
         // 发起请求
-        http = async (options = {headers: {}, url: ''}, type = 'JSON') => {
+        http = async (options = { headers: {}, url: '' }, type = 'JSON') => {
             try {
                 let request
                 if (type !== 'IMG') {
@@ -92,7 +92,7 @@ function createWidgetBaseRuntime(deps: any) {
                     Object.keys(options).forEach(key => {
                         request[key] = options[key]
                     })
-                    request.headers = {...this.defaultHeaders, ...options.headers}
+                    request.headers = { ...this.defaultHeaders, ...options.headers }
                 } else {
                     request = this.getRequest(options.url)
                     return (await request.loadImage()) || SFSymbol.named('photo').image
@@ -113,9 +113,9 @@ function createWidgetBaseRuntime(deps: any) {
         //request 接口请求
         $request = {
             get: async (url: any = '', options: any = {}, type: any = 'JSON') => {
-                let params: any = {...(options as any), method: 'GET'}
+                let params: any = { ...(options as any), method: 'GET' }
                 if (typeof url === 'object') {
-                    params = {...params, ...url}
+                    params = { ...params, ...url }
                 } else {
                     params.url = url
                 }
@@ -124,9 +124,9 @@ function createWidgetBaseRuntime(deps: any) {
                 return await this.http(params, _type)
             },
             post: async (url: any = '', options: any = {}, type: any = 'JSON') => {
-                let params: any = {...(options as any), method: 'POST'}
+                let params: any = { ...(options as any), method: 'POST' }
                 if (typeof url === 'object') {
-                    params = {...params, ...url}
+                    params = { ...params, ...url }
                 } else {
                     params.url = url
                 }
@@ -140,7 +140,7 @@ function createWidgetBaseRuntime(deps: any) {
             try {
                 let url = 'http://' + this.prefix + '/query/boxdata'
                 if (key) url = 'http://' + this.prefix + '/query/data/' + key
-                const boxdata = await this.$request.get(url, key ? {timeoutInterval: 1} : {})
+                const boxdata = await this.$request.get(url, key ? { timeoutInterval: 1 } : {})
                 if (key) {
                     this.settings.BoxJSData = {
                         ...this.settings.BoxJSData,
@@ -227,7 +227,7 @@ function createWidgetBaseRuntime(deps: any) {
          */
         verifyImage = async img => {
             try {
-                const {width, height} = img.size
+                const { width, height } = img.size
                 const direct = true
                 if (width > 1000) {
                     const options = ['取消', '打开图像处理']
@@ -470,7 +470,7 @@ function createWidgetBaseRuntime(deps: any) {
                     : ''
 
             // Determine image crop based on phone size.
-            const crop: any = {w: '', h: '', x: '', y: ''}
+            const crop: any = { w: '', h: '', x: '', y: '' }
             if (widgetSize === '小尺寸') {
                 crop.w = phone.small
                 crop.h = phone.small
@@ -539,7 +539,7 @@ function createWidgetBaseRuntime(deps: any) {
                     this.settings[category][key] = data[key]
                 })
             } else {
-                this.settings = {...this.settings, ...data}
+                this.settings = { ...this.settings, ...data }
             }
             return this.saveSettings()
         }
@@ -564,7 +564,7 @@ function createWidgetBaseRuntime(deps: any) {
                     String(
                         curCategory !== this.noneCategoryName
                             ? this.settings.hasOwnProperty(curCategory) &&
-                              this.settings[curCategory].hasOwnProperty(key)
+                                this.settings[curCategory].hasOwnProperty(key)
                                 ? this.settings[curCategory][key] || ''
                                 : ''
                             : this.settings[key] || '',
@@ -752,8 +752,8 @@ function createWidgetBaseRuntime(deps: any) {
                             type: 'image',
                             title: '首页头像',
                             desc: '',
-                            icon: {name: 'person', color: '#fa541c'},
-                            option: {avatar: this.baseSettings.avatar || ''},
+                            icon: { name: 'person', color: '#fa541c' },
+                            option: { avatar: this.baseSettings.avatar || '' },
                             config: {
                                 imageSource: 'both',
                                 showThumbnail: true,
@@ -767,7 +767,7 @@ function createWidgetBaseRuntime(deps: any) {
                             type: 'text',
                             title: '首页昵称',
                             desc: '个性化首页昵称',
-                            icon: {name: 'pencil', color: '#fa8c16'},
+                            icon: { name: 'pencil', color: '#fa8c16' },
                             option: {
                                 [this.userConfigKeys[1]]: this.getUserConfig(this.userConfigKeys[1]),
                             },
@@ -781,7 +781,7 @@ function createWidgetBaseRuntime(deps: any) {
                             type: 'text',
                             title: '首页昵称描述',
                             desc: '个性化首页昵称描述',
-                            icon: {name: 'lineweight', color: '#a0d911'},
+                            icon: { name: 'lineweight', color: '#a0d911' },
                             option: {
                                 [this.userConfigKeys[2]]: this.getUserConfig(this.userConfigKeys[2]),
                             },
@@ -796,7 +796,7 @@ function createWidgetBaseRuntime(deps: any) {
                             type: 'text',
                             title: '头像跳转链接',
                             desc: '点击头像后跳转的网页地址',
-                            icon: {name: 'link', color: '#1890ff'},
+                            icon: { name: 'link', color: '#1890ff' },
                             option: {
                                 [this.userConfigKeys[3]]: this.getUserConfig(this.userConfigKeys[3]),
                             },
@@ -821,7 +821,7 @@ function createWidgetBaseRuntime(deps: any) {
                     type: 'text',
                     title: 'BoxJS 域名',
                     desc: '设置BoxJS访问域名，如：boxjs.net 或 boxjs.com',
-                    icon: {name: 'shippingbox', color: '#f7bb10'},
+                    icon: { name: 'shippingbox', color: '#f7bb10' },
                     option: {
                         boxjsDomain: this.baseSettings.boxjsDomain || 'boxjs.com',
                     },
@@ -966,10 +966,10 @@ function createWidgetBaseRuntime(deps: any) {
         setWidgetConfig = async () => {
             // 清理并使用统一的 registerSetting 注册基础配置
             this._settings = this._settings || {}
-            this._settings.baseSettings = {title: '基础设置', items: []}
-            this._settings.bgColorSettings = {title: '背景颜色', items: []}
-            this._settings.bgImageSettings = {title: '背景图片', items: []}
-            this._settings.bgOpacitySettings = {title: '蒙层透明度', items: []}
+            this._settings.baseSettings = { title: '基础设置', items: [] }
+            this._settings.bgColorSettings = { title: '背景颜色', items: [] }
+            this._settings.bgImageSettings = { title: '背景图片', items: [] }
+            this._settings.bgOpacitySettings = { title: '蒙层透明度', items: [] }
 
             this.registerSetting([
                 // 基础设置
@@ -977,7 +977,7 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'baseSettings',
                     title: '刷新时间',
                     desc: '刷新时间仅供参考，具体刷新时间由系统判断（单位：分钟）',
-                    icon: {name: 'arrow.clockwise', color: '#1890ff'},
+                    icon: { name: 'arrow.clockwise', color: '#1890ff' },
                     type: 'text',
                     option: {
                         refreshAfterDate: this.settings.refreshAfterDate || '',
@@ -990,7 +990,7 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'baseSettings',
                     title: '全局缩放比例',
                     desc: '不同机型会造成组件显示问题，适当调整该参数，如0.95、0.9，视小组件显示效果自行调整',
-                    icon: {name: 'arrow.up.left.and.arrow.down.right', color: '#722ed1'},
+                    icon: { name: 'arrow.up.left.and.arrow.down.right', color: '#722ed1' },
                     type: 'text',
                     option: {
                         widgetScale: this.settings.widgetScale || 1,
@@ -1003,17 +1003,17 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'baseSettings',
                     title: '白天字体颜色',
                     desc: '请自行去网站上搜寻颜色（Hex 颜色）',
-                    icon: {name: 'sun.max.fill', color: '#d48806'},
+                    icon: { name: 'sun.max.fill', color: '#d48806' },
                     type: 'color',
-                    option: {lightColor: this.settings.lightColor || '#000000'},
+                    option: { lightColor: this.settings.lightColor || '#000000' },
                 },
                 {
                     category: 'baseSettings',
                     title: '晚上字体颜色',
                     desc: '请自行去网站上搜寻颜色（Hex 颜色）',
-                    icon: {name: 'moon.stars.fill', color: '#d4b106'},
+                    icon: { name: 'moon.stars.fill', color: '#d4b106' },
                     type: 'color',
-                    option: {darkColor: this.settings.darkColor || '#ffffff'},
+                    option: { darkColor: this.settings.darkColor || '#ffffff' },
                 },
 
                 // 背景颜色
@@ -1021,17 +1021,17 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'bgColorSettings',
                     title: '白天背景颜色',
                     desc: '请自行去网站上搜寻颜色（Hex 颜色）\n支持渐变色，各颜色之间以英文逗号分隔',
-                    icon: {name: 'photo', color: '#13c2c2'},
+                    icon: { name: 'photo', color: '#13c2c2' },
                     type: 'color',
-                    option: {lightBgColor: this.settings.lightBgColor || ''},
+                    option: { lightBgColor: this.settings.lightBgColor || '' },
                 },
                 {
                     category: 'bgColorSettings',
                     title: '晚上背景颜色',
                     desc: '请自行去网站上搜寻颜色（Hex 颜色）\n支持渐变色，各颜色之间以英文逗号分隔',
-                    icon: {name: 'photo.fill', color: '#52c41a'},
+                    icon: { name: 'photo.fill', color: '#52c41a' },
                     type: 'color',
-                    option: {darkBgColor: this.settings.darkBgColor || ''},
+                    option: { darkBgColor: this.settings.darkBgColor || '' },
                 },
 
                 // 背景图片
@@ -1039,17 +1039,17 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'bgImageSettings',
                     title: '日间背景图片',
                     desc: '',
-                    icon: {name: 'photo.on.rectangle', color: '#fa8c16'},
+                    icon: { name: 'photo.on.rectangle', color: '#fa8c16' },
                     type: 'image',
-                    option: {[this.BACKGROUND_DAY_KEY]: this.settings[this.BACKGROUND_DAY_KEY] || ''},
+                    option: { [this.BACKGROUND_DAY_KEY]: this.settings[this.BACKGROUND_DAY_KEY] || '' },
                     config: {
                         imageSource: 'album',
                         showThumbnail: false,
                         clearable: false,
                         notifyOnSet: true,
                         notifyMessages: {
-                            success: {title: '设置成功', body: '小组件日间背景图片已设置，稍后刷新生效'},
-                            clear: {title: '移除成功', body: '小组件日间背景图片已移除，稍后刷新生效'},
+                            success: { title: '设置成功', body: '小组件日间背景图片已设置，稍后刷新生效' },
+                            clear: { title: '移除成功', body: '小组件日间背景图片已移除，稍后刷新生效' },
                         },
                     },
                 },
@@ -1057,17 +1057,17 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'bgImageSettings',
                     title: '夜间背景图片',
                     desc: '',
-                    icon: {name: 'photo.fill.on.rectangle.fill', color: '#fa541c'},
+                    icon: { name: 'photo.fill.on.rectangle.fill', color: '#fa541c' },
                     type: 'image',
-                    option: {[this.BACKGROUND_NIGHT_KEY]: this.settings[this.BACKGROUND_NIGHT_KEY] || ''},
+                    option: { [this.BACKGROUND_NIGHT_KEY]: this.settings[this.BACKGROUND_NIGHT_KEY] || '' },
                     config: {
                         imageSource: 'album',
                         showThumbnail: false,
                         clearable: false,
                         notifyOnSet: true,
                         notifyMessages: {
-                            success: {title: '设置成功', body: '小组件夜间背景图片已设置，稍后刷新生效'},
-                            clear: {title: '移除成功', body: '小组件夜间背景图片已移除，稍后刷新生效'},
+                            success: { title: '设置成功', body: '小组件夜间背景图片已设置，稍后刷新生效' },
+                            clear: { title: '移除成功', body: '小组件夜间背景图片已移除，稍后刷新生效' },
                         },
                     },
                 },
@@ -1075,17 +1075,17 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'bgImageSettings',
                     title: '透明背景设置',
                     desc: '',
-                    icon: {name: 'text.below.photo', color: '#faad14'},
+                    icon: { name: 'text.below.photo', color: '#faad14' },
                     type: 'image',
-                    option: {[this.BACKGROUND_TRANSPARENT_KEY]: this.settings[this.BACKGROUND_TRANSPARENT_KEY] || ''},
+                    option: { [this.BACKGROUND_TRANSPARENT_KEY]: this.settings[this.BACKGROUND_TRANSPARENT_KEY] || '' },
                     config: {
                         imageSource: 'screenshot',
                         showThumbnail: false,
                         clearable: false,
                         notifyOnSet: true,
                         notifyMessages: {
-                            success: {title: '设置成功', body: '透明背景已设置，稍后刷新生效'},
-                            clear: {title: '移除成功', body: '透明背景已移除，稍后刷新生效'},
+                            success: { title: '设置成功', body: '透明背景已设置，稍后刷新生效' },
+                            clear: { title: '移除成功', body: '透明背景已移除，稍后刷新生效' },
                         },
                     },
                 },
@@ -1093,7 +1093,7 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'bgImageSettings',
                     title: '清空背景图片',
                     desc: '',
-                    icon: {name: 'clear', color: '#f5222d'},
+                    icon: { name: 'clear', color: '#f5222d' },
                     type: 'removeBackground',
                     option: {},
                 },
@@ -1103,7 +1103,7 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'bgOpacitySettings',
                     title: '日间蒙层透明',
                     desc: '完全透明请设置为0',
-                    icon: {name: 'record.circle', color: '#722ed1'},
+                    icon: { name: 'record.circle', color: '#722ed1' },
                     type: 'slider',
                     option: {
                         lightOpacity: this.settings.lightOpacity || 0.5,
@@ -1119,7 +1119,7 @@ function createWidgetBaseRuntime(deps: any) {
                     category: 'bgOpacitySettings',
                     title: '夜间蒙层透明',
                     desc: '完全透明请设置为0',
-                    icon: {name: 'record.circle.fill', color: '#eb2f96'},
+                    icon: { name: 'record.circle.fill', color: '#eb2f96' },
                     type: 'slider',
                     option: {
                         darkOpacity: this.settings.darkOpacity || 0.5,
@@ -1201,7 +1201,7 @@ function createWidgetBaseRuntime(deps: any) {
          * @returns {string} CSS 样式字符串
          */
         getSharedWebViewStyles = (options: any = {}) => {
-            const {settingItemFontSize = 15, authorNameFontSize = 20, authorDescFontSize = 12} = options
+            const { settingItemFontSize = 15, authorNameFontSize = 20, authorDescFontSize = 12 } = options
 
             return `
                 :root {
@@ -2360,7 +2360,7 @@ function createWidgetBaseRuntime(deps: any) {
          * @returns {string} HTML 字符串
          */
         generateSliderHtml = (options: any = {}) => {
-            const {idName, iconBase64, title, desc = '', min = 0, max = 1, step = 0.01, unit = '', currentVal} = options
+            const { idName, iconBase64, title, desc = '', min = 0, max = 1, step = 0.01, unit = '', currentVal } = options
 
             const circumference = 2 * Math.PI * 12
             const progressPercent = ((currentVal - min) / (max - min)) * 100
@@ -2677,7 +2677,7 @@ function createWidgetBaseRuntime(deps: any) {
                         } else if (typeof item.icon === 'string') {
                             iconBase64 = item.icon
                         } else {
-                            const icon = item.icon || {name: 'gear', color: '#999999'}
+                            const icon = item.icon || { name: 'gear', color: '#999999' }
                             iconBase64 = await this.loadSF2B64(
                                 icon.name || 'gear',
                                 icon.color || '#999999',
@@ -2692,14 +2692,14 @@ function createWidgetBaseRuntime(deps: any) {
                         const customId = item.customId
                             ? item.customId
                             : item.type === 'customPreview'
-                              ? `${categoryKey}-${item.type}-${config.size || 'unknown'}`
-                              : item.type === 'customAction'
-                                ? `${categoryKey}-${item.type}-${config.actionName || 'unknown'}`
-                                : item.type === 'custom'
-                                  ? item.id || `${categoryKey}-${item.type}-${Date.now()}`
-                                  : item.type === 'image'
-                                    ? `${categoryKey}-${item.type}-${Object.keys(item.option)[0] || 'default'}`
-                                    : `${categoryKey}-${item.type}`
+                                ? `${categoryKey}-${item.type}-${config.size || 'unknown'}`
+                                : item.type === 'customAction'
+                                    ? `${categoryKey}-${item.type}-${config.actionName || 'unknown'}`
+                                    : item.type === 'custom'
+                                        ? item.id || `${categoryKey}-${item.type}-${Date.now()}`
+                                        : item.type === 'image'
+                                            ? `${categoryKey}-${item.type}-${Object.keys(item.option)[0] || 'default'}`
+                                            : `${categoryKey}-${item.type}`
 
                         // 保存配置信息
                         const actionConfig: any = {
@@ -2806,15 +2806,15 @@ function createWidgetBaseRuntime(deps: any) {
                             ? item.option[key]
                             : this.settings.hasOwnProperty(targetCategoryForRead) &&
                                 this.settings[targetCategoryForRead].hasOwnProperty(key)
-                              ? this.settings[targetCategoryForRead][key]
-                              : item.option[key]
+                                ? this.settings[targetCategoryForRead][key]
+                                : item.option[key]
 
                         // 处理图标
                         let iconBase64 = ''
                         if (typeof item.icon === 'string') {
                             iconBase64 = item.icon
                         } else {
-                            const icon = item.icon || {name: 'gear', color: '#999999'}
+                            const icon = item.icon || { name: 'gear', color: '#999999' }
                             iconBase64 = await this.loadSF2B64(
                                 icon.name || 'gear',
                                 icon.color || '#999999',
@@ -2902,8 +2902,8 @@ function createWidgetBaseRuntime(deps: any) {
                                 config.truncateLength === undefined
                                     ? DEFAULT_TRUNCATE_LENGTH
                                     : config.truncateLength <= 0
-                                      ? 0
-                                      : config.truncateLength
+                                        ? 0
+                                        : config.truncateLength
                             // 获取已保存的自定义选项（editable 模式下）
                             const customOptionsKey = key + '_customOptions'
                             let customOptions = []
@@ -2915,7 +2915,7 @@ function createWidgetBaseRuntime(deps: any) {
                                 customOptions = this.settings[categoryKey][customOptionsKey]
                             }
                             // 合并选项：默认选项 + 自定义选项
-                            const allOptions = [...selectOptions, ...customOptions.map(v => ({value: v, label: v}))]
+                            const allOptions = [...selectOptions, ...customOptions.map(v => ({ value: v, label: v }))]
                             // configval 可能是数组或字符串
                             let selectedValues = []
                             if (Array.isArray(configval)) {
@@ -3033,8 +3033,8 @@ function createWidgetBaseRuntime(deps: any) {
                                 config.truncateLength === undefined
                                     ? DEFAULT_TRUNCATE_LENGTH
                                     : config.truncateLength <= 0
-                                      ? 0
-                                      : config.truncateLength
+                                        ? 0
+                                        : config.truncateLength
                             let displayText = displayVal || defaultShowContent
                             if (truncateLength > 0 && displayText.length > truncateLength) {
                                 displayText = displayText.substring(0, truncateLength) + '...'
@@ -3087,8 +3087,8 @@ function createWidgetBaseRuntime(deps: any) {
                                 config.truncateLength === undefined
                                     ? DEFAULT_TRUNCATE_LENGTH
                                     : config.truncateLength <= 0
-                                      ? 0
-                                      : config.truncateLength
+                                        ? 0
+                                        : config.truncateLength
                             if (truncateLength > 0 && displayVal.length > truncateLength) {
                                 displayVal = displayVal.substring(0, truncateLength) + '...'
                             }
@@ -3231,7 +3231,7 @@ function createWidgetBaseRuntime(deps: any) {
                     const emptyIcon = await this.loadSF2B64(emptyIconName, '#8e8e93', true, 18)
                     newHtml = `<div class="form-item-thumb"><img class="form-item-thumb-icon" src="${emptyIcon}"/></div>`
                 }
-                return newHtml ? {targetId, newHtml} : null
+                return newHtml ? { targetId, newHtml } : null
             }
 
             // 执行批量 DOM 更新（单次 evaluateJavaScript 调用）
@@ -3253,7 +3253,7 @@ function createWidgetBaseRuntime(deps: any) {
 
                 try {
                     await previewWebView.evaluateJavaScript(jsCode, true)
-                } catch (e) {}
+                } catch (e) { }
             }
 
             // 刷新单个图片状态
@@ -3279,7 +3279,7 @@ function createWidgetBaseRuntime(deps: any) {
             const saveImageValue = (optionKey, value, isGlobalSetting = false) => {
                 if (isGlobalSetting) {
                     this.baseSettings[optionKey] = value
-                    this.saveBaseSettings({[optionKey]: value}, false)
+                    this.saveBaseSettings({ [optionKey]: value }, false)
                 } else {
                     this.settings[optionKey] = value
                     this.saveSettings(false)
@@ -3391,7 +3391,7 @@ function createWidgetBaseRuntime(deps: any) {
 
                 if (isWebViewClosed) return
 
-                const {code, data} = JSON.parse(event)
+                const { code, data } = JSON.parse(event)
 
                 try {
                     // 优先调用自定义操作处理器
@@ -3528,7 +3528,7 @@ function createWidgetBaseRuntime(deps: any) {
                         const originalCode = code.replace('_customOptions', '')
                         const actionItem = actionsConfig.find(item => item.id === originalCode)
                         if (actionItem && actionItem.type === 'select') {
-                            const {categoryKey, key} = actionItem
+                            const { categoryKey, key } = actionItem
                             const targetCategory = actionItem.saveCategory || actionItem.categoryKey || categoryKey
                             let customOptions = []
                             try {
@@ -3549,7 +3549,7 @@ function createWidgetBaseRuntime(deps: any) {
 
                     const actionItem = actionsConfig.find(item => item.id === code)
                     if (actionItem) {
-                        const {categoryKey, key, type, title, desc} = actionItem
+                        const { categoryKey, key, type, title, desc } = actionItem
                         const targetCategory = actionItem.saveCategory || categoryKey
 
                         if (type === 'reset') {
@@ -3587,7 +3587,7 @@ function createWidgetBaseRuntime(deps: any) {
                             // text 类型直接保存
                             if (targetCategory === 'baseSettings') {
                                 // baseSettings 保存到 baseSettings
-                                this.saveBaseSettings({[key]: data !== undefined ? data : ''}, false)
+                                this.saveBaseSettings({ [key]: data !== undefined ? data : '' }, false)
                                 this.syncCurrentSettings(targetCategory, key, data !== undefined ? data : '')
                             } else {
                                 if (!this.settings[targetCategory]) {
@@ -3781,8 +3781,8 @@ function createWidgetBaseRuntime(deps: any) {
                                     await showImageMenu(
                                         menuId,
                                         [
-                                            {label: '🔗 在线链接', value: 'url'},
-                                            {label: '🗑️ 清空图片', value: 'clear'},
+                                            { label: '🔗 在线链接', value: 'url' },
+                                            { label: '🗑️ 清空图片', value: 'clear' },
                                         ],
                                         actionItem.title,
                                     )
@@ -3809,14 +3809,14 @@ function createWidgetBaseRuntime(deps: any) {
                                     menuId,
                                     clearable
                                         ? [
-                                              {label: '📷 相册选择', value: 'album'},
-                                              {label: '🔗 在线链接', value: 'url'},
-                                              {label: '🗑️ 清空图片', value: 'clear'},
-                                          ]
+                                            { label: '📷 相册选择', value: 'album' },
+                                            { label: '🔗 在线链接', value: 'url' },
+                                            { label: '🗑️ 清空图片', value: 'clear' },
+                                        ]
                                         : [
-                                              {label: '📷 相册选择', value: 'album'},
-                                              {label: '🔗 在线链接', value: 'url'},
-                                          ],
+                                            { label: '📷 相册选择', value: 'album' },
+                                            { label: '🔗 在线链接', value: 'url' },
+                                        ],
                                     actionItem.title,
                                 )
 
@@ -3830,8 +3830,8 @@ function createWidgetBaseRuntime(deps: any) {
                                     await showImageMenu(
                                         menuId,
                                         [
-                                            {label: '📷 相册选择', value: 'album'},
-                                            {label: '🗑️ 清空图片', value: 'clear'},
+                                            { label: '📷 相册选择', value: 'album' },
+                                            { label: '🗑️ 清空图片', value: 'clear' },
                                         ],
                                         actionItem.title,
                                     )
@@ -3931,6 +3931,25 @@ function createWidgetBaseRuntime(deps: any) {
                 )
             }
             this.widgetColor = Color.dynamic(new Color(this.settings.lightColor), new Color(this.settings.darkColor))
+        }
+
+        getWidgetSize(size = this.widgetFamily) {
+            const family = size === 'large' ? 'large' : size === 'small' ? 'small' : 'medium'
+            const screenWidth = Math.round(Device.screenSize().width)
+            const smallWidths = [
+                {min: 430, value: 170},
+                {min: 414, value: 169},
+                {min: 390, value: 158},
+                {min: 375, value: 155},
+                {min: 360, value: 155},
+                {min: 320, value: 141},
+            ]
+            const small = smallWidths.find(item => screenWidth >= item.min)?.value || 155
+            const medium = Math.round(small * 2 + 20)
+            const largeHeight = Math.round(small * 2 + 20)
+            if (family === 'small') return new Size(small, small)
+            if (family === 'large') return new Size(medium, largeHeight)
+            return new Size(medium, small)
         }
 
         getColors = (color = '') => {
@@ -4095,7 +4114,7 @@ function createWidgetBaseRuntime(deps: any) {
 
             function i(n, t) {
                 let r, e, o, u
-                ;((n[t >> 5] |= 128 << (t % 32)), (n[14 + (((t + 64) >>> 9) << 4)] = t))
+                    ; ((n[t >> 5] |= 128 << (t % 32)), (n[14 + (((t + 64) >>> 9) << 4)] = t))
                 for (var c = 1732584193, f = -271733879, i = -1732584194, a = 271733878, h = 0; h < n.length; h += 16)
                     ((c = l((r = c), (e = f), (o = i), (u = a), n[h], 7, -680876936)),
                         (a = l(a, c, f, i, n[h + 1], 12, -389564586)),
@@ -4316,7 +4335,7 @@ function createWidgetBaseRuntime(deps: any) {
             if (json) {
                 try {
                     res = JSON.parse(cache)
-                } catch (e) {}
+                } catch (e) { }
             } else {
                 res = cache
             }
@@ -4347,7 +4366,7 @@ function createWidgetBaseRuntime(deps: any) {
             if (json) {
                 try {
                     res = JSON.parse(cache)
-                } catch (e) {}
+                } catch (e) { }
             } else {
                 res = cache
             }
@@ -4360,7 +4379,7 @@ function createWidgetBaseRuntime(deps: any) {
          * @param {bool} notify 是否通知提示
          */
         saveBaseSettings(res: any = {}, notify = true) {
-            const data = {...(this.baseSettings || {}), ...res}
+            const data = { ...(this.baseSettings || {}), ...res }
             this.baseSettings = data
             Keychain.set(this.BaseCacheKey, JSON.stringify(data))
             if (notify) this.notify('设置成功', '通用设置需重新运行脚本生效')
@@ -4507,10 +4526,10 @@ function createWidgetBaseRuntime(deps: any) {
         }
 
         textFormat = {
-            defaultText: {size: 14, font: 'regular', color: this.widgetColor},
-            battery: {size: 10, font: 'bold', color: this.widgetColor},
-            title: {size: 16, font: 'semibold', color: this.widgetColor},
-            SFMono: {size: 12, font: 'SF Mono', color: this.widgetColor},
+            defaultText: { size: 14, font: 'regular', color: this.widgetColor },
+            battery: { size: 10, font: 'bold', color: this.widgetColor },
+            title: { size: 16, font: 'semibold', color: this.widgetColor },
+            SFMono: { size: 12, font: 'SF Mono', color: this.widgetColor },
         }
 
         provideFont = (fontName, fontSize) => {
@@ -4590,7 +4609,7 @@ function createWidgetBaseRuntime(deps: any) {
                 Script.complete()
             }
         } else {
-            const {act, __arg, __size} = args.queryParameters
+            const { act, __arg, __size } = args.queryParameters
             M = new Widget(__arg || default_args || '')
             M.deserializationCurrentSettings()
             if (extra) {
@@ -4623,7 +4642,7 @@ function createWidgetBaseRuntime(deps: any) {
                         type: 'customPreview',
                         title: '小尺寸',
                         desc: '',
-                        config: {size: 'small'},
+                        config: { size: 'small' },
                         url: 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/smallSize.png',
                     })
                 }
@@ -4632,7 +4651,7 @@ function createWidgetBaseRuntime(deps: any) {
                         type: 'customPreview',
                         title: '中尺寸',
                         desc: '',
-                        config: {size: 'medium'},
+                        config: { size: 'medium' },
                         url: 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/mediumSize.png',
                     })
                 }
@@ -4641,7 +4660,7 @@ function createWidgetBaseRuntime(deps: any) {
                         type: 'customPreview',
                         title: '大尺寸',
                         desc: '',
-                        config: {size: 'large'},
+                        config: { size: 'large' },
                         url: 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Settings/largeSize.png',
                     })
                 }
@@ -4653,7 +4672,7 @@ function createWidgetBaseRuntime(deps: any) {
                         type: 'customPreview',
                         title: '锁屏列表',
                         desc: '',
-                        config: {size: 'accessoryInline'},
+                        config: { size: 'accessoryInline' },
                         icon: {
                             color: '#4676EE',
                             name: 'list.triangle',
@@ -4665,7 +4684,7 @@ function createWidgetBaseRuntime(deps: any) {
                         type: 'customPreview',
                         title: '锁屏 2x',
                         desc: '',
-                        config: {size: 'accessoryRectangular'},
+                        config: { size: 'accessoryRectangular' },
                         icon: {
                             color: '#4676EE',
                             name: 'arrow.rectanglepath',
@@ -4677,7 +4696,7 @@ function createWidgetBaseRuntime(deps: any) {
                         type: 'customPreview',
                         title: '锁屏 1x',
                         desc: '',
-                        config: {size: 'accessoryCircular'},
+                        config: { size: 'accessoryCircular' },
                         icon: {
                             color: '#4676EE',
                             name: 'circle.circle',
@@ -4715,7 +4734,7 @@ function createWidgetBaseRuntime(deps: any) {
                         title: '基础设置',
                         desc: '配置组件的基础参数',
                         option: {},
-                        icon: {name: 'gear', color: '#676767'},
+                        icon: { name: 'gear', color: '#676767' },
                         customId: '__base_config__',
                     })
 
@@ -4728,7 +4747,7 @@ function createWidgetBaseRuntime(deps: any) {
                     title: '重载组件',
                     desc: '重新打开当前脚本',
                     option: {},
-                    icon: {name: 'arrow.clockwise', color: '#1890ff'},
+                    icon: { name: 'arrow.clockwise', color: '#1890ff' },
                     customId: '__reload_script__',
                 })
 
@@ -4741,7 +4760,7 @@ function createWidgetBaseRuntime(deps: any) {
                     title: '清空脚本数据',
                     desc: '该操作不可逆，会清空当前脚本的所有配置和背景图片',
                     option: {},
-                    icon: {name: 'trash', color: '#f5222d'},
+                    icon: { name: 'trash', color: '#f5222d' },
                     customId: '__reset_all__',
                 })
 
@@ -4892,4 +4911,4 @@ module.exports = {
     createWidgetBaseRuntime,
 }
 
-export {}
+export { }
