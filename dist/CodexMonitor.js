@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/05
- * build    :  2026-06-10 12:10:33
+ * build    :  2026-06-11 00:08:44
  * desc     :  Codex额度监控
  * version  :  1.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx

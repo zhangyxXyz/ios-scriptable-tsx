@@ -11,6 +11,7 @@ const qrcode = require('qrcode-terminal')
 const port = 9090
 let sfSymbols: Record<string, any> | undefined
 let sfSymbolSourceNameMap: Map<string, any> | undefined
+const proxyCookieJar = new Map<string, Map<string, string>>()
 
 interface CreateServerParams {
     staticDir: string
@@ -51,6 +52,72 @@ interface FsBody {
     value?: string
     base64?: string
     recursive?: boolean
+}
+
+function splitSetCookieHeader(value: string) {
+    const cookies: string[] = []
+    let start = 0
+    let inExpires = false
+    for (let i = 0; i < value.length; i++) {
+        const rest = value.slice(i)
+        if (/^expires=/i.test(rest)) inExpires = true
+        if (inExpires && value[i] === ';') inExpires = false
+        if (!inExpires && value[i] === ',') {
+            cookies.push(value.slice(start, i).trim())
+            start = i + 1
+        }
+    }
+    const last = value.slice(start).trim()
+    if (last) cookies.push(last)
+    return cookies
+}
+
+function getSetCookieHeaders(headers: Headers) {
+    const withGetSetCookie = headers as Headers & {getSetCookie?: () => string[]}
+    const values = withGetSetCookie.getSetCookie?.()
+    if (values?.length) return values
+    const combined = headers.get('set-cookie')
+    return combined ? splitSetCookieHeader(combined) : []
+}
+
+function cookieDomainsFor(hostname: string) {
+    const parts = hostname.split('.').filter(Boolean)
+    const domains: string[] = []
+    for (let i = 0; i < parts.length - 1; i++) domains.push(parts.slice(i).join('.'))
+    domains.push(hostname)
+    return Array.from(new Set(domains))
+}
+
+function getProxyCookieHeader(url: string) {
+    const hostname = new URL(url).hostname
+    const pairs: string[] = []
+    for (const domain of cookieDomainsFor(hostname)) {
+        const jar = proxyCookieJar.get(domain)
+        if (!jar) continue
+        jar.forEach((value, name) => pairs.push(`${name}=${value}`))
+    }
+    return pairs.join('; ')
+}
+
+function storeProxyCookies(url: string, setCookieHeaders: string[]) {
+    const fallbackHost = new URL(url).hostname
+    for (const header of setCookieHeaders) {
+        const [nameValue, ...attributes] = header.split(';').map(item => item.trim())
+        const separatorIndex = nameValue.indexOf('=')
+        if (separatorIndex <= 0) continue
+        const name = nameValue.slice(0, separatorIndex)
+        const value = nameValue.slice(separatorIndex + 1)
+        const domainAttribute = attributes.find(attribute => /^domain=/i.test(attribute))
+        const domain = (domainAttribute ? domainAttribute.slice(domainAttribute.indexOf('=') + 1) : fallbackHost)
+            .replace(/^\./, '')
+            .toLowerCase()
+        if (!proxyCookieJar.has(domain)) proxyCookieJar.set(domain, new Map())
+        if (!value || attributes.some(attribute => /^max-age=0$/i.test(attribute))) {
+            proxyCookieJar.get(domain)?.delete(name)
+        } else {
+            proxyCookieJar.get(domain)?.set(name, value)
+        }
+    }
 }
 
 enum ResCode {
@@ -866,20 +933,31 @@ export function createServer(params: CreateServerParams): PlaygroundServer {
 
         try {
             const method = String(body.method || 'GET').toUpperCase()
-            const headers = {
+            const headers: Record<string, string> = {
                 'User-Agent':
                     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_7_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/604.1',
                 ...(body.headers || {}),
+            }
+            const cookieHeader = getProxyCookieHeader(url)
+            if (cookieHeader && !Object.keys(headers).some(key => key.toLowerCase() === 'cookie')) {
+                headers.Cookie = cookieHeader
             }
             const response = await fetch(url, {
                 method,
                 headers,
                 body: method === 'GET' || method === 'HEAD' ? undefined : body.body,
             })
+            storeProxyCookies(response.url || url, getSetCookieHeaders(response.headers))
             const contentType = response.headers.get('content-type') || 'text/plain; charset=utf-8'
+            const responseHeaders: Record<string, string> = {}
+            response.headers.forEach((value, key) => {
+                responseHeaders[key] = value
+            })
             const arrayBuffer = await response.arrayBuffer()
             res.status(response.status)
             res.setHeader('content-type', contentType)
+            res.setHeader('x-scriptable-response-headers', encodeURIComponent(JSON.stringify(responseHeaders)))
+            res.setHeader('x-scriptable-response-url', encodeURIComponent(response.url))
             res.send(Buffer.from(arrayBuffer))
         } catch (error) {
             res.status(502).send({

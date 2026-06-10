@@ -540,6 +540,7 @@
                 z-index: 1000;
                 max-height: 260px;
                 overflow: auto;
+                overscroll-behavior: contain;
                 padding: 6px;
                 border: 1px solid var(--line);
                 border-radius: 12px;
@@ -752,8 +753,13 @@
                 flex-direction: column;
             }
             .stack:not(.column) > .stack.column {
-                flex: 1 1 0;
+                flex: 0 1 auto;
                 width: auto;
+            }
+            .stack:not(.column) > .stack.column .text:not(.text--line-limit-1) {
+                white-space: normal;
+                overflow-wrap: anywhere;
+                word-break: break-word;
             }
             .text {
                 flex: 0 1 auto;
@@ -779,16 +785,6 @@
             }
             .stack.column > .text--line-limit-multi {
                 align-self: stretch;
-            }
-            .row-stack > .text:not(:last-child) {
-                flex: 1 1 auto;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .row-stack > .text:last-child {
-                flex: 0 0 auto;
-                margin-left: auto;
-                text-align: right;
             }
             .image {
                 display: inline-grid;
@@ -1226,6 +1222,13 @@
                 openCustomSelect.button.setAttribute('aria-expanded', 'false')
                 openCustomSelect.menu.remove()
                 openCustomSelect = null
+            }
+
+            function shouldKeepCustomSelectOpen(target) {
+                return Boolean(
+                    openCustomSelect &&
+                        (openCustomSelect.wrapper.contains(target) || openCustomSelect.menu.contains(target)),
+                )
             }
 
             function positionCustomSelectMenu(entry) {
@@ -2098,6 +2101,16 @@
                 }
                 toString() {
                     if (this.alpha === 0) return 'transparent'
+                    if (this.alpha !== undefined && this.alpha < 1) {
+                        const match = String(this.hex || '#000000').match(/^#?([0-9a-f]{6})$/i)
+                        if (match) {
+                            const value = match[1]
+                            const r = parseInt(value.slice(0, 2), 16)
+                            const g = parseInt(value.slice(2, 4), 16)
+                            const b = parseInt(value.slice(4, 6), 16)
+                            return `rgba(${r}, ${g}, ${b}, ${this.alpha})`
+                        }
+                    }
                     return this.hex
                 }
             }
@@ -2194,14 +2207,22 @@
                     return image
                 }
                 static fromData(data) {
-                    return new MockImage('data', 'data-image', data?.toDataUrl?.() || '')
+                    const src = data?.toDataUrl?.() || ''
+                    const element = document.createElement('img')
+                    element.crossOrigin = 'anonymous'
+                    element.src = src
+                    return new MockImage('data', 'data-image', src, '', element)
                 }
                 static fromFile(file) {
                     const cached = state.fileCache.get(file)
                     if (cached instanceof MockImage) return cached
                     const result = apiJsonSync('GET', `/api/fs/read-data?path=${encodeURIComponent(file)}`)
                     const base64 = result.data?.base64 || ''
-                    return new MockImage(file, 'file-image', base64ToDataUrl(base64, result.data?.contentType), file)
+                    const src = base64ToDataUrl(base64, result.data?.contentType)
+                    const element = document.createElement('img')
+                    element.crossOrigin = 'anonymous'
+                    element.src = src
+                    return new MockImage(file, 'file-image', src, file, element)
                 }
             }
 
@@ -2355,6 +2376,32 @@
                 return ''
             }
 
+            function imageToCssUrl(image) {
+                return image?.src ? `url(${escapeHtml(image.src)})` : ''
+            }
+
+            function gradientToCss(gradient) {
+                if (!gradient?.colors?.length) return ''
+                const stops = gradient.colors.map((color, index) => {
+                    const location = gradient.locations?.[index]
+                    const position = Number.isFinite(Number(location)) ? ` ${Number(location) * 100}%` : ''
+                    return `${colorToCss(color)}${position}`
+                })
+                return `linear-gradient(180deg, ${stops.join(', ')})`
+            }
+
+            function cssString(value) {
+                return String(value ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+            }
+
+            function fontFamilyToCss(fontName) {
+                const name = String(fontName || '').trim()
+                if (!name || name === 'system') return "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
+                if (/mono/i.test(name)) return "'SF Mono','Menlo','Consolas',monospace"
+                if (/chalkduster/i.test(name)) return "'Chalkduster','Comic Sans MS',fantasy,cursive"
+                return `'${cssString(name)}',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif`
+            }
+
             function isDarkPreview() {
                 return $('appearance').value === 'dark'
             }
@@ -2381,17 +2428,15 @@
                 const lineLimit = readProp(node, 'lineLimit')
                 const padding = readProp(node, 'padding')
                 const backgroundColor = readProp(node, 'backgroundColor')
+                const backgroundImage = readProp(node, 'backgroundImage')
+                const backgroundGradient = readProp(node, 'backgroundGradient')
                 const cornerRadius = readProp(node, 'cornerRadius')
                 const size = readProp(node, 'size')
                 styles.push(`color:${normalizeTextColor(textColor)}`)
                 if (opacity !== undefined) styles.push(`opacity:${opacity}`)
                 if (font?.size) styles.push(`font-size:${font.size}px`)
                 if (font?.weight) styles.push(`font-weight:${font.weight}`)
-                if (font?.name && /mono/i.test(font.name)) {
-                    styles.push("font-family:'SF Mono','Menlo','Consolas',monospace")
-                } else if (font?.name) {
-                    styles.push("font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif")
-                }
+                if (font?.name) styles.push(`font-family:${fontFamilyToCss(font.name)}`)
                 const isTextNode = node?.type === 'text'
                 if (textAlign) styles.push(`text-align:${textAlign}`)
                 if (isTextNode && parentDirection !== 'row' && (textAlign || lineLimit)) {
@@ -2413,6 +2458,12 @@
                 }
                 if (padding) styles.push(`padding:${padding[0]}px ${padding[3]}px ${padding[2]}px ${padding[1]}px`)
                 if (backgroundColor) styles.push(`background:${colorToCss(backgroundColor)}`)
+                if (backgroundGradient?.colors?.length) styles.push(`background:${gradientToCss(backgroundGradient)}`)
+                if (backgroundImage?.src) {
+                    styles.push(`background-image:${imageToCssUrl(backgroundImage)}`)
+                    styles.push('background-size:cover')
+                    styles.push('background-position:center')
+                }
                 if (cornerRadius !== undefined) styles.push(`border-radius:${cornerRadius}px`)
                 if (size?.width) styles.push(`width:${size.width}px`)
                 if (size?.height) styles.push(`height:${size.height}px`)
@@ -2424,8 +2475,8 @@
                 const backgroundColor = colorToCss(readProp(widget, 'backgroundColor'))
                 const borderColor = colorToCss(readProp(widget, 'borderColor'))
                 previewEl.style.background =
-                    backgroundColor || (isDarkPreview() ? '#000000' : '#fafafa')
-                previewEl.style.backgroundImage = backgroundImage?.src ? `url("${backgroundImage.src}")` : ''
+                    backgroundColor || gradientToCss(readProp(widget, 'backgroundGradient')) || (isDarkPreview() ? '#000000' : '#fafafa')
+                previewEl.style.backgroundImage = imageToCssUrl(backgroundImage)
                 previewEl.style.backgroundSize = backgroundImage?.src ? 'cover' : ''
                 previewEl.style.backgroundPosition = backgroundImage?.src ? 'center' : ''
                 previewEl.style.gap = `${Number(readProp(widget, 'spacing') || 0)}px`
@@ -2562,9 +2613,18 @@
                 const gap = Number(readProp(node, 'spacing') || 0)
                 const alignItems =
                     align === 'center' ? 'center' : align === 'bottom' ? 'flex-end' : isStatusStack ? 'center' : 'flex-start'
+                const justifyContent =
+                    direction === 'column'
+                        ? align === 'center'
+                            ? 'center'
+                            : align === 'bottom'
+                              ? 'flex-end'
+                              : ''
+                        : ''
                 const style = mergeInlineStyle(styleFromNode(node), [
                     gap ? `gap:${gap}px` : '',
                     direction === 'row' ? `align-items:${alignItems}` : '',
+                    justifyContent ? `justify-content:${justifyContent}` : '',
                 ])
                 const content = (node.children || [])
                     .map(child => renderNode(child, direction, family))
@@ -2646,8 +2706,83 @@
                 return response
             }
 
+            function responseHeadersToObject(headers) {
+                const result = {}
+                if (!headers?.forEach) return result
+                headers.forEach((value, key) => {
+                    result[key] = value
+                })
+                const upstreamHeaders = result['x-scriptable-response-headers']
+                if (upstreamHeaders) {
+                    try {
+                        return JSON.parse(decodeURIComponent(upstreamHeaders))
+                    } catch {}
+                }
+                return result
+            }
+
+            function responseUrlFromHeaders(headers, fallbackUrl) {
+                const value = headers?.get?.('x-scriptable-response-url')
+                if (!value) return fallbackUrl
+                try {
+                    return decodeURIComponent(value)
+                } catch {
+                    return value
+                }
+            }
+
             function createMockApiResponse(url, error) {
                 const now = new Date()
+                const sourceUrl = String(url || '')
+                if (sourceUrl.includes('api.rss2json.com/v1/api.json')) {
+                    const rssUrl = new URL(sourceUrl, window.location.href).searchParams.get('rss_url') || sourceUrl
+                    const rssTitles = [
+                        'fix: handle empty Claude usage windows',
+                        'fix: strip env module markers',
+                        'fix: stabilize monitor widget layout',
+                        'feat: add Claude Done Hub monitor',
+                        'feat: refine Codex account mode layout',
+                        'feat: support done-hub codex usage proxy',
+                        'fix: align Scriptable Playground widget preview',
+                        'feat: add RSS monitor preview data',
+                        'fix: keep custom font family in mock runtime',
+                        'chore: update local playground mocks',
+                        'fix: normalize widget background images',
+                        'feat: improve monitor setting actions',
+                        'fix: preserve row spacer semantics',
+                        'docs: update playground notes',
+                        'refactor: share preview request fallback',
+                    ]
+                    return {
+                        status: 'ok',
+                        feed: {
+                            url: rssUrl,
+                            title: rssUrl.includes('github.com') ? 'GitHub Commits' : 'RSS Feed',
+                            link: rssUrl,
+                            author: 'playground',
+                            description: 'Mock RSS response generated by the local Scriptable Playground.',
+                            image: '',
+                        },
+                        items: rssTitles.map((title, index) => ({
+                            title,
+                            pubDate: new Date(now.getTime() - index * 60 * 60 * 1000).toISOString(),
+                            link: rssUrl,
+                            guid: `${rssUrl}#sample-${index + 1}`,
+                            author: 'playground',
+                            thumbnail: '',
+                            description: 'Preview item generated after rss2json request fallback.',
+                            content: '',
+                            enclosure: {},
+                            categories: [],
+                        })),
+                        meta: {
+                            mocked: true,
+                            source: 'playground',
+                            reason: error instanceof Error ? error.message : String(error || 'network unavailable'),
+                            timestamp: now.getTime(),
+                        },
+                    }
+                }
                 return {
                     code: 0,
                     msg: 'success',
@@ -2729,41 +2864,82 @@
                         this.url = url
                         this.headers = {}
                         this.method = 'GET'
+                        this.response = {
+                            statusCode: 0,
+                            headers: {},
+                            url,
+                        }
+                    }
+                    setResponse(statusCode = 200, headers = {}, url = this.url) {
+                        this.response = {
+                            statusCode,
+                            headers,
+                            url,
+                        }
+                    }
+                    mockResponseHeaders(contentType = 'application/json') {
+                        return {'content-type': contentType}
                     }
                     async loadJSON() {
                         const mockResponse = findMockResponse(mockMap, this.url)
-                        if (mockResponse !== undefined) return mockResponse
+                        if (mockResponse !== undefined) {
+                            this.setResponse(200, this.mockResponseHeaders('application/json'), this.url)
+                            return mockResponse
+                        }
                         try {
-                            return await proxyFetch(this.url, this).then(res => res.json())
+                            const response = await proxyFetch(this.url, this)
+                            this.setResponse(
+                                response.status,
+                                responseHeadersToObject(response.headers),
+                                responseUrlFromHeaders(response.headers, this.url),
+                            )
+                            return await response.json()
                         } catch (error) {
                             writeLog('warn', `Request.loadJSON fallback: ${this.url}`)
+                            this.setResponse(200, this.mockResponseHeaders('application/json'), this.url)
                             return createMockApiResponse(this.url, error)
                         }
                     }
                     async loadString() {
                         const mockResponse = findMockResponse(mockMap, this.url)
-                        if (mockResponse !== undefined)
+                        if (mockResponse !== undefined) {
+                            this.setResponse(200, this.mockResponseHeaders('text/plain'), this.url)
                             return typeof mockResponse === 'string' ? mockResponse : JSON.stringify(mockResponse)
+                        }
                         try {
-                            return await proxyFetch(this.url, this).then(res => res.text())
+                            const response = await proxyFetch(this.url, this)
+                            this.setResponse(
+                                response.status,
+                                responseHeadersToObject(response.headers),
+                                responseUrlFromHeaders(response.headers, this.url),
+                            )
+                            return await response.text()
                         } catch (error) {
                             writeLog('warn', `Request.loadString fallback: ${this.url}`)
+                            this.setResponse(200, this.mockResponseHeaders('application/json'), this.url)
                             return JSON.stringify(createMockApiResponse(this.url, error), null, 2)
                         }
                     }
                     async load() {
                         const mockResponse = findMockResponse(mockMap, this.url)
                         if (mockResponse !== undefined) {
+                            this.setResponse(200, this.mockResponseHeaders('application/json'), this.url)
                             return MockData.fromString(
                                 typeof mockResponse === 'string' ? mockResponse : JSON.stringify(mockResponse),
                             )
                         }
                         if (String(this.url).startsWith('data:')) {
+                            this.setResponse(200, this.mockResponseHeaders(dataUrlContentType(this.url)), this.url)
                             return new MockData(dataUrlToBase64(this.url), dataUrlContentType(this.url))
                         }
                         try {
                             const response = await proxyFetch(this.url, this)
                             const contentType = response.headers.get('content-type') || 'application/octet-stream'
+                            this.setResponse(
+                                response.status,
+                                responseHeadersToObject(response.headers),
+                                responseUrlFromHeaders(response.headers, this.url),
+                            )
                             const buffer = await response.arrayBuffer()
                             const bytes = new Uint8Array(buffer)
                             let binary = ''
@@ -2773,6 +2949,7 @@
                             return new MockData(btoa(binary), contentType)
                         } catch (error) {
                             writeLog('warn', `Request.load fallback: ${this.url}`)
+                            this.setResponse(200, this.mockResponseHeaders('text/plain'), this.url)
                             return MockData.fromString(JSON.stringify(createMockApiResponse(this.url, error), null, 2))
                         }
                     }
@@ -2954,6 +3131,23 @@
                             this.fillColor = colorToCss(color) || '#000000'
                             this.ctx.fillStyle = this.fillColor
                         }
+                        setFillGradient(gradient) {
+                            const colors = gradient?.colors || []
+                            const locations = gradient?.locations || []
+                            const start = gradient?.startPoint || {x: 0, y: 0}
+                            const end = gradient?.endPoint || {x: this.canvas.width, y: this.canvas.height}
+                            const canvasGradient = this.ctx.createLinearGradient(
+                                Number(start.x || 0),
+                                Number(start.y || 0),
+                                Number(end.x || this.canvas.width),
+                                Number(end.y || this.canvas.height),
+                            )
+                            colors.forEach((color, index) => {
+                                canvasGradient.addColorStop(Number(locations[index] ?? index / Math.max(colors.length - 1, 1)), colorToCss(color) || '#000000')
+                            })
+                            this.fillColor = canvasGradient
+                            this.ctx.fillStyle = canvasGradient
+                        }
                         setStrokeColor(color) {
                             this.strokeColor = colorToCss(color) || '#000000'
                             this.ctx.strokeStyle = this.strokeColor
@@ -3016,6 +3210,28 @@
                         }
                         setLineWidth(width) {
                             this.ctx.lineWidth = Number(width || 1)
+                        }
+                        ellipsePath(rect) {
+                            this.ctx.beginPath()
+                            this.ctx.ellipse(
+                                Number(rect?.x || 0) + Number(rect?.width || 0) / 2,
+                                Number(rect?.y || 0) + Number(rect?.height || 0) / 2,
+                                Math.max(1, Number(rect?.width || 0) / 2),
+                                Math.max(1, Number(rect?.height || 0) / 2),
+                                0,
+                                0,
+                                Math.PI * 2,
+                            )
+                        }
+                        fillEllipse(rect) {
+                            this.ellipsePath(rect)
+                            this.ctx.fillStyle = this.fillColor
+                            this.ctx.fill()
+                        }
+                        strokeEllipse(rect) {
+                            this.ellipsePath(rect)
+                            this.ctx.strokeStyle = this.strokeColor
+                            this.ctx.stroke()
                         }
                         addPath(path) {
                             this.currentPath = path
@@ -3288,11 +3504,18 @@
             docsFrameEl.addEventListener('load', syncDocsTheme)
             document.addEventListener('click', event => {
                 if (!openCustomSelect) return
-                if (openCustomSelect.wrapper.contains(event.target) || openCustomSelect.menu.contains(event.target)) return
+                if (shouldKeepCustomSelectOpen(event.target)) return
                 closeCustomSelect()
             })
             window.addEventListener('resize', closeCustomSelect)
-            window.addEventListener('scroll', closeCustomSelect, true)
+            window.addEventListener(
+                'scroll',
+                event => {
+                    if (shouldKeepCustomSelectOpen(event.target)) return
+                    closeCustomSelect()
+                },
+                true,
+            )
             window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
                 if (state.outerThemePreference === 'auto') setOuterTheme('auto', false)
             })

@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-10 18:57:49
+ * build    :  2026-06-11 00:02:41
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -65,6 +65,187 @@ function createWidgetBaseRuntime(deps2) {
     isEmpty: isEmpty2,
     hash: hash2,
   } = deps2;
+  const phoneWidgetSizes = {
+    // Pixel sizes and positions for widgets on all supported phones.
+    // 数据来源: Apple HIG、mzeryck/3a97ccd1e059b3afa3c6666d27a496c9 和社区透明组件表
+    // iPhone 17 Pro Max, 16 Pro Max (6.9")
+    2868: {
+      small: 534,
+      medium: 1146,
+      large: 1200,
+      left: 114,
+      right: 726,
+      top: 276,
+      middle: 930,
+      bottom: 1584,
+    },
+    // iPhone 14 Pro Max, 15 Pro Max, 15 Plus, 16 Plus (6.7")
+    2796: {
+      small: 510,
+      medium: 1092,
+      large: 1146,
+      left: 99,
+      right: 681,
+      top: 282,
+      middle: 918,
+      bottom: 1554,
+    },
+    // iPhone 14 Plus, 13 Pro Max, 12 Pro Max (6.7")
+    2778: {
+      small: 510,
+      medium: 1092,
+      large: 1146,
+      left: 96,
+      right: 678,
+      top: 246,
+      middle: 882,
+      bottom: 1518,
+    },
+    // iPhone Air (6.5")
+    // 新 1260x2736px 档位；尺寸按 420x912pt @3x 推算，位置需真机透明背景截图校正。
+    2736: {
+      small: 510,
+      medium: 1086,
+      large: 1143,
+      left: 87,
+      right: 663,
+      top: 276,
+      middle: 912,
+      bottom: 1548,
+    },
+    // iPhone 17, 17 Pro, 16 Pro (6.3")
+    2622: {
+      small: 486,
+      medium: 1032,
+      large: 1098,
+      left: 87,
+      right: 633,
+      top: 261,
+      middle: 872,
+      bottom: 1485,
+    },
+    // iPhone 14 Pro, 15 Pro, 15, 16, 16e (6.1" Dynamic Island)
+    2556: {
+      small: 474,
+      medium: 1014,
+      large: 1062,
+      left: 81,
+      right: 621,
+      top: 276,
+      middle: 864,
+      bottom: 1452,
+    },
+    // iPhone 17e, 14, 13, 13 Pro, 12, 12 Pro (6.1")
+    2532: {
+      small: 474,
+      medium: 1014,
+      large: 1062,
+      left: 78,
+      right: 618,
+      top: 231,
+      middle: 819,
+      bottom: 1407,
+    },
+    // iPhone 12 mini, 13 mini (5.4")
+    2340: {
+      small: 465,
+      medium: 987,
+      large: 1035,
+      left: 69,
+      right: 591,
+      top: 231,
+      middle: 801,
+      bottom: 1371,
+    },
+    // iPhone 11 Pro Max, XS Max (6.5")
+    2688: {
+      small: 507,
+      medium: 1080,
+      large: 1137,
+      left: 81,
+      right: 654,
+      top: 228,
+      middle: 858,
+      bottom: 1488,
+    },
+    // iPhone 11 Pro, XS, X (5.8")
+    2436: {
+      small: 465,
+      medium: 987,
+      large: 1035,
+      left: 69,
+      right: 591,
+      top: 213,
+      middle: 783,
+      bottom: 1353,
+    },
+    // iPhone 11, XR (6.1" LCD)
+    1792: {
+      small: 338,
+      medium: 720,
+      large: 758,
+      left: 54,
+      right: 436,
+      top: 160,
+      middle: 580,
+      bottom: 1e3,
+    },
+    // iPhone 6/6S/7/8 Plus (5.5")
+    2208: {
+      small: 471,
+      medium: 1044,
+      large: 1071,
+      left: 99,
+      right: 672,
+      top: 114,
+      middle: 696,
+      bottom: 1278,
+    },
+    // iPhone SE 2/3, 6/6S/7/8 (4.7")
+    1334: {
+      small: 296,
+      medium: 642,
+      large: 648,
+      left: 54,
+      right: 400,
+      top: 60,
+      middle: 412,
+      bottom: 764,
+    },
+    // iPhone SE 1, 5/5S/5C (4")
+    1136: {
+      small: 282,
+      medium: 584,
+      large: 622,
+      left: 30,
+      right: 332,
+      top: 59,
+      middle: 399,
+      bottom: 399,
+    },
+    // iPhone 11, XR in Display Zoom mode
+    1624: {
+      small: 310,
+      medium: 658,
+      large: 690,
+      left: 46,
+      right: 394,
+      top: 142,
+      middle: 522,
+      bottom: 902,
+    },
+    // Plus phones in Display Zoom mode
+    2001: {
+      small: 444,
+      medium: 963,
+      large: 972,
+      left: 81,
+      right: 600,
+      top: 90,
+      middle: 618,
+      bottom: 1146,
+    },
+  };
   class WidgetBase2 {
     constructor(arg) {
       this.arg = arg;
@@ -331,164 +512,7 @@ function createWidgetBaseRuntime(deps2) {
         draw.drawImageAtPoint(img2, new Point(-rect.x, -rect.y));
         return draw.getImage();
       }
-      function phoneSizes() {
-        return {
-          // iPhone 16 Pro Max (6.9")
-          2868: {
-            small: 534,
-            medium: 1146,
-            large: 1200,
-            left: 114,
-            right: 726,
-            top: 276,
-            middle: 930,
-            bottom: 1584,
-          },
-          // iPhone 14 Pro Max, 15 Pro Max, 15 Plus, 16 Plus (6.7")
-          2796: {
-            small: 510,
-            medium: 1092,
-            large: 1146,
-            left: 99,
-            right: 681,
-            top: 282,
-            middle: 918,
-            bottom: 1554,
-          },
-          // iPhone 14 Plus, 13 Pro Max, 12 Pro Max (6.7")
-          2778: {
-            small: 510,
-            medium: 1092,
-            large: 1146,
-            left: 96,
-            right: 678,
-            top: 246,
-            middle: 882,
-            bottom: 1518,
-          },
-          // iPhone 14 Pro, 15 Pro, 15, 16, 16e (6.1" Dynamic Island)
-          2556: {
-            small: 474,
-            medium: 1014,
-            large: 1062,
-            left: 81,
-            right: 621,
-            top: 276,
-            middle: 864,
-            bottom: 1452,
-          },
-          // iPhone 14, 13, 13 Pro, 12, 12 Pro (6.1")
-          2532: {
-            small: 474,
-            medium: 1014,
-            large: 1062,
-            left: 78,
-            right: 618,
-            top: 231,
-            middle: 819,
-            bottom: 1407,
-          },
-          // iPhone 12 mini, 13 mini (5.4")
-          2340: {
-            small: 465,
-            medium: 987,
-            large: 1035,
-            left: 69,
-            right: 591,
-            top: 231,
-            middle: 801,
-            bottom: 1371,
-          },
-          // iPhone 11 Pro Max, XS Max (6.5")
-          2688: {
-            small: 507,
-            medium: 1080,
-            large: 1137,
-            left: 81,
-            right: 654,
-            top: 228,
-            middle: 858,
-            bottom: 1488,
-          },
-          // iPhone 11 Pro, XS, X (5.8")
-          2436: {
-            small: 465,
-            medium: 987,
-            large: 1035,
-            left: 69,
-            right: 591,
-            top: 213,
-            middle: 783,
-            bottom: 1353,
-          },
-          // iPhone 11, XR (6.1" LCD)
-          1792: {
-            small: 338,
-            medium: 720,
-            large: 758,
-            left: 54,
-            right: 436,
-            top: 160,
-            middle: 580,
-            bottom: 1e3,
-          },
-          // iPhone 6/6S/7/8 Plus (5.5")
-          2208: {
-            small: 471,
-            medium: 1044,
-            large: 1071,
-            left: 99,
-            right: 672,
-            top: 114,
-            middle: 696,
-            bottom: 1278,
-          },
-          // iPhone SE 2/3, 6/6S/7/8 (4.7")
-          1334: {
-            small: 296,
-            medium: 642,
-            large: 648,
-            left: 54,
-            right: 400,
-            top: 60,
-            middle: 412,
-            bottom: 764,
-          },
-          // iPhone SE 1, 5/5S/5C (4")
-          1136: {
-            small: 282,
-            medium: 584,
-            large: 622,
-            left: 30,
-            right: 332,
-            top: 59,
-            middle: 399,
-            bottom: 399,
-          },
-          // iPhone 11, XR in Display Zoom mode
-          1624: {
-            small: 310,
-            medium: 658,
-            large: 690,
-            left: 46,
-            right: 394,
-            top: 142,
-            middle: 522,
-            bottom: 902,
-          },
-          // Plus phones in Display Zoom mode
-          2001: {
-            small: 444,
-            medium: 963,
-            large: 972,
-            left: 81,
-            right: 600,
-            top: 90,
-            middle: 618,
-            bottom: 1146,
-          },
-        };
-      }
+      const phoneSizes = () => phoneWidgetSizes;
       let message =
         title || "开始之前，请先前往桌面，截取空白界面的截图。然后回来继续";
       const exitOptions = ["我已截图", "前去截图 >"];
@@ -4013,22 +4037,16 @@ function createWidgetBaseRuntime(deps2) {
     getWidgetSize(size = this.widgetFamily) {
       const family =
         size === "large" ? "large" : size === "small" ? "small" : "medium";
-      const screenWidth = Math.round(Device.screenSize().width);
-      const smallWidths = [
-        { min: 430, value: 170 },
-        { min: 414, value: 169 },
-        { min: 390, value: 158 },
-        { min: 375, value: 155 },
-        { min: 360, value: 155 },
-        { min: 320, value: 141 },
-      ];
-      const small =
-        smallWidths.find((item) => screenWidth >= item.min)?.value || 155;
-      const medium = Math.round(small * 2 + 20);
-      const largeHeight = Math.round(small * 2 + 20);
-      if (family === "small") return new Size(small, small);
-      if (family === "large") return new Size(medium, largeHeight);
-      return new Size(medium, small);
+      const resolution = Device.screenResolution();
+      const scale = Device.screenScale();
+      const screenHeight = Math.round(
+        Math.max(resolution.width, resolution.height),
+      );
+      const phone = phoneWidgetSizes[screenHeight] || phoneWidgetSizes[2532];
+      return new Size(
+        Math.round(phone[family] / scale),
+        Math.round(phone[family === "medium" ? "small" : family] / scale),
+      );
     }
     getColors = (color = "") => {
       const colors = typeof color === "string" ? color.split(",") : color;

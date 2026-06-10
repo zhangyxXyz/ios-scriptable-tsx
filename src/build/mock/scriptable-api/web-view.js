@@ -1,4 +1,14 @@
 ;(function () {
+    function readResponseUrl(response, fallbackUrl) {
+        const value = response?.headers?.get?.('x-scriptable-response-url')
+        if (!value) return fallbackUrl
+        try {
+            return decodeURIComponent(value)
+        } catch {
+            return value
+        }
+    }
+
     ScriptableMock.register('WebView', context => {
         class WebView {
             constructor() {
@@ -30,9 +40,71 @@
             }
             async loadURL(url) {
                 this.url = url
+                this.html = ''
+                try {
+                    const response = await fetch('/api/proxy', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            url,
+                            method: 'GET',
+                        }),
+                    })
+                    this.url = readResponseUrl(response, url)
+                    this.html = await response.text()
+                    await this.followJsonRedirect()
+                } catch (error) {
+                    context.writeLog?.('warn', `WebView.loadURL fallback: ${url}`)
+                }
             }
             async loadRequest(request) {
                 this.url = request.url
+                this.html = ''
+                try {
+                    const response = await fetch('/api/proxy', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            url: request.url,
+                            method: request.method || 'GET',
+                            headers: request.headers || {},
+                            body: request.body,
+                        }),
+                    })
+                    this.url = readResponseUrl(response, request.url)
+                    this.html = await response.text()
+                    await this.followJsonRedirect(request)
+                } catch (error) {
+                    context.writeLog?.('warn', `WebView.loadRequest fallback: ${request.url}`)
+                }
+            }
+            async followJsonRedirect(request = null) {
+                const text = String(this.html || '').trim()
+                if (!text.startsWith('{')) return
+                let data = null
+                try {
+                    data = JSON.parse(text)
+                } catch {
+                    return
+                }
+                const nextUrl = data?.url
+                if (!nextUrl || typeof nextUrl !== 'string' || nextUrl === this.url || !/^https?:\/\//.test(nextUrl)) return
+                try {
+                    const response = await fetch('/api/proxy', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            url: nextUrl,
+                            method: request?.method || 'GET',
+                            headers: request?.headers || {},
+                            body: request?.body,
+                        }),
+                    })
+                    this.url = readResponseUrl(response, nextUrl)
+                    this.html = await response.text()
+                } catch (error) {
+                    context.writeLog?.('warn', `WebView redirect fallback: ${nextUrl}`)
+                }
             }
             async loadHTML(html) {
                 this.html = html

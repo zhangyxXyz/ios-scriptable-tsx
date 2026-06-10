@@ -1,8 +1,20 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-10 12:18:54",
+  "generatedAt": "2026-06-11 01:42:44",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
+    {
+      "id": "电影日历",
+      "fileName": "电影日历.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/电影日历.js",
+      "name": {
+        "zh": "电影日历",
+        "en": "MovieCalendar"
+      },
+      "desc": "电影日历",
+      "version": "1.0.0",
+      "build": "2026-06-11 00:56:39"
+    },
     {
       "id": "一言",
       "fileName": "一言.js",
@@ -32,12 +44,12 @@
       "fileName": "ClaudeMonitor.js",
       "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/ClaudeMonitor.js",
       "name": {
-        "zh": "Claude监控",
+        "zh": "ClaudeUsageWindowEmptyError",
         "en": "ClaudeMonitor"
       },
       "desc": "Claude额度监控",
       "version": "1.0.0",
-      "build": "2026-06-10 12:10:33"
+      "build": "2026-06-10 23:28:17"
     },
     {
       "id": "CodexMonitor",
@@ -49,7 +61,19 @@
       },
       "desc": "Codex额度监控",
       "version": "1.0.1",
-      "build": "2026-06-10 12:10:33"
+      "build": "2026-06-11 00:08:44"
+    },
+    {
+      "id": "CryptoCurrency",
+      "fileName": "CryptoCurrency.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/CryptoCurrency.js",
+      "name": {
+        "zh": "数字货币",
+        "en": "CryptoCurrency"
+      },
+      "desc": "数字货币",
+      "version": "1.0.0",
+      "build": "2026-06-10 18:57:50"
     },
     {
       "id": "CursorMonitor",
@@ -64,6 +88,42 @@
       "build": "2026-06-04 04:11:22"
     },
     {
+      "id": "DoubanMonitor",
+      "fileName": "DoubanMonitor.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/DoubanMonitor.js",
+      "name": {
+        "zh": "豆瓣电影推荐榜单",
+        "en": "DoubanMonitor"
+      },
+      "desc": "豆瓣电影推荐榜单",
+      "version": "1.0.0",
+      "build": "2026-06-10 18:57:50"
+    },
+    {
+      "id": "GitMonitor",
+      "fileName": "GitMonitor.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/GitMonitor.js",
+      "name": {
+        "zh": "Git监控",
+        "en": "GitMonitor"
+      },
+      "desc": "* version  :  1.0.0",
+      "version": "1.0.0",
+      "build": "2026-06-11 01:42:44"
+    },
+    {
+      "id": "HotlistMonitor",
+      "fileName": "HotlistMonitor.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/HotlistMonitor.js",
+      "name": {
+        "zh": "聚合热榜",
+        "en": "HotlistMonitor"
+      },
+      "desc": "聚合热榜",
+      "version": "1.0.0",
+      "build": "2026-06-10 18:57:50"
+    },
+    {
       "id": "InfoCollection",
       "fileName": "InfoCollection.js",
       "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/InfoCollection.js",
@@ -74,6 +134,18 @@
       "desc": "信息合集",
       "version": "1.0.0",
       "build": "2026-06-04 10:23:07"
+    },
+    {
+      "id": "RSSMonitor",
+      "fileName": "RSSMonitor.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/RSSMonitor.js",
+      "name": {
+        "zh": "RSS监视器",
+        "en": "RSSMonitor"
+      },
+      "desc": "RSS监视器",
+      "version": "1.0.0",
+      "build": "2026-06-10 18:57:50"
     },
     {
       "id": "ScriptUpdater",
@@ -97,7 +169,43 @@
       },
       "desc": "Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts",
       "version": "2.0.0",
-      "build": "2026-06-10 12:18:53"
+      "build": "2026-06-11 00:02:41"
+    },
+    {
+      "id": "TodayOilPrice",
+      "fileName": "TodayOilPrice.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/TodayOilPrice.js",
+      "name": {
+        "zh": "今日油价",
+        "en": "TodayOilPrice"
+      },
+      "desc": "今日油价",
+      "version": "2.0.0",
+      "build": "2026-06-10 18:57:50"
+    },
+    {
+      "id": "VpnAirportTraffic",
+      "fileName": "VpnAirportTraffic.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/VpnAirportTraffic.js",
+      "name": {
+        "zh": "机场流量",
+        "en": "VpnAirportTraffic"
+      },
+      "desc": "机场流量",
+      "version": "2.0.0",
+      "build": "2026-06-10 18:57:50"
+    },
+    {
+      "id": "WeiboMonitor",
+      "fileName": "WeiboMonitor.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/WeiboMonitor.js",
+      "name": {
+        "zh": "微博热搜",
+        "en": "WeiboMonitor"
+      },
+      "desc": "微博热搜",
+      "version": "1.0.0",
+      "build": "2026-06-10 18:57:50"
     }
   ]
 }
