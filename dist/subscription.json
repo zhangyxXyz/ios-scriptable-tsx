@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-11 04:37:03",
+  "generatedAt": "2026-06-11 05:16:28",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -97,7 +97,7 @@
       },
       "desc": "Done Hub 聚合额度监控，汇总 Codex 与 Claude 渠道用量",
       "version": "1.0.0",
-      "build": "2026-06-11 00:23:36"
+      "build": "2026-06-11 01:12:53"
     },
     {
       "id": "DoubanMonitor",
@@ -121,7 +121,7 @@
       },
       "desc": "* version  :  1.0.0",
       "version": "1.0.0",
-      "build": "2026-06-11 04:37:02"
+      "build": "2026-06-11 05:16:27"
     },
     {
       "id": "HotlistMonitor",
@@ -181,7 +181,7 @@
       },
       "desc": "Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts",
       "version": "2.0.0",
-      "build": "2026-06-11 04:35:36"
+      "build": "2026-06-11 01:05:03"
     },
     {
       "id": "TodayOilPrice",

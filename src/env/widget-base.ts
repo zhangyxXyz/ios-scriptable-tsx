@@ -2289,6 +2289,13 @@ function createWidgetBaseRuntime(deps: any) {
                                 selectWrapper.click();
                                 return;
                             }
+                            const textWrapper = e.currentTarget.querySelector('.text-input-wrapper');
+                            if (textWrapper) {
+                                if (e.target.closest('.text-input-wrapper')) return;
+                                e.stopPropagation();
+                                textWrapper.click();
+                                return;
+                            }
                             if (e.target.closest('.color-picker-wrapper')) return;
                             if (e.target.closest('.slider-picker-wrapper')) return;
                             if (e.target.closest('.password-wrapper')) return;
@@ -3966,7 +3973,10 @@ function createWidgetBaseRuntime(deps: any) {
             const scale = Device.screenScale()
             const screenHeight = Math.round(Math.max(resolution.width, resolution.height))
             const phone = phoneWidgetSizes[screenHeight] || phoneWidgetSizes[2532]
-            return new Size(Math.round(phone[family] / scale), Math.round(phone[family === 'medium' ? 'small' : family] / scale))
+            // large widget 与 medium 同宽，phone['large'] 存的是高度；宽度统一取 medium
+            const widthKey = family === 'large' ? 'medium' : family
+            const heightKey = family === 'medium' ? 'small' : family
+            return new Size(Math.round(phone[widthKey] / scale), Math.round(phone[heightKey] / scale))
         }
 
         getColors = (color = '') => {

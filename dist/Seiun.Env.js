@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-11 04:35:36
+ * build    :  2026-06-11 01:05:03
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -2345,6 +2345,13 @@ function createWidgetBaseRuntime(deps2) {
                                 selectWrapper.click();
                                 return;
                             }
+                            const textWrapper = e.currentTarget.querySelector('.text-input-wrapper');
+                            if (textWrapper) {
+                                if (e.target.closest('.text-input-wrapper')) return;
+                                e.stopPropagation();
+                                textWrapper.click();
+                                return;
+                            }
                             if (e.target.closest('.color-picker-wrapper')) return;
                             if (e.target.closest('.slider-picker-wrapper')) return;
                             if (e.target.closest('.password-wrapper')) return;
@@ -4043,9 +4050,11 @@ function createWidgetBaseRuntime(deps2) {
         Math.max(resolution.width, resolution.height),
       );
       const phone = phoneWidgetSizes[screenHeight] || phoneWidgetSizes[2532];
+      const widthKey = family === "large" ? "medium" : family;
+      const heightKey = family === "medium" ? "small" : family;
       return new Size(
-        Math.round(phone[family] / scale),
-        Math.round(phone[family === "medium" ? "small" : family] / scale),
+        Math.round(phone[widthKey] / scale),
+        Math.round(phone[heightKey] / scale),
       );
     }
     getColors = (color = "") => {

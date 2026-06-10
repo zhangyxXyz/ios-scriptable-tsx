@@ -1,6 +1,6 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
-// icon-color: blue; icon-glyph: gauge.high;
+// icon-color: blue; icon-glyph: server;
 
 /*
  * author   :  seiun
@@ -353,16 +353,25 @@ class DoneHubMonitor extends WidgetBase {
 
     getChannelName(item: DoneHubUsageItem) {
         const name = String(item.channel?.name || '').trim()
-        if (name) return name
+        if (name) return this.formatChannelName(name)
         const id = item.channel?.id
         return id ? `Channel ${id}` : 'Done Hub'
     }
 
+    formatChannelName(name: string) {
+        return name
+            .replace(/^cpt(?=[-_\s.]?\d)/i, 'GPT')
+            .replace(/[-_\s]+code[-_\s]+spark/i, ' Codex Spark')
+            .replace(/[-_\s]+codex[-_\s]+spark/i, ' Codex Spark')
+            .replace(/\s+/g, ' ')
+            .trim()
+    }
+
     getWindowLabel(seconds?: number) {
         const minutes = Number(seconds ?? 0) / 60
-        if (Math.abs(minutes - 300) <= 15) return {label: '5 小时', kind: 'five-hour' as WindowKind}
-        if (Math.abs(minutes - 10080) <= 504) return {label: '7 天', kind: 'long' as WindowKind}
-        if (Math.abs(minutes - 1440) <= 72) return {label: '每日', kind: 'long' as WindowKind}
+        if (Math.abs(minutes - 300) <= 15) return {label: '5小时使用限额', kind: 'five-hour' as WindowKind}
+        if (Math.abs(minutes - 10080) <= 504) return {label: '每周使用限额', kind: 'long' as WindowKind}
+        if (Math.abs(minutes - 1440) <= 72) return {label: '每日使用限额', kind: 'long' as WindowKind}
         if (minutes >= 60) return {label: `${Math.round(minutes / 60)} 小时`, kind: 'long' as WindowKind}
         return {label: '额度', kind: 'long' as WindowKind}
     }
@@ -420,8 +429,8 @@ class DoneHubMonitor extends WidgetBase {
         this.items.forEach((item, index) => {
             if (this.getProvider(item) !== 'claude') return
             const usage = item.data?.usage as ClaudeUsage | undefined
-            const fiveHour = this.normalizeClaudeWindow(item, usage?.five_hour, '5 小时', 'five-hour', index)
-            const sevenDay = this.normalizeClaudeWindow(item, usage?.seven_day, '7 天', 'long', index)
+            const fiveHour = this.normalizeClaudeWindow(item, usage?.five_hour, '5小时使用限额', 'five-hour', index)
+            const sevenDay = this.normalizeClaudeWindow(item, usage?.seven_day, '每周使用限额', 'long', index)
             if (fiveHour) rows.push(fiveHour)
             if (sevenDay) rows.push(sevenDay)
         })
@@ -429,7 +438,7 @@ class DoneHubMonitor extends WidgetBase {
     }
 
     getMediumRows() {
-        return [...this.getCodexRows(), ...this.getClaudeRows()].filter(row => row.windowKind === 'five-hour').slice(0, 4)
+        return [...this.getCodexRows(), ...this.getClaudeRows()].slice(0, 4)
     }
 
     getLargeRows() {
@@ -588,13 +597,13 @@ class DoneHubMonitor extends WidgetBase {
         }
     }
 
-    renderHeader(widget: ListWidget, subtitle: string) {
+    renderHeader(widget: ListWidget) {
         const header = this.addAlignedRow(widget, this.getLayoutMetrics().contentWidth)
         const icon = header.addImage(SFSymbol.named('gauge.high').image)
         icon.imageSize = new Size(16, 16)
         icon.tintColor = new Color('#2563EB')
         header.addSpacer(6)
-        const title = header.addText(`Done Hub | ${subtitle}`)
+        const title = header.addText('Done Hub')
         title.textColor = this.widgetColor
         title.font = Font.boldSystemFont(15)
         title.textOpacity = 0.86
@@ -605,12 +614,6 @@ class DoneHubMonitor extends WidgetBase {
 
     renderFooter(widget: ListWidget) {
         const footer = this.addAlignedRow(widget, this.getLayoutMetrics().contentWidth)
-        const summary = footer.addText(`${this.getCodexRows().length} Codex · ${this.getClaudeRows().length} Claude`)
-        summary.textColor = this.widgetColor
-        summary.font = Font.mediumSystemFont(10)
-        summary.textOpacity = 0.62
-        summary.lineLimit = 1
-        summary.minimumScaleFactor = 0.75
         footer.addSpacer()
         const status = footer.addText(this.getFooterText())
         status.textColor = this.getStatusColor()
@@ -624,7 +627,7 @@ class DoneHubMonitor extends WidgetBase {
         GenrateView.setListWidget(widget)
         const {padding} = this.getLayoutMetrics(true)
         widget.setPadding(padding.top, padding.left, padding.bottom, padding.right)
-        this.renderHeader(widget, '5 小时窗口')
+        this.renderHeader(widget)
         widget.addSpacer(8)
         this.renderRows(widget, this.getMediumRows(), true)
         widget.addSpacer()
@@ -636,7 +639,7 @@ class DoneHubMonitor extends WidgetBase {
         GenrateView.setListWidget(widget)
         const {padding} = this.getLayoutMetrics()
         widget.setPadding(padding.top, padding.left, padding.bottom, padding.right)
-        this.renderHeader(widget, 'Codex 4 · Claude 2')
+        this.renderHeader(widget)
         widget.addSpacer(10)
         this.renderRows(widget, this.getLargeRows())
         widget.addSpacer()
