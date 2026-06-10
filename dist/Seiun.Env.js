@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-10 12:18:53
+ * build    :  2026-06-10 18:57:49
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -4979,10 +4979,6 @@ function createWidgetBaseRuntime(deps2) {
     Runing: Runing2,
   };
 }
-module.exports = {
-  createWidgetBaseRuntime,
-};
-export {};
 function createStorageRuntime(deps2) {
   const { fm: fm2, hash: hash2, isHttpUrl: isHttpUrl2 } = deps2;
   function setStorageDirectory(dirPath) {

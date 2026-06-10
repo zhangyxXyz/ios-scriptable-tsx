@@ -256,7 +256,7 @@ async function compile(options: CompileOptions) {
     }
 
     function createSeiunEnvBuildEntry(entryPath: string) {
-        const stripModuleMarker = (source: string) => source.replace(/\nexport\s*\{\}\s*;?\s*$/g, '')
+        const stripModuleMarker = (source: string) => source.replace(/\r?\nexport\s*\{\s*\}\s*;?\s*$/g, '')
         let runtimeSource = stripModuleMarker(fs.readFileSync(entryPath, 'utf8'))
         const inlineModules = [
             {
