@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/05
- * desc     :  Codex额度监控
+ * desc     :  Codex 额度监控，支持官方直连与 Done Hub 代理
  * version  :  1.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
@@ -859,11 +859,25 @@ class CodexMonitor extends WidgetBase {
     getLayoutMetrics() {
         const padding = {top: 10, right: 10, bottom: 10, left: 10}
         const cardGap = 12
+        // 真机可用宽度通常比估算值小，额外收窄一段避免两张卡片铺得太开
+        const contentInset = 16
         const widgetSize = this.getWidgetSize(this.widgetFamily === 'large' ? 'large' : 'medium')
-        const contentWidth = Math.floor(widgetSize.width - padding.left - padding.right)
-        const cardWidth = Math.floor((contentWidth - cardGap) / 2)
+        const cardWidth = Math.floor((widgetSize.width - padding.left - padding.right - contentInset - cardGap) / 2)
+        const contentWidth = cardWidth * 2 + cardGap
         const progressWidth = cardWidth - 20
-        return {padding, cardGap, cardWidth, progressWidth}
+        return {padding, cardGap, contentWidth, cardWidth, progressWidth}
+    }
+
+    addAlignedRow(widget: ListWidget, contentWidth: number) {
+        const outer = widget.addStack()
+        outer.layoutHorizontally()
+        outer.addSpacer()
+        const inner = outer.addStack()
+        inner.layoutHorizontally()
+        inner.centerAlignContent()
+        inner.size = new Size(contentWidth, 0)
+        outer.addSpacer()
+        return inner
     }
 
     estimateTextWidth(text: string, fontSize: number, min: number, max: number) {
@@ -1404,12 +1418,10 @@ toggleModeFields();
 
     async renderCommon(widget: ListWidget, maxRows: number) {
         GenrateView.setListWidget(widget)
-        const {padding, cardGap, cardWidth, progressWidth} = this.getLayoutMetrics()
+        const {padding, cardGap, contentWidth, cardWidth, progressWidth} = this.getLayoutMetrics()
         widget.setPadding(padding.top, padding.left, padding.bottom, padding.right)
 
-        const header = widget.addStack()
-        header.layoutHorizontally()
-        header.centerAlignContent()
+        const header = this.addAlignedRow(widget, contentWidth)
         if (CODEX_ICON_URL) {
             try {
                 const iconImage = await this.getImageByUrl(CODEX_ICON_URL)
@@ -1444,8 +1456,7 @@ toggleModeFields();
             widget.addSpacer()
         } else {
             for (let i = 0; i < rows.length; i += 2) {
-                const rowStack = widget.addStack()
-                rowStack.layoutHorizontally()
+                const rowStack = this.addAlignedRow(widget, contentWidth)
                 rowStack.spacing = cardGap
                 this.renderRowCard(rowStack, rows[i], cardWidth, progressWidth)
                 if (rows[i + 1]) this.renderRowCard(rowStack, rows[i + 1], cardWidth, progressWidth)
@@ -1453,17 +1464,13 @@ toggleModeFields();
             }
         }
 
-        const footer = widget.addStack()
-        footer.layoutHorizontally()
-        footer.centerAlignContent()
-        footer.setPadding(0, 0, 0, 0)
+        const footer = this.addAlignedRow(widget, contentWidth)
         const credit = footer.addText(`账户余额：${this.getCreditText()} · ${this.getAccountMode(this.currentAccount)}`)
         credit.textColor = this.widgetColor
         credit.font = Font.mediumSystemFont(10)
         credit.textOpacity = 0.62
         credit.lineLimit = 1
         credit.minimumScaleFactor = 0.75
-        credit.size = new Size(96, 16)
         footer.addSpacer()
 
         const statusText =

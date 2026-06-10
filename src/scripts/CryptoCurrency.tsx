@@ -20,8 +20,36 @@ const dependencyFileName = 'Seiun.Env.js'
 const runtimeRequire = typeof require === 'undefined' ? importModule : require
 const { WidgetBase, Runing, GenrateView, h, Utils } = runtimeRequire(dependencyFileName) as SeiunEnv
 
+type CoinMarket = {
+    id: string
+    name: string
+    image: string
+    symbol: string
+    current_price: number
+    high_24h: number
+    low_24h: number
+    price_change_percentage_24h: number
+    last_updated: string
+}
+
+type CoinMarketsResponse = CoinMarket[] | {status?: {error_code?: number}; data?: CoinMarket[]}
+
+type ParsedMarkets = CoinMarket[] & {status?: {error_code?: number}}
+
+type CoinData = {
+    id: string
+    name: string
+    image: string
+    symbol: string
+    current_price: string
+    high_24h: number
+    low_24h: number
+    price_change_percentage_24h: number
+    last_updated: string
+}
+
 class Widget extends WidgetBase {
-    constructor(arg) {
+    constructor(arg?: string) {
         super(arg)
         this.name = '数字货币'
         this.en = 'CryptoCurrency'
@@ -29,10 +57,10 @@ class Widget extends WidgetBase {
         this.Run()
     }
 
-    httpData = null
+    httpData: CoinData | null = null
     isRequestSuccess = false
-    dataSource = []
-    coinOptions = []
+    dataSource: CoinData[] = []
+    coinOptions: {label: string; value: string}[] = []
 
     endpoint = 'https://api.coingecko.com/api/v3'
 
@@ -82,7 +110,7 @@ class Widget extends WidgetBase {
 
         try {
             console.log(`[+]请求币种列表: ${this.endpoint}/coins/markets?vs_currency=usd&ids=`)
-            const response = await this.$request.get(
+            const response = await this.$request.get<CoinMarketsResponse>(
                 `${this.endpoint}/coins/markets?vs_currency=usd&ids=`
             )
             console.log(`[+]币种列表响应类型: ${typeof response}, 是否为数组: ${Array.isArray(response)}`)
@@ -95,9 +123,10 @@ class Widget extends WidgetBase {
                 this.storage.setStorage(cacheKey, response)
                 return response
             } else if (response && typeof response === 'object') {
-                if (response.status && response.status.error_code === 429) {
+                const obj = response as {status?: {error_code?: number}; data?: CoinMarket[]}
+                if (obj.status && obj.status.error_code === 429) {
                     console.log(`[+]API限流，使用缓存数据`)
-                    const fallbackCache = this.storage.getStorage(cacheKey)
+                    const fallbackCache = this.storage.getStorage<CoinMarket[]>(cacheKey)
                     if (fallbackCache && Array.isArray(fallbackCache)) {
                         console.log(`[+]使用过期缓存数据，共 ${fallbackCache.length} 个`)
                         return fallbackCache
@@ -107,13 +136,13 @@ class Widget extends WidgetBase {
                 }
                 
                 console.log(`[+]响应是对象，尝试解析...`)
-                if (Array.isArray(response.data)) {
-                    console.log(`[+]从 response.data 获取数组，共 ${response.data.length} 个`)
-                    this.storage.setStorage(cacheKey, response.data)
-                    return response.data
+                if (obj.data && Array.isArray(obj.data)) {
+                    console.log(`[+]从 response.data 获取数组，共 ${obj.data.length} 个`)
+                    this.storage.setStorage(cacheKey, obj.data)
+                    return obj.data
                 } else {
                     console.log(`[+]币种列表格式错误: 不是数组，类型: ${typeof response}`)
-                    const fallbackCache = this.storage.getStorage(cacheKey)
+                    const fallbackCache = this.storage.getStorage<CoinMarket[]>(cacheKey)
                     if (fallbackCache && Array.isArray(fallbackCache)) {
                         console.log(`[+]使用过期缓存数据，共 ${fallbackCache.length} 个`)
                         return fallbackCache
@@ -122,7 +151,7 @@ class Widget extends WidgetBase {
                 }
             } else {
                 console.log(`[+]币种列表格式错误: ${typeof response}`)
-                const fallbackCache = this.storage.getStorage(cacheKey)
+                const fallbackCache = this.storage.getStorage<CoinMarket[]>(cacheKey)
                 if (fallbackCache && Array.isArray(fallbackCache)) {
                     console.log(`[+]使用过期缓存数据，共 ${fallbackCache.length} 个`)
                     return fallbackCache
@@ -131,7 +160,7 @@ class Widget extends WidgetBase {
             }
         } catch (e) {
             console.log(`[+]获取币种列表失败: ${e}`)
-            const fallbackCache = this.storage.getStorage(cacheKey)
+            const fallbackCache = this.storage.getStorage<CoinMarket[]>(cacheKey)
             if (fallbackCache && Array.isArray(fallbackCache)) {
                 console.log(`[+]使用过期缓存数据，共 ${fallbackCache.length} 个`)
                 return fallbackCache
@@ -140,7 +169,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async transforBtcType(params) {
+    async transforBtcType(params: string[]) {
         if (!params || !Array.isArray(params) || params.length === 0) {
             return ''
         }
@@ -174,7 +203,7 @@ class Widget extends WidgetBase {
             }
             
             const cacheKey = `btc_data_${this.md5(ids)}`
-            const cached = this.storage.getStorage(cacheKey, 360)
+            const cached = this.storage.getStorage<CoinData[]>(cacheKey, 360)
             if (cached && Array.isArray(cached) && cached.length > 0) {
                 console.log(`[+]使用缓存的数据，共 ${cached.length} 个币种`)
                 this.dataSource = cached
@@ -183,37 +212,40 @@ class Widget extends WidgetBase {
             }
             
             console.log(`[+]请求币种数据: ${this.endpoint}/coins/markets?vs_currency=usd&ids=${ids}`)
-            let response = await this.$request.get(
+            const responseStr = await this.$request.get<string>(
                 `${this.endpoint}/coins/markets?vs_currency=usd&ids=${ids}`,
                 'STRING'
             )
             
-            console.log(`[+]币种数据响应类型: ${typeof response}, 长度: ${response ? response.length : 0}`)
-            if (response) {
-                console.log(`[+]币种数据响应预览: ${response.substring(0, 200)}...`)
+            console.log(`[+]币种数据响应类型: ${typeof responseStr}, 长度: ${responseStr ? responseStr.length : 0}`)
+            if (responseStr) {
+                console.log(`[+]币种数据响应预览: ${responseStr.substring(0, 200)}...`)
             }
             
             this.dataSource = []
-            response = JSON.parse(response)
+            const response = JSON.parse(responseStr) as CoinMarketsResponse
             console.log(`[+]解析后的类型: ${typeof response}, 是否为数组: ${Array.isArray(response)}`)
             
-            if (response && typeof response === 'object' && response.status && response.status.error_code === 429) {
-                console.log(`[+]API限流(429)，使用缓存数据`)
-                const fallbackCache = this.storage.getStorage(cacheKey)
-                if (fallbackCache && Array.isArray(fallbackCache) && fallbackCache.length > 0) {
-                    console.log(`[+]使用过期缓存数据，共 ${fallbackCache.length} 个币种`)
-                    this.dataSource = fallbackCache
-                    this.isRequestSuccess = true
+            if (response && typeof response === 'object' && !Array.isArray(response)) {
+                const obj = response as {status?: {error_code?: number}; data?: CoinMarket[]}
+                if (obj.status && obj.status.error_code === 429) {
+                    console.log(`[+]API限流(429)，使用缓存数据`)
+                    const fallbackCache = this.storage.getStorage<CoinData[]>(cacheKey)
+                    if (fallbackCache && Array.isArray(fallbackCache) && fallbackCache.length > 0) {
+                        console.log(`[+]使用过期缓存数据，共 ${fallbackCache.length} 个币种`)
+                        this.dataSource = fallbackCache
+                        this.isRequestSuccess = true
+                        return
+                    }
+                    console.log(`[+]无缓存数据可用`)
+                    this.isRequestSuccess = false
                     return
                 }
-                console.log(`[+]无缓存数据可用`)
-                this.isRequestSuccess = false
-                return
             }
             
             if (!Array.isArray(response) || !response.length) {
                 console.log(`[+]币种数据格式错误或为空，尝试使用缓存`)
-                const fallbackCache = this.storage.getStorage(cacheKey)
+                const fallbackCache = this.storage.getStorage<CoinData[]>(cacheKey)
                 if (fallbackCache && Array.isArray(fallbackCache) && fallbackCache.length > 0) {
                     console.log(`[+]使用过期缓存数据，共 ${fallbackCache.length} 个币种`)
                     this.dataSource = fallbackCache
@@ -224,11 +256,12 @@ class Widget extends WidgetBase {
                 return
             }
             
-            console.log(`[+]币种数据获取成功，共 ${response.length} 个`)
+            const markets = response as CoinMarket[]
+            console.log(`[+]币种数据获取成功，共 ${markets.length} 个`)
             
             const idsData = ids.split(',')
             idsData.forEach((id) => {
-                const it = response.find((item) => item.id === id)
+                const it = markets.find((item) => item.id === id)
                 if (it) {
                     this.dataSource.push({
                         id: it.id,
@@ -285,7 +318,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async getSmallBg(image) {
+    async getSmallBg(image: Image | null) {
         if (!image) return null
         
         try {
@@ -321,7 +354,7 @@ class Widget extends WidgetBase {
         return null
     }
 
-    renderSmall = async (w) => {
+    renderSmall = async (w: ListWidget) => {
         if (!this.dataSource || this.dataSource.length === 0) {
             GenrateView.setListWidget(w)
             return /* @__PURE__ */ h('wbox', {}, /* @__PURE__ */ h('wtext', { textColor: this.widgetColor }, '加载中...'))
@@ -349,7 +382,7 @@ class Widget extends WidgetBase {
                 font: Font.systemFont(10),
                 textAlign: 'right',
             }, market.name),
-            /* @__PURE__ */ h('wspacer', null),
+            /* @__PURE__ */ h('wspacer', {}),
             /* @__PURE__ */ h('wtext', {
                 textColor: market.price_change_percentage_24h >= 0 ? Color.green() : Color.red(),
                 font: Font.semiboldSystemFont(16),
@@ -372,7 +405,7 @@ class Widget extends WidgetBase {
         )
     }
 
-    renderRowCell = async (market) => {
+    renderRowCell = async (market: CoinData) => {
         const image = await this.getImageByUrl(market.image, null, 'coinIcon')
         const changeColor = market.price_change_percentage_24h >= 0 ? Color.green() : Color.red()
         const changeText = (market.price_change_percentage_24h >= 0 ? '+' : '') + market.price_change_percentage_24h.toFixed(2) + '%'
@@ -404,7 +437,7 @@ class Widget extends WidgetBase {
                         textColor: this.widgetColor,
                         font: Font.semiboldSystemFont(16),
                     }, market.symbol),
-                    /* @__PURE__ */ h('wspacer', null),
+                    /* @__PURE__ */ h('wspacer', {}),
                     /* @__PURE__ */ h('wtext', {
                         textColor: this.widgetColor,
                         font: Font.semiboldSystemFont(15),
@@ -420,7 +453,7 @@ class Widget extends WidgetBase {
                         textColor: Color.gray(),
                         font: Font.semiboldSystemFont(10),
                     }, market.name),
-                    /* @__PURE__ */ h('wspacer', null),
+                    /* @__PURE__ */ h('wspacer', {}),
                     /* @__PURE__ */ h('wtext', {
                         textColor: Color.gray(),
                         font: Font.semiboldSystemFont(10),
@@ -449,7 +482,7 @@ class Widget extends WidgetBase {
         )
     }
 
-    renderMedium = async (w) => {
+    renderMedium = async (w: ListWidget) => {
         if (!this.dataSource || this.dataSource.length === 0) {
             GenrateView.setListWidget(w)
             return /* @__PURE__ */ h('wbox', {}, /* @__PURE__ */ h('wtext', { textColor: this.widgetColor }, '加载中...'))
@@ -459,7 +492,7 @@ class Widget extends WidgetBase {
         for (let index = 0; index < Math.min(this.dataSource.length, 3); index++) {
             items.push(await this.renderRowCell(this.dataSource[index]))
             if (index < 2) {
-                items.push(/* @__PURE__ */ h('wspacer', null))
+                items.push(/* @__PURE__ */ h('wspacer', {}))
             }
         }
 
@@ -474,7 +507,7 @@ class Widget extends WidgetBase {
         )
     }
 
-    renderLarge = async (w) => {
+    renderLarge = async (w: ListWidget) => {
         if (!this.dataSource || this.dataSource.length === 0) {
             GenrateView.setListWidget(w)
             return /* @__PURE__ */ h('wbox', {}, /* @__PURE__ */ h('wtext', { textColor: this.widgetColor }, '加载中...'))
@@ -484,7 +517,7 @@ class Widget extends WidgetBase {
         for (let index = 0; index < this.dataSource.length; index++) {
             items.push(await this.renderRowCell(this.dataSource[index]))
             if (index < this.dataSource.length - 1) {
-                items.push(/* @__PURE__ */ h('wspacer', null))
+                items.push(/* @__PURE__ */ h('wspacer', {}))
             }
         }
 

@@ -19,8 +19,11 @@ const dependencyFileName = 'Seiun.Env.js'
 const runtimeRequire = typeof require === 'undefined' ? importModule : require
 const { WidgetBase, Runing, GenrateView, h, Utils } = runtimeRequire(dependencyFileName) as SeiunEnv
 
+type RssItem = {title: string; link: string; [key: string]: unknown}
+type RssData = {status: string; items: RssItem[]; feed: {title: string; [key: string]: unknown}}
+
 class Widget extends WidgetBase {
-    constructor(arg) {
+    constructor(arg?: string) {
         super(arg)
         this.name = 'RSS监视器'
         this.en = 'RSSMonitor'
@@ -33,7 +36,7 @@ class Widget extends WidgetBase {
     rsslink = 'https://github.com/zhangyxXyz/ios-scriptable/commits/master.atom'
     contentRowSpacing = 5
 
-    rssData = null
+    rssData: RssData | null = null
     isRequestSuccess = false
 
     // 组件当前设置
@@ -60,7 +63,7 @@ class Widget extends WidgetBase {
     async getData() {
         this.isRequestSuccess = false
         try {
-            const data = await this.$request.get('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(this.rsslink))
+            const data = await this.$request.get<RssData>('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(this.rsslink))
             this.rssData = data
             this.isRequestSuccess = true
             console.log(this.rssData)
@@ -172,7 +175,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    decideGoto(item) {
+    decideGoto(item: RssItem) {
         switch (this.currentSettings.basicSettings.urlJumpType.val) {
             case '跳转至浏览器':
                 return item.link
@@ -183,7 +186,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderCommon = async w => {
+    renderCommon = async (w: ListWidget) => {
         if (this.rssData && this.rssData.status == 'ok') {
             const items = this.rssData.items.splice(
                 0,
@@ -194,7 +197,7 @@ class Widget extends WidgetBase {
                     this.rssData.items.length
                 )
             )
-            items.map(item => {
+            items.map((item: RssItem) => {
                 console.log(`• ${item.title}`)
             })
 
@@ -216,7 +219,7 @@ class Widget extends WidgetBase {
                     },
                     `📻 ${this.rssData.feed.title}`
                 ),
-                items.map(item => {
+                items.map((item: RssItem) => {
                     return /* @__PURE__ */ h(
                         'wtext',
                         {
@@ -238,7 +241,7 @@ class Widget extends WidgetBase {
                             verticalAlign: 'center',
                             padding: [0, 0, 5, 0]
                         },
-                        /* @__PURE__ */ h('wspacer', null),
+                        /* @__PURE__ */ h('wspacer', {}),
                         /* @__PURE__ */ h('wimage', {
                             src: 'arrow.clockwise',
                             width: 10,
@@ -268,7 +271,7 @@ class Widget extends WidgetBase {
                 {
                     spacing: this.contentRowSpacing
                 },
-                /* @__PURE__ */ h('wspacer', null),
+                /* @__PURE__ */ h('wspacer', {}),
                 /* @__PURE__ */ h(
                     'wtext',
                     {
@@ -282,11 +285,11 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderMedium = async (w) => {
+    renderMedium = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 
-    renderLarge = async (w) => {
+    renderLarge = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 

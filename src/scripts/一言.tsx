@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/21
- * desc     :  一言
+ * desc     :  一言语录轮播，支持自定义 API 地址与句子类型过滤
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
@@ -231,9 +231,10 @@ class OneWord extends WidgetBase {
 
         const hitokoto = this.httpData?.hitokoto || '人生这辈子不就是笑笑别人和被别人笑笑嘛~'
         const from = this.httpData ? this.getFromText(this.httpData) : '一言'
-        const oneWordIcon = await this.getImageByUrl(
-            'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Application/OneWord.png',
-        )
+        const oneWordIcon =
+            (await this.getImageByUrl(
+                'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Application/OneWord.png',
+            )) || SFSymbol.named('quote.bubble').image
         const contentTextStyle = this.getContentTextStyle()
 
         return (

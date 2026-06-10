@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/19
- * build    :  2026-06-10 18:57:50
+ * build    :  2026-06-11 00:23:36
  * desc     :  微博热搜
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -30,6 +30,7 @@ var Widget = class extends WidgetBase {
     this.widgetParam = args.widgetParameter;
     this.url =
       "https://m.weibo.cn/api/container/getIndex?containerid=106003%26filter_type%3Drealtimehot";
+    this.httpData = null;
     this.isRequestSuccess = false;
     // 组件当前设置
     this.currentSettings = {
@@ -63,7 +64,9 @@ var Widget = class extends WidgetBase {
       if (
         this.httpData &&
         this.httpData.data.cards[0] &&
-        this.httpData.data.cards[0].title.indexOf("实时热点") != -1
+        String(this.httpData.data.cards[0].title?.text ?? "").indexOf(
+          "实时热点",
+        ) != -1
       ) {
         const items = this.httpData["data"]["cards"][0]["card_group"].splice(
           1,
@@ -137,7 +140,7 @@ var Widget = class extends WidgetBase {
                     width: 18,
                     height: 18,
                   }),
-                /* @__PURE__ */ h("wspacer", null),
+                /* @__PURE__ */ h("wspacer", {}),
                 /* @__PURE__ */ h(
                   "wtext",
                   {
@@ -171,7 +174,7 @@ var Widget = class extends WidgetBase {
                 verticalAlign: "center",
                 padding: [0, 0, 5, 0],
               },
-              /* @__PURE__ */ h("wspacer", null),
+              /* @__PURE__ */ h("wspacer", {}),
               /* @__PURE__ */ h("wimage", {
                 src: "arrow.clockwise",
                 width: 10,
@@ -236,7 +239,9 @@ var Widget = class extends WidgetBase {
       let attempts = 0;
       const maxAttempts = 20;
       while (attempts < maxAttempts && !jsonText) {
-        await new Promise((resolve) => Timer.schedule(800, false, resolve));
+        await new Promise((resolve) =>
+          Timer.schedule(800, false, () => resolve()),
+        );
         attempts++;
         try {
           const currentUrl = await webView.evaluateJavaScript(

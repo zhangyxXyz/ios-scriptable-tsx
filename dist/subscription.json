@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-11 01:42:44",
+  "generatedAt": "2026-06-11 04:30:55",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -11,9 +11,9 @@
         "zh": "电影日历",
         "en": "MovieCalendar"
       },
-      "desc": "电影日历",
+      "desc": "每日电影推荐日历，含豆瓣评分、农历与海报背景",
       "version": "1.0.0",
-      "build": "2026-06-11 00:56:39"
+      "build": "2026-06-11 03:05:38"
     },
     {
       "id": "一言",
@@ -23,9 +23,9 @@
         "zh": "一言",
         "en": "One Word"
       },
-      "desc": "一言",
+      "desc": "一言语录轮播，支持自定义 API 地址与句子类型过滤",
       "version": "1.0.0",
-      "build": "2026-06-04 00:58:47"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "BilibiliMonitor",
@@ -35,21 +35,21 @@
         "zh": "B站榜单",
         "en": "BilibiliMonitor"
       },
-      "desc": "B站榜单",
+      "desc": "B站热门排行榜单轮播展示",
       "version": "1.0.0",
-      "build": "2026-06-04 02:52:38"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "ClaudeMonitor",
       "fileName": "ClaudeMonitor.js",
       "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/ClaudeMonitor.js",
       "name": {
-        "zh": "ClaudeUsageWindowEmptyError",
+        "zh": "Claude监控",
         "en": "ClaudeMonitor"
       },
-      "desc": "Claude额度监控",
+      "desc": "Claude 额度监控，支持 OAuth、API Key 与 Done Hub 代理",
       "version": "1.0.0",
-      "build": "2026-06-10 23:28:17"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "CodexMonitor",
@@ -59,9 +59,9 @@
         "zh": "Codex监控",
         "en": "CodexMonitor"
       },
-      "desc": "Codex额度监控",
+      "desc": "Codex 额度监控，支持官方直连与 Done Hub 代理",
       "version": "1.0.1",
-      "build": "2026-06-11 00:08:44"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "CryptoCurrency",
@@ -73,7 +73,7 @@
       },
       "desc": "数字货币",
       "version": "1.0.0",
-      "build": "2026-06-10 18:57:50"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "CursorMonitor",
@@ -83,9 +83,9 @@
         "zh": "Cursor监控",
         "en": "CursorMonitor"
       },
-      "desc": "Cursor监控",
+      "desc": "Cursor 用量监控，支持每日用量、总用量与套餐概览",
       "version": "1.0.0",
-      "build": "2026-06-04 04:11:22"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "DoneHubMonitor",
@@ -95,9 +95,9 @@
         "zh": "DoneHub聚合监控",
         "en": "DoneHubMonitor"
       },
-      "desc": "Done Hub 聚合额度监控",
+      "desc": "Done Hub 聚合额度监控，汇总 Codex 与 Claude 渠道用量",
       "version": "1.0.0",
-      "build": "2026-06-11 02:21:06"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "DoubanMonitor",
@@ -109,7 +109,7 @@
       },
       "desc": "豆瓣电影推荐榜单",
       "version": "1.0.0",
-      "build": "2026-06-10 18:57:50"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "GitMonitor",
@@ -121,7 +121,7 @@
       },
       "desc": "* version  :  1.0.0",
       "version": "1.0.0",
-      "build": "2026-06-11 01:42:44"
+      "build": "2026-06-11 04:30:54"
     },
     {
       "id": "HotlistMonitor",
@@ -133,7 +133,7 @@
       },
       "desc": "聚合热榜",
       "version": "1.0.0",
-      "build": "2026-06-10 18:57:50"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "InfoCollection",
@@ -143,9 +143,9 @@
         "zh": "信息合集",
         "en": "InfoCollection"
       },
-      "desc": "信息合集",
+      "desc": "万年历、天气、电池、年进度等信息聚合面板",
       "version": "1.0.0",
-      "build": "2026-06-04 10:23:07"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "RSSMonitor",
@@ -157,7 +157,7 @@
       },
       "desc": "RSS监视器",
       "version": "1.0.0",
-      "build": "2026-06-10 18:57:50"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "ScriptUpdater",
@@ -167,9 +167,9 @@
         "zh": "脚本更新器",
         "en": "ScriptUpdater"
       },
-      "desc": "Scriptable 脚本订阅更新器",
-      "version": "1.0.0",
-      "build": "2026-06-04 03:47:16"
+      "desc": "脚本订阅更新器，按订阅清单安装与更新本地脚本",
+      "version": "1.0.1",
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "Seiun.Env",
@@ -181,7 +181,7 @@
       },
       "desc": "Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts",
       "version": "2.0.0",
-      "build": "2026-06-11 00:02:41"
+      "build": "2026-06-11 02:35:05"
     },
     {
       "id": "TodayOilPrice",
@@ -193,7 +193,7 @@
       },
       "desc": "今日油价",
       "version": "2.0.0",
-      "build": "2026-06-10 18:57:50"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "VpnAirportTraffic",
@@ -205,7 +205,7 @@
       },
       "desc": "机场流量",
       "version": "2.0.0",
-      "build": "2026-06-10 18:57:50"
+      "build": "2026-06-11 00:23:36"
     },
     {
       "id": "WeiboMonitor",
@@ -217,7 +217,7 @@
       },
       "desc": "微博热搜",
       "version": "1.0.0",
-      "build": "2026-06-10 18:57:50"
+      "build": "2026-06-11 00:23:36"
     }
   ]
 }

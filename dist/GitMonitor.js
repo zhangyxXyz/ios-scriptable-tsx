@@ -4,8 +4,8 @@
 
 /********************************************************
  * author   :  seiun
- * date     :  6/11/2026, 01:42:44
- * build    :  2026-06-11 01:42:44
+ * date     :  6/11/2026, 04:30:54
+ * build    :  2026-06-11 04:30:54
  * desc     :
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -30,6 +30,8 @@ var Widget = class extends WidgetBase {
     this.contentRowSpacing = 5;
     this.commits = null;
     this.isRequestSuccess = false;
+    this.defaultRepoElementId = void 0;
+    this.paramColorType = null;
     this.repo = {
       repoUrl: "https://github.com/zhangyxXyz/ios-scriptable",
       branch: "",
@@ -153,7 +155,7 @@ var Widget = class extends WidgetBase {
           ),
           items.map((item) => {
             const message = (
-              item.commit ? item.commit.message : item.message || ""
+              item.commit ? (item.commit.message ?? "") : (item.message ?? "")
             ).split("\n")[0];
             const shortSha = (item.sha || item.id || "").substring(0, 7);
             const colorType =
@@ -212,7 +214,7 @@ var Widget = class extends WidgetBase {
                 verticalAlign: "center",
                 padding: [0, 0, 5, 0],
               },
-              /* @__PURE__ */ h("wspacer", null),
+              /* @__PURE__ */ h("wspacer", {}),
               /* @__PURE__ */ h("wimage", {
                 src: "arrow.clockwise",
                 width: 10,
@@ -244,7 +246,7 @@ var Widget = class extends WidgetBase {
           {
             spacing: this.contentRowSpacing,
           },
-          /* @__PURE__ */ h("wspacer", null),
+          /* @__PURE__ */ h("wspacer", {}),
           /* @__PURE__ */ h(
             "wtext",
             {
@@ -362,10 +364,11 @@ var Widget = class extends WidgetBase {
           headers["PRIVATE-TOKEN"] = token;
         }
       }
+      if (!apiUrl) throw new Error("apiUrl 未定义");
       const data = await this.$request.get(apiUrl, { headers });
       this.commits = data;
       this.isRequestSuccess = true;
-      console.log(`获取到 ${this.commits.length} 条提交记录`);
+      console.log(`获取到 ${this.commits?.length} 条提交记录`);
     } catch (error) {
       console.log(error);
     }
@@ -522,7 +525,9 @@ var Widget = class extends WidgetBase {
                 })()`,
         false,
       );
-      await new Promise((resolve) => Timer.schedule(150, false, resolve));
+      await new Promise((resolve) =>
+        Timer.schedule(150, false, () => resolve()),
+      );
       await this.bindRepoActions(webView);
       await this.resetPendingAction(webView);
     } catch (e) {
@@ -765,7 +770,9 @@ var Widget = class extends WidgetBase {
         isWebViewClosed = true;
       });
       while (!isWebViewClosed) {
-        await new Promise((resolve) => Timer.schedule(250, false, resolve));
+        await new Promise((resolve) =>
+          Timer.schedule(250, false, () => resolve()),
+        );
         if (isWebViewClosed) break;
         let action = "";
         try {
@@ -877,15 +884,17 @@ var Widget = class extends WidgetBase {
               null,
               false,
             );
-            if (repo && repo.repoUrl) {
-              if (!repo.repoType || !repo.repoType.trim()) {
-                const repoInfo = this.parseRepoUrl(repo.repoUrl);
-                repo.repoType = repoInfo ? repoInfo.type : "github";
+            const typedRepo = repo;
+            if (typedRepo && typedRepo.repoUrl) {
+              const repo2 = typedRepo;
+              if (!repo2.repoType || !repo2.repoType.trim()) {
+                const repoInfo = this.parseRepoUrl(repo2.repoUrl);
+                repo2.repoType = repoInfo ? repoInfo.type : "github";
               } else {
-                repo.repoType = repo.repoType.trim();
+                repo2.repoType = repo2.repoType.trim();
               }
               if (!this.settings.dataSource) this.settings.dataSource = [];
-              this.settings.dataSource.push(repo);
+              this.settings.dataSource.push(repo2);
               this.settings.dataSource = this.settings.dataSource.filter(
                 (item) => item,
               );
@@ -1013,7 +1022,7 @@ var Widget = class extends WidgetBase {
         this.settings.dataSource = dataSource;
         const isDefaultRepo = this.settings.repo?.repoUrl === repo.repoUrl;
         if (isDefaultRepo) {
-          this.settings.repo = null;
+          this.settings.repo = void 0;
           await this.updateDefaultRepo("请选择或者添加仓库");
         } else {
           this.saveSettings(false);

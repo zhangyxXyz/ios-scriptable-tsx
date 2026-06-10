@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2025/12/25
- * build    :  2026-06-10 18:57:50
+ * build    :  2026-06-11 00:23:36
  * desc     :  聚合热榜
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -152,7 +152,7 @@ var Widget = class extends WidgetBase {
                 verticalAlign: "center",
                 padding: [0, 0, 5, 0],
               },
-              /* @__PURE__ */ h("wspacer", null),
+              /* @__PURE__ */ h("wspacer", {}),
               /* @__PURE__ */ h("wimage", {
                 src: "arrow.clockwise",
                 width: 10,
@@ -212,7 +212,7 @@ var Widget = class extends WidgetBase {
     if (storageData) {
       console.log("[+]请求间隔时间过小，使用缓存数据");
       this.httpData = storageData;
-      this.isRequestSuccess = storageData && storageData.code === 200;
+      this.isRequestSuccess = Boolean(storageData && storageData.code === 200);
       return;
     }
     this.isRequestSuccess = false;
@@ -228,7 +228,7 @@ var Widget = class extends WidgetBase {
       console.log("[+]数据请求成功：" + url);
       this.storage.setStorage(cacheKey, data);
       this.httpData = data;
-      this.isRequestSuccess = data && data.code === 200;
+      this.isRequestSuccess = Boolean(data && data.code === 200);
       console.log(this.httpData);
     } catch (error) {
       console.log(`[+]getData出错，尝试使用缓存数据：${error}`);

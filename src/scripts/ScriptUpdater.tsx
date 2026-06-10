@@ -5,8 +5,8 @@
 /*
  * author   :  seiun
  * date     :  2026/06/04
- * desc     :  Scriptable 脚本订阅更新器
- * version  :  1.0.0
+ * desc     :  脚本订阅更新器，按订阅清单安装与更新本地脚本
+ * version  :  1.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -391,6 +391,7 @@ button.red { background: rgba(255,59,48,0.12); color: var(--red); }
 .status-pill.update { color: #ffffff; background: var(--green); }
 .status-pill.current { color: var(--muted); background: rgba(142,142,147,0.16); }
 .row-desc { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
+.row-desc.desc { color: var(--text); opacity: 0.78; }
 .script-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .version { color: var(--blue); font-size: 12px; font-weight: 700; white-space: nowrap; }
 .error { color: var(--red); }
@@ -480,10 +481,12 @@ function render() {
               const enName = script.name && script.name.en ? script.name.en : '';
               const title = enName && enName !== zhName ? zhName + ' / ' + enName : zhName;
               const status = scriptStatus(script);
+              const remoteDesc = String(script.desc || '').trim();
+              const descLine = remoteDesc && remoteDesc !== zhName ? '<div class="row-desc desc">' + escapeHtml(remoteDesc) + '</div>' : '';
               const buildLine = '本地 build：' + (script.installedBuild || '-') + ' ｜ 远端 build：' + (script.build || '-');
               const versionLine = '本地版本：' + (script.installedVersion || '-') + ' ｜ 远端版本：' + (script.version || '-');
               const actionButton = '<button class="' + status.buttonClass + '" onclick="invoke(\\'' + status.action + '\\', ' + JSON.stringify(script.fileName).replace(/"/g, '&quot;') + ')">' + status.button + '</button>';
-              return '<div class="row"><div class="row-main"><div class="row-title"><span>' + escapeHtml(title) + '</span><span class="status-pill ' + status.className + '">' + status.text + '</span></div><div class="row-desc">' + escapeHtml(buildLine) + '</div><div class="row-desc">' + escapeHtml(versionLine) + '</div></div><div class="script-actions">' + actionButton + '</div></div>';
+              return '<div class="row"><div class="row-main"><div class="row-title"><span>' + escapeHtml(title) + '</span><span class="status-pill ' + status.className + '">' + status.text + '</span></div>' + descLine + '<div class="row-desc">' + escapeHtml(buildLine) + '</div><div class="row-desc">' + escapeHtml(versionLine) + '</div></div><div class="script-actions">' + actionButton + '</div></div>';
             }).join('');
         return '<section class="section"><div class="section-title">' + escapeHtml(manifest.title) + '</div><div class="card">' + scripts + '</div></section>';
       }).join('')

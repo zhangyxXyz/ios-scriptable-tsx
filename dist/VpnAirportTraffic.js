@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/18
- * build    :  2026-06-10 18:57:50
+ * build    :  2026-06-11 00:23:36
  * desc     :  机场流量
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -42,6 +42,7 @@ var Widget = class extends WidgetBase {
     // 订阅数据
     this.data = null;
     this.isRequestSuccess = false;
+    this.defaultAccountElementId = void 0;
     // 账号信息
     this.account = {
       airportName: "Unknown",
@@ -94,9 +95,10 @@ var Widget = class extends WidgetBase {
     // 计算预计使用百分比
     this.calculatePredictUsage = (diffDays, resetCircle) => {
       return (
-        ((((this.data.total - this.data.remain) / (resetCircle - diffDays)) *
+        (((((this.data?.total ?? 1) - (this.data?.remain ?? 0)) /
+          (resetCircle - diffDays)) *
           resetCircle) /
-          this.data.total) *
+          (this.data?.total ?? 1)) *
         100
       ).toFixed(2);
     };
@@ -115,18 +117,24 @@ var Widget = class extends WidgetBase {
         } else {
           prevReset.setMonth(prevReset.getMonth() - 1);
         }
-        diffDays = Math.round(Math.abs((nextReset - today) / 864e5));
-        resetCircle = Math.round(Math.abs((nextReset - prevReset) / 864e5));
+        diffDays = Math.round(
+          Math.abs((nextReset.getTime() - today.getTime()) / 864e5),
+        );
+        resetCircle = Math.round(
+          Math.abs((nextReset.getTime() - prevReset.getTime()) / 864e5),
+        );
       }
       return { diffDays, resetCircle };
     };
     // 创建进度圆环
     this.createBatteryArc = () => {
+      const remain = this.data?.remain ?? 0;
+      const total = this.data?.total ?? 1;
       return this.drawArc(
         new Point(canvSize / 2, canvSize / 2),
         canvRadius,
         canvWidth,
-        Math.floor((this.data.remain / this.data.total) * 100 * 3.6),
+        Math.floor((remain / total) * 100 * 3.6),
         new Color(
           this.currentSettings.displaySettings.battCircleFrontColorHex.val,
         ),
@@ -135,7 +143,7 @@ var Widget = class extends WidgetBase {
           this.currentSettings.displaySettings
             .battCircleBackgroundColorTransparency.val,
         ),
-        Math.floor((this.data.remain / this.data.total) * 100) + "%",
+        Math.floor((remain / total) * 100) + "%",
         new Color(
           this.currentSettings.displaySettings.battCircleTextColorHex.val,
         ),
@@ -254,7 +262,10 @@ var Widget = class extends WidgetBase {
     // 小尺寸渲染
     this.renderSmall = async (w) => {
       const { batteryArc, diffDays, resetCircle } = await this.prepareRender();
-      const iconSize = this.scaleImage(this.iconImage.size, 40);
+      const iconSize = this.scaleImage(
+        this.iconImage?.size ?? { width: 40, height: 40 },
+        40,
+      );
       GenrateView.setListWidget(w);
       return await GenrateView.wbox(
         {
@@ -271,7 +282,7 @@ var Widget = class extends WidgetBase {
               src: this.iconImage,
               width: iconSize.width,
               height: iconSize.height,
-              href: this.account.url,
+              href: this.account.url ?? this.account.subUrl,
             }),
             h("wspacer", {}),
             h(
@@ -289,7 +300,7 @@ var Widget = class extends WidgetBase {
                 textColor: "#E9B526",
                 font: Font.systemFont(9),
               },
-              `${this.data.expires}后到期`,
+              `${this.data?.expires ?? ""}后到期`,
             ),
           ]),
           h("wspacer", {}),
@@ -308,7 +319,7 @@ var Widget = class extends WidgetBase {
                 textColor: "#3E9BF7",
                 font: Font.boldSystemFont(14),
               },
-              `${this.data.remain.toFixed(2)}G`,
+              `${(this.data?.remain ?? 0).toFixed(2)}G`,
             ),
             h(
               "wtext",
@@ -329,7 +340,7 @@ var Widget = class extends WidgetBase {
                   : Color.red(),
                 font: Font.boldSystemFont(14),
               },
-              `${(this.data.total - this.data.remain).toFixed(2)}G`,
+              `${((this.data?.total ?? 1) - (this.data?.remain ?? 0)).toFixed(2)}G`,
             ),
             h(
               "wtext",
@@ -348,7 +359,10 @@ var Widget = class extends WidgetBase {
     // 中尺寸渲染
     this.renderMedium = async (w) => {
       const { batteryArc, diffDays, resetCircle } = await this.prepareRender();
-      const iconSize = this.scaleImage(this.iconImage.size, 50);
+      const iconSize = this.scaleImage(
+        this.iconImage?.size ?? { width: 50, height: 50 },
+        50,
+      );
       const mediumArcSize = 90;
       GenrateView.setListWidget(w);
       return await GenrateView.wbox(
@@ -362,7 +376,7 @@ var Widget = class extends WidgetBase {
               src: this.iconImage,
               width: iconSize.width,
               height: iconSize.height,
-              href: this.account.url,
+              href: this.account.url ?? this.account.subUrl,
             }),
             h("wspacer", { length: 8 }),
             h(
@@ -380,7 +394,7 @@ var Widget = class extends WidgetBase {
                 textColor: "#E9B526",
                 font: Font.systemFont(11),
               },
-              `${this.data.expires}后到期`,
+              `${this.data?.expires ?? ""}后到期`,
             ),
           ]),
           h("wspacer", {}),
@@ -394,7 +408,7 @@ var Widget = class extends WidgetBase {
                     textColor: "#3E9BF7",
                     font: Font.boldSystemFont(18),
                   },
-                  `${this.data.remain.toFixed(2)}G`,
+                  `${(this.data?.remain ?? 0).toFixed(2)}G`,
                 ),
                 h(
                   "wtext",
@@ -415,7 +429,7 @@ var Widget = class extends WidgetBase {
                       : Color.red(),
                     font: Font.boldSystemFont(18),
                   },
-                  `${(this.data.total - this.data.remain).toFixed(2)}G`,
+                  `${((this.data?.total ?? 1) - (this.data?.remain ?? 0)).toFixed(2)}G`,
                 ),
                 h(
                   "wtext",
@@ -460,13 +474,15 @@ var Widget = class extends WidgetBase {
         const cacheKey = iconSrc.startsWith("data:image")
           ? this.account.airportName || "default"
           : null;
-        this.iconImage = await this.storage.getImage(
+        const iconResult = await this.storage.getImage(
           iconSrc,
           true,
           true,
           true,
           cacheKey,
         );
+        this.iconImage =
+          iconResult && typeof iconResult !== "string" ? iconResult : null;
         if (!this.iconImage) {
           console.log("图标加载返回空值，使用默认图标");
           this.iconImage = SFSymbol.named("paperplane.fill").image;
@@ -541,18 +557,22 @@ var Widget = class extends WidgetBase {
       if (!userinfo || typeof userinfo !== "string") {
         throw new Error("SUBSCRIPTION-USERINFO header missing");
       }
-      const upload_k = Number(userinfo.match(/upload=(\d+)/)[1]) / 1048576;
-      const download_k = Number(userinfo.match(/download=(\d+)/)[1]) / 1048576;
-      const total_k = Number(userinfo.match(/total=(\d+)/)[1]) / 1048576;
+      const upload_k =
+        Number(userinfo.match(/upload=(\d+)/)?.[1] ?? "0") / 1048576;
+      const download_k =
+        Number(userinfo.match(/download=(\d+)/)?.[1] ?? "0") / 1048576;
+      const total_k =
+        Number(userinfo.match(/total=(\d+)/)?.[1] ?? "0") / 1048576;
       const expire_time = userinfo.match(/expire=(\d+)/);
       let expires = "无信息";
       if (expire_time) {
-        expires = this.formatExpireTime(Number(expire_time[1] * 1e3));
+        expires = this.formatExpireTime(Number(expire_time[1]) * 1e3);
       }
-      const data = {};
-      data.expires = expires;
-      data.total = total_k / 1024;
-      data.remain = (total_k - upload_k - download_k) / 1024;
+      const data = {
+        expires,
+        total: total_k / 1024,
+        remain: (total_k - upload_k - download_k) / 1024,
+      };
       console.log("[+]订阅信息获取成功");
       this.storage.setStorage(this.account.airportName, data);
       this.data = data;
@@ -736,7 +756,9 @@ var Widget = class extends WidgetBase {
                 })()`,
         false,
       );
-      await new Promise((resolve) => Timer.schedule(150, false, resolve));
+      await new Promise((resolve) =>
+        Timer.schedule(150, false, () => resolve()),
+      );
       await this.bindAccountActions(webView);
       await this.resetPendingAction(webView);
     } catch (e) {
@@ -979,7 +1001,9 @@ var Widget = class extends WidgetBase {
         isWebViewClosed = true;
       });
       while (!isWebViewClosed) {
-        await new Promise((resolve) => Timer.schedule(250, false, resolve));
+        await new Promise((resolve) =>
+          Timer.schedule(250, false, () => resolve()),
+        );
         if (isWebViewClosed) break;
         let action = "";
         try {
@@ -1096,18 +1120,19 @@ var Widget = class extends WidgetBase {
               null,
               false,
             );
+            const typedAccount = account;
             if (
-              account &&
-              account.airportName &&
-              account.url &&
-              account.subUrl
+              typedAccount &&
+              typedAccount.airportName &&
+              (typedAccount.url || typedAccount.subUrl)
             ) {
-              account.resetDay = parseInt(account.resetDay) || -1;
-              if (!account.icon || !account.icon.trim()) {
-                account.icon = "paperplane.fill";
+              const account2 = typedAccount;
+              account2.resetDay = parseInt(String(account2.resetDay)) || -1;
+              if (!account2.icon || !account2.icon.trim()) {
+                account2.icon = "paperplane.fill";
               }
               if (!this.settings.dataSource) this.settings.dataSource = [];
-              this.settings.dataSource.push(account);
+              this.settings.dataSource.push(account2);
               this.settings.dataSource = this.settings.dataSource.filter(
                 (item) => item,
               );
@@ -1156,15 +1181,13 @@ var Widget = class extends WidgetBase {
         airportName: alert.textFieldValue(0)?.trim() || "",
         url: alert.textFieldValue(1)?.trim() || "",
         subUrl: alert.textFieldValue(2)?.trim() || "",
-        resetDay: alert.textFieldValue(3)?.trim() || "",
+        resetDay: parseInt(alert.textFieldValue(3)?.trim() || "-1") || -1,
         icon: alert.textFieldValue(4)?.trim() || "",
       };
       if (
         editedAccount.airportName &&
-        editedAccount.url &&
-        editedAccount.subUrl
+        (editedAccount.url || editedAccount.subUrl)
       ) {
-        editedAccount.resetDay = parseInt(editedAccount.resetDay) || -1;
         if (!editedAccount.icon) {
           editedAccount.icon = "paperplane.fill";
         }
@@ -1244,7 +1267,7 @@ var Widget = class extends WidgetBase {
         const isDefaultAccount =
           this.settings.account?.airportName === account.airportName;
         if (isDefaultAccount) {
-          this.settings.account = null;
+          this.settings.account = void 0;
           await this.updateDefaultAccount("请选择或者添加账号");
         } else {
           this.saveSettings(false);
@@ -1383,9 +1406,9 @@ var Widget = class extends WidgetBase {
   // 格式化过期时间
   formatExpireTime(timestamp) {
     const nowDate = new Date(/* @__PURE__ */ new Date().toLocaleDateString());
-    const dateStart = Date.parse(
-      new Date(nowDate.getTime() + 24 * 60 * 60 * 1e3),
-    );
+    const dateStart = new Date(
+      nowDate.getTime() + 24 * 60 * 60 * 1e3,
+    ).getTime();
     console.log(dateStart);
     console.log(timestamp);
     return Math.ceil((timestamp - dateStart) / (1e3 * 60 * 60 * 24)) + "天";

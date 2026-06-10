@@ -5,8 +5,8 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * build    :  2026-06-11 02:21:06
- * desc     :  Done Hub 聚合额度监控
+ * build    :  2026-06-11 00:23:36
+ * desc     :  Done Hub 聚合额度监控，汇总 Codex 与 Claude 渠道用量
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
@@ -389,16 +389,40 @@ var DoneHubMonitor = class extends WidgetBase {
   getLayoutMetrics(compact = false) {
     const padding = { top: 10, right: 10, bottom: 10, left: 10 };
     const cardGap = 10;
+    const contentInset = 16;
     const widgetSize = this.getWidgetSize(
       this.widgetFamily === "large" ? "large" : "medium",
     );
-    const contentWidth = Math.floor(
-      widgetSize.width - padding.left - padding.right,
+    const cardWidth = Math.floor(
+      (widgetSize.width -
+        padding.left -
+        padding.right -
+        contentInset -
+        cardGap) /
+        2,
     );
-    const cardWidth = Math.floor((contentWidth - cardGap) / 2);
+    const contentWidth = cardWidth * 2 + cardGap;
     const cardHeight = compact ? 52 : 84;
     const progressWidth = cardWidth - 20;
-    return { padding, cardGap, cardWidth, cardHeight, progressWidth };
+    return {
+      padding,
+      cardGap,
+      contentWidth,
+      cardWidth,
+      cardHeight,
+      progressWidth,
+    };
+  }
+  addAlignedRow(widget, contentWidth) {
+    const outer = widget.addStack();
+    outer.layoutHorizontally();
+    outer.addSpacer();
+    const inner = outer.addStack();
+    inner.layoutHorizontally();
+    inner.centerAlignContent();
+    inner.size = new Size(contentWidth, 0);
+    outer.addSpacer();
+    return inner;
   }
   renderProgressBar(stack, percent, width, height = 7) {
     const bar = stack.addStack();
@@ -494,7 +518,7 @@ var DoneHubMonitor = class extends WidgetBase {
     }
   }
   renderRows(widget, rows, compact = false) {
-    const { cardGap, cardWidth, cardHeight, progressWidth } =
+    const { cardGap, contentWidth, cardWidth, cardHeight, progressWidth } =
       this.getLayoutMetrics(compact);
     if (rows.length === 0) {
       widget.addSpacer();
@@ -506,8 +530,7 @@ var DoneHubMonitor = class extends WidgetBase {
       return;
     }
     for (let i = 0; i < rows.length; i += 2) {
-      const rowStack = widget.addStack();
-      rowStack.layoutHorizontally();
+      const rowStack = this.addAlignedRow(widget, contentWidth);
       rowStack.spacing = cardGap;
       this.renderRowCard(
         rowStack,
@@ -530,9 +553,10 @@ var DoneHubMonitor = class extends WidgetBase {
     }
   }
   renderHeader(widget, subtitle) {
-    const header = widget.addStack();
-    header.layoutHorizontally();
-    header.centerAlignContent();
+    const header = this.addAlignedRow(
+      widget,
+      this.getLayoutMetrics().contentWidth,
+    );
     const icon = header.addImage(SFSymbol.named("gauge.high").image);
     icon.imageSize = new Size(16, 16);
     icon.tintColor = new Color("#2563EB");
@@ -546,9 +570,10 @@ var DoneHubMonitor = class extends WidgetBase {
     header.addSpacer();
   }
   renderFooter(widget) {
-    const footer = widget.addStack();
-    footer.layoutHorizontally();
-    footer.centerAlignContent();
+    const footer = this.addAlignedRow(
+      widget,
+      this.getLayoutMetrics().contentWidth,
+    );
     const summary = footer.addText(
       `${this.getCodexRows().length} Codex · ${this.getClaudeRows().length} Claude`,
     );

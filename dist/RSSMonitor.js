@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/19
- * build    :  2026-06-10 18:57:50
+ * build    :  2026-06-11 00:23:36
  * desc     :  RSS监视器
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -114,7 +114,7 @@ var Widget = class extends WidgetBase {
                 verticalAlign: "center",
                 padding: [0, 0, 5, 0],
               },
-              /* @__PURE__ */ h("wspacer", null),
+              /* @__PURE__ */ h("wspacer", {}),
               /* @__PURE__ */ h("wimage", {
                 src: "arrow.clockwise",
                 width: 10,
@@ -146,7 +146,7 @@ var Widget = class extends WidgetBase {
           {
             spacing: this.contentRowSpacing,
           },
-          /* @__PURE__ */ h("wspacer", null),
+          /* @__PURE__ */ h("wspacer", {}),
           /* @__PURE__ */ h(
             "wtext",
             {

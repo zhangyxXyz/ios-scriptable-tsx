@@ -5,8 +5,8 @@
 /*
  * author   :  seiun
  * date     :  2025/12/26
- * build    :  2026-06-11 00:56:39
- * desc     :  电影日历
+ * build    :  2026-06-11 03:05:38
+ * desc     :  每日电影推荐日历，含豆瓣评分、农历与海报背景
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
  * changelog:
@@ -27,6 +27,7 @@ var Widget = class extends WidgetBase {
   constructor(arg) {
     super(arg);
     this.httpData = null;
+    this.lunarInfo = null;
     this.isRequestSuccess = false;
     this.currentSettings = {
       basicSettings: {
@@ -217,12 +218,19 @@ var Widget = class extends WidgetBase {
     const symbol = SFSymbol.named(name);
     return symbol ? symbol.image : null;
   }
+  // Scriptable 真机的 JSContext 没有全局 URL 类，不能用 new URL 做相对路径解析
   resolveUrl(url) {
-    try {
-      return new URL(url, this.domain).toString();
-    } catch {
-      return url;
-    }
+    const raw = String(url || "").trim();
+    if (!raw) return raw;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith("//")) return `https:${raw}`;
+    if (raw.startsWith("data:")) return raw;
+    const schemeMatch = raw.match(/^[a-z][\w+.-]*:(?:\/\/[^/]*)?(\/.*)?$/i);
+    const path = schemeMatch ? schemeMatch[1] || "" : raw;
+    if (!path) return raw;
+    return path.startsWith("/")
+      ? `${this.domain}${path}`
+      : `${this.domain}/${path}`;
   }
   decodeHtmlText(text) {
     return String(text || "")
@@ -358,7 +366,9 @@ var Widget = class extends WidgetBase {
                     img.src = 'data:image/png;base64,${base64}'
                 </script>
             `);
-      await new Promise((resolve) => Timer.schedule(500, false, resolve));
+      await new Promise((resolve) =>
+        Timer.schedule(500, false, () => resolve()),
+      );
       const result = await webview.evaluateJavaScript(
         'window.result || "#FFFFFF"',
       );
@@ -451,7 +461,7 @@ var Widget = class extends WidgetBase {
         shouldRefresh = true;
         console.log(`-->>检测到跨天，立即更新数据`);
       } else {
-        const diffMinutes = (now - cachedDate) / (1e3 * 60);
+        const diffMinutes = (now.getTime() - cachedDate.getTime()) / (1e3 * 60);
         if (diffMinutes >= cacheMinutes) {
           shouldRefresh = true;
         }
@@ -612,9 +622,8 @@ var Widget = class extends WidgetBase {
     const subTitleColor = new Color(
       this.currentSettings.displaySettings.subTitleColor.val || "#CCCCCC",
     );
-    let image = null;
-    image = await this.getImageByUrl(movieImg, null, "movieCover");
-    image = await this.shadowImage(image, "#000000", 0.4);
+    let image = await this.getImageByUrl(movieImg, null, "movieCover");
+    if (image) image = await this.shadowImage(image, "#000000", 0.4);
     return {
       movieName,
       movieDesc,
@@ -632,8 +641,9 @@ var Widget = class extends WidgetBase {
     const emptyStar = SFSymbol.named("star").image;
     const fillStar = SFSymbol.named("star.fill").image;
     const halfStar = SFSymbol.named("star.leadinghalf.filled").image;
-    const fillCount = Math.floor(movieRating / 2);
-    const remainCount = movieRating / 2 - fillCount;
+    const rating = Number(movieRating);
+    const fillCount = Math.floor(rating / 2);
+    const remainCount = rating / 2 - fillCount;
     let totalCount = 0;
     const stars = [];
     for (let index = 0; index < fillCount; index++) {
@@ -752,7 +762,7 @@ var Widget = class extends WidgetBase {
         },
         data.movieDesc,
       ),
-      /* @__PURE__ */ h("wspacer", null),
+      /* @__PURE__ */ h("wspacer", {}),
     ];
   }
   async generatePosterBackground(image, widgetSize, posterRatio) {
@@ -763,7 +773,7 @@ var Widget = class extends WidgetBase {
       ctx.respectScreenScale = true;
       ctx.size = new Size(widgetSize.width, widgetSize.height);
       const bgColor = this.backGroundColor || new Color("#000000");
-      if (bgColor && bgColor.colors && Array.isArray(bgColor.colors)) {
+      if (bgColor instanceof LinearGradient && Array.isArray(bgColor.colors)) {
         const gradient = new LinearGradient();
         gradient.locations = [0, 1];
         gradient.colors = bgColor.colors;

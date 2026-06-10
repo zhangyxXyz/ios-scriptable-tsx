@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/20
- * desc     :  B站榜单
+ * desc     :  B站热门排行榜单轮播展示
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:

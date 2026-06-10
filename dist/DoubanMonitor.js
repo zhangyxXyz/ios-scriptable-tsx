@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/20
- * build    :  2026-06-10 18:57:50
+ * build    :  2026-06-11 00:23:36
  * desc     :  豆瓣电影推荐榜单
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -64,18 +64,14 @@ var Widget = class extends WidgetBase {
       }
     };
     this.renderCommon = async (w) => {
-      if (
-        this.httpData &&
-        this.httpData["count"] &&
-        this.httpData["count"] > 0
-      ) {
-        const items = this.httpData["subject_collection_items"].splice(
+      if (this.httpData && this.httpData.count && this.httpData.count > 0) {
+        const items = this.httpData.subject_collection_items.splice(
           0,
           Math.min(
             this.widgetFamily == "medium"
               ? this.currentSettings.displaySettings.mediaWidgetShowDataNum.val
               : this.currentSettings.displaySettings.largeWidgetShowDataNum.val,
-            this.httpData["subject_collection_items"].length,
+            this.httpData.subject_collection_items.length,
           ),
         );
         items.map((item) => {
@@ -109,8 +105,8 @@ var Widget = class extends WidgetBase {
                 : this.widgetColor;
             if (
               rating == null ||
-              (parseInt(rating["star_count"]) <= 0 &&
-                parseInt(rating["value"]) <= 0)
+              (Number(rating["star_count"]) <= 0 &&
+                Number(rating["value"]) <= 0)
             ) {
               return h(
                 "wstack",
@@ -163,7 +159,7 @@ var Widget = class extends WidgetBase {
                     font: Font.boldSystemFont(11),
                     opacity: 0.8,
                   },
-                  rating["value"],
+                  String(rating["value"]),
                 ),
               );
             }
@@ -176,7 +172,7 @@ var Widget = class extends WidgetBase {
                 verticalAlign: "center",
                 padding: [0, 0, 5, 0],
               },
-              /* @__PURE__ */ h("wspacer", null),
+              /* @__PURE__ */ h("wspacer", {}),
               /* @__PURE__ */ h("wimage", {
                 src: "arrow.clockwise",
                 width: 10,
@@ -323,9 +319,10 @@ var Widget = class extends WidgetBase {
     }
   }
   renderStars(starCount, color) {
-    if (!starCount || starCount <= 0) return [];
-    const fullStars = Math.floor(starCount);
-    const hasHalfStar = starCount % 1 >= 0.5;
+    const count = Number(starCount);
+    if (!count || count <= 0) return [];
+    const fullStars = Math.floor(count);
+    const hasHalfStar = count % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     const stars = [];
     const starSize = 11;

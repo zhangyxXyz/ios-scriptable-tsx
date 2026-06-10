@@ -19,8 +19,20 @@ const dependencyFileName = 'Seiun.Env.js'
 const runtimeRequire = typeof require === 'undefined' ? importModule : require
 const { WidgetBase, Runing, GenrateView, h, Utils } = runtimeRequire(dependencyFileName) as SeiunEnv
 
+type DoubanItem = {
+    title: string
+    url: string
+    uri: string
+    rating: {star_count: number | string; value: number | string} | null
+}
+
+type DoubanData = {
+    count: number
+    subject_collection_items: DoubanItem[]
+}
+
 class Widget extends WidgetBase {
-    constructor(arg) {
+    constructor(arg?: string) {
         super(arg)
         this.name = '豆瓣电影推荐榜单'
         this.en = 'DoubanMonitor'
@@ -38,7 +50,7 @@ class Widget extends WidgetBase {
     }
     contentRowSpacing = 5
 
-    httpData = null
+    httpData: DoubanData | null = null
     isRequestSuccess = false
 
     // 组件当前设置
@@ -65,7 +77,7 @@ class Widget extends WidgetBase {
     async getData() {
         this.isRequestSuccess = false
         try {
-            const data = await this.$request.get({
+            const data = await this.$request.get<DoubanData>({
                 url: this.url,
                 headers: { Referer: this.dbheader }
             })
@@ -165,7 +177,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    decideGoto(item) {
+    decideGoto(item: DoubanItem) {
         switch (this.currentSettings.basicSettings.urlJumpType.val) {
             case '跳转至浏览器':
                 return item.url
@@ -176,11 +188,12 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderStars(starCount, color) {
-        if (!starCount || starCount <= 0) return []
+    renderStars(starCount: number | string, color: Color) {
+        const count = Number(starCount)
+        if (!count || count <= 0) return []
         
-        const fullStars = Math.floor(starCount)
-        const hasHalfStar = starCount % 1 >= 0.5
+        const fullStars = Math.floor(count)
+        const hasHalfStar = count % 1 >= 0.5
         const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
         
         const stars = []
@@ -200,18 +213,18 @@ class Widget extends WidgetBase {
         return stars
     }
 
-    renderCommon = async w => {
-        if (this.httpData && this.httpData['count'] && this.httpData['count'] > 0) {
-            const items = this.httpData['subject_collection_items'].splice(
+    renderCommon = async (w: ListWidget) => {
+        if (this.httpData && this.httpData.count && this.httpData.count > 0) {
+            const items = this.httpData.subject_collection_items.splice(
                 0,
                 Math.min(
                     this.widgetFamily == 'medium'
                         ? this.currentSettings.displaySettings.mediaWidgetShowDataNum.val
                         : this.currentSettings.displaySettings.largeWidgetShowDataNum.val,
-                    this.httpData['subject_collection_items'].length
+                    this.httpData.subject_collection_items.length
                 )
             )
-            items.map(item => {
+            items.map((item: DoubanItem) => {
                 console.log(`• ${item.title}`)
             })
 
@@ -233,14 +246,14 @@ class Widget extends WidgetBase {
                     },
                     `🎞 豆瓣电影`
                 ),
-                items.map(item => {
+                items.map((item: DoubanItem) => {
                     const gTitle = item.title
                     const rating = item.rating
                     const itemColor = this.currentSettings.displaySettings.listDataColorShowType.val === '随机颜色'
                         ? new Color(Utils.randomColor16())
                         : this.widgetColor
                     
-                    if (rating == null || (parseInt(rating['star_count']) <= 0 && parseInt(rating['value']) <= 0)) {
+                    if (rating == null || (Number(rating['star_count']) <= 0 && Number(rating['value']) <= 0)) {
                         return h(
                             'wstack',
                             {
@@ -292,7 +305,7 @@ class Widget extends WidgetBase {
                                     font: Font.boldSystemFont(11),
                                     opacity: 0.8
                                 },
-                                rating['value']
+                                String(rating['value'])
                             )
                         )
                     }
@@ -304,7 +317,7 @@ class Widget extends WidgetBase {
                             verticalAlign: 'center',
                             padding: [0, 0, 5, 0]
                         },
-                        /* @__PURE__ */ h('wspacer', null),
+                        /* @__PURE__ */ h('wspacer', {}),
                         /* @__PURE__ */ h('wimage', {
                             src: 'arrow.clockwise',
                             width: 10,
@@ -330,11 +343,11 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderMedium = async (w) => {
+    renderMedium = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 
-    renderLarge = async (w) => {
+    renderLarge = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 

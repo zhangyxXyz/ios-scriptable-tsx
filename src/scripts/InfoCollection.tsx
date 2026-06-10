@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/24
- * desc     :  信息合集
+ * desc     :  万年历、天气、电池、年进度等信息聚合面板
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:

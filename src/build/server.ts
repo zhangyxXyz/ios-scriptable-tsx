@@ -9,8 +9,19 @@ import {execFileSync} from 'child_process'
 
 const qrcode = require('qrcode-terminal')
 const port = 9090
-let sfSymbols: Record<string, any> | undefined
-let sfSymbolSourceNameMap: Map<string, any> | undefined
+interface SfSymbolPath {
+    d?: string
+    fillOpacity?: number
+    fillRule?: string
+}
+interface SfSymbolEntry {
+    sourceName?: string
+    svgPathData?: SfSymbolPath[]
+    viewBox?: string
+    [key: string]: unknown
+}
+let sfSymbols: Record<string, SfSymbolEntry> | undefined
+let sfSymbolSourceNameMap: Map<string, SfSymbolEntry> | undefined
 const proxyCookieJar = new Map<string, Map<string, string>>()
 
 interface CreateServerParams {
@@ -335,12 +346,12 @@ function sfSymbolNameToExportName(name: string): string {
 }
 
 function getSfSymbol(name: string) {
-    sfSymbols ||= require('@bradleyhodges/sfsymbols') as Record<string, any>
+    sfSymbols ||= require('@bradleyhodges/sfsymbols') as Record<string, SfSymbolEntry>
     const icon = sfSymbols[sfSymbolNameToExportName(name)]
     if (icon?.svgPathData) return icon
 
     if (!sfSymbolSourceNameMap) {
-        sfSymbolSourceNameMap = new Map<string, any>()
+        sfSymbolSourceNameMap = new Map<string, SfSymbolEntry>()
         for (const item of Object.values(sfSymbols)) {
             if (item?.sourceName && item?.svgPathData) sfSymbolSourceNameMap.set(item.sourceName, item)
         }
@@ -353,7 +364,7 @@ function createSfSymbolSvg(name: string): string | undefined {
     if (!icon?.viewBox || !Array.isArray(icon.svgPathData)) return undefined
 
     const paths = icon.svgPathData
-        .map((pathInfo: any) => {
+        .map((pathInfo: SfSymbolPath) => {
             if (!pathInfo?.d) return ''
             const attrs = [`d="${escapeHtml(pathInfo.d)}"`]
             if (pathInfo.fillOpacity !== undefined) attrs.push(`fill-opacity="${Number(pathInfo.fillOpacity)}"`)
@@ -378,8 +389,8 @@ function createSfSymbolPayload(name: string) {
         sourceName: icon.sourceName,
         viewBox: icon.viewBox,
         paths: icon.svgPathData
-            .filter((pathInfo: any) => pathInfo?.d)
-            .map((pathInfo: any) => ({
+            .filter((pathInfo: SfSymbolPath) => pathInfo?.d)
+            .map((pathInfo: SfSymbolPath) => ({
                 d: pathInfo.d,
                 fillOpacity: pathInfo.fillOpacity,
                 fillRule: pathInfo.fillRule,

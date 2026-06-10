@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2025/12/26
- * build    :  2026-06-10 18:57:50
+ * build    :  2026-06-11 00:23:36
  * desc     :  数字货币
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -86,7 +86,7 @@ var Widget = class extends WidgetBase {
           },
           market.name,
         ),
-        /* @__PURE__ */ h("wspacer", null),
+        /* @__PURE__ */ h("wspacer", {}),
         /* @__PURE__ */ h(
           "wtext",
           {
@@ -162,7 +162,7 @@ var Widget = class extends WidgetBase {
               },
               market.symbol,
             ),
-            /* @__PURE__ */ h("wspacer", null),
+            /* @__PURE__ */ h("wspacer", {}),
             /* @__PURE__ */ h(
               "wtext",
               {
@@ -186,7 +186,7 @@ var Widget = class extends WidgetBase {
               },
               market.name,
             ),
-            /* @__PURE__ */ h("wspacer", null),
+            /* @__PURE__ */ h("wspacer", {}),
             /* @__PURE__ */ h(
               "wtext",
               {
@@ -243,7 +243,7 @@ var Widget = class extends WidgetBase {
       ) {
         items.push(await this.renderRowCell(this.dataSource[index]));
         if (index < 2) {
-          items.push(/* @__PURE__ */ h("wspacer", null));
+          items.push(/* @__PURE__ */ h("wspacer", {}));
         }
       }
       GenrateView.setListWidget(w);
@@ -273,7 +273,7 @@ var Widget = class extends WidgetBase {
       for (let index = 0; index < this.dataSource.length; index++) {
         items.push(await this.renderRowCell(this.dataSource[index]));
         if (index < this.dataSource.length - 1) {
-          items.push(/* @__PURE__ */ h("wspacer", null));
+          items.push(/* @__PURE__ */ h("wspacer", {}));
         }
       }
       GenrateView.setListWidget(w);
@@ -338,7 +338,8 @@ var Widget = class extends WidgetBase {
         this.storage.setStorage(cacheKey, response);
         return response;
       } else if (response && typeof response === "object") {
-        if (response.status && response.status.error_code === 429) {
+        const obj = response;
+        if (obj.status && obj.status.error_code === 429) {
           console.log(`[+]API限流，使用缓存数据`);
           const fallbackCache = this.storage.getStorage(cacheKey);
           if (fallbackCache && Array.isArray(fallbackCache)) {
@@ -349,12 +350,10 @@ var Widget = class extends WidgetBase {
           return [];
         }
         console.log(`[+]响应是对象，尝试解析...`);
-        if (Array.isArray(response.data)) {
-          console.log(
-            `[+]从 response.data 获取数组，共 ${response.data.length} 个`,
-          );
-          this.storage.setStorage(cacheKey, response.data);
-          return response.data;
+        if (obj.data && Array.isArray(obj.data)) {
+          console.log(`[+]从 response.data 获取数组，共 ${obj.data.length} 个`);
+          this.storage.setStorage(cacheKey, obj.data);
+          return obj.data;
         } else {
           console.log(
             `[+]币种列表格式错误: 不是数组，类型: ${typeof response}`,
@@ -427,42 +426,46 @@ var Widget = class extends WidgetBase {
       console.log(
         `[+]请求币种数据: ${this.endpoint}/coins/markets?vs_currency=usd&ids=${ids}`,
       );
-      let response = await this.$request.get(
+      const responseStr = await this.$request.get(
         `${this.endpoint}/coins/markets?vs_currency=usd&ids=${ids}`,
         "STRING",
       );
       console.log(
-        `[+]币种数据响应类型: ${typeof response}, 长度: ${response ? response.length : 0}`,
+        `[+]币种数据响应类型: ${typeof responseStr}, 长度: ${responseStr ? responseStr.length : 0}`,
       );
-      if (response) {
-        console.log(`[+]币种数据响应预览: ${response.substring(0, 200)}...`);
+      if (responseStr) {
+        console.log(`[+]币种数据响应预览: ${responseStr.substring(0, 200)}...`);
       }
       this.dataSource = [];
-      response = JSON.parse(response);
+      const response = JSON.parse(responseStr);
       console.log(
         `[+]解析后的类型: ${typeof response}, 是否为数组: ${Array.isArray(response)}`,
       );
       if (
         response &&
         typeof response === "object" &&
-        response.status &&
-        response.status.error_code === 429
+        !Array.isArray(response)
       ) {
-        console.log(`[+]API限流(429)，使用缓存数据`);
-        const fallbackCache = this.storage.getStorage(cacheKey);
-        if (
-          fallbackCache &&
-          Array.isArray(fallbackCache) &&
-          fallbackCache.length > 0
-        ) {
-          console.log(`[+]使用过期缓存数据，共 ${fallbackCache.length} 个币种`);
-          this.dataSource = fallbackCache;
-          this.isRequestSuccess = true;
+        const obj = response;
+        if (obj.status && obj.status.error_code === 429) {
+          console.log(`[+]API限流(429)，使用缓存数据`);
+          const fallbackCache = this.storage.getStorage(cacheKey);
+          if (
+            fallbackCache &&
+            Array.isArray(fallbackCache) &&
+            fallbackCache.length > 0
+          ) {
+            console.log(
+              `[+]使用过期缓存数据，共 ${fallbackCache.length} 个币种`,
+            );
+            this.dataSource = fallbackCache;
+            this.isRequestSuccess = true;
+            return;
+          }
+          console.log(`[+]无缓存数据可用`);
+          this.isRequestSuccess = false;
           return;
         }
-        console.log(`[+]无缓存数据可用`);
-        this.isRequestSuccess = false;
-        return;
       }
       if (!Array.isArray(response) || !response.length) {
         console.log(`[+]币种数据格式错误或为空，尝试使用缓存`);
@@ -480,10 +483,11 @@ var Widget = class extends WidgetBase {
         this.isRequestSuccess = false;
         return;
       }
-      console.log(`[+]币种数据获取成功，共 ${response.length} 个`);
+      const markets = response;
+      console.log(`[+]币种数据获取成功，共 ${markets.length} 个`);
       const idsData = ids.split(",");
       idsData.forEach((id) => {
-        const it = response.find((item) => item.id === id);
+        const it = markets.find((item) => item.id === id);
         if (it) {
           this.dataSource.push({
             id: it.id,

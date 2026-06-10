@@ -32,8 +32,23 @@ const canvWidth = 22 //Battery circle thickness
 const canvRadius = 85 //Battery circle radius
 const displayArcSize = 65 // 圆环在小组件中的显示尺寸
 
+type AirportAccount = {
+    airportName: string
+    subUrl: string
+    resetDay: number
+    icon: string
+    url?: string
+    [key: string]: unknown
+}
+
+type AirportData = {
+    expires: string
+    total: number
+    remain: number
+}
+
 class Widget extends WidgetBase {
-    constructor(arg) {
+    constructor(arg?: string) {
         super(arg)
         this.name = '机场流量'
         this.en = 'VpnAirportTraffic'
@@ -41,15 +56,23 @@ class Widget extends WidgetBase {
         this.Run()
     }
 
+    declare settings: {
+        dataSource?: AirportAccount[]
+        account?: AirportAccount
+        accountSettings?: {defaultAccount?: string}
+        [key: string]: unknown
+    }
+
     // 组件传入参数
     widgetParam = args.widgetParameter
 
     // 订阅数据
-    data = null
+    data: AirportData | null = null
     isRequestSuccess = false
+    defaultAccountElementId: string | undefined = undefined
 
     // 账号信息
-    account = {
+    account: AirportAccount = {
         airportName: 'Unknown',
         subUrl: '',
         resetDay: 1,
@@ -57,7 +80,7 @@ class Widget extends WidgetBase {
     }
 
     // 动态布局数据
-    iconImage = null // 小组件Image，加载自icon_url
+    iconImage: Image | null = null // 小组件Image，加载自icon_url
 
     // 布局数据
     commonPadding = 10
@@ -99,7 +122,8 @@ class Widget extends WidgetBase {
             
             if (iconSrc.startsWith('http://') || iconSrc.startsWith('https://') || iconSrc.startsWith('data:image')) {
                 const cacheKey = iconSrc.startsWith('data:image') ? (this.account.airportName || 'default') : null
-                this.iconImage = await this.storage.getImage(iconSrc, true, true, true, cacheKey)
+                const iconResult = await this.storage.getImage(iconSrc, true, true, true, cacheKey)
+                this.iconImage = (iconResult && typeof iconResult !== 'string') ? iconResult : null
                 if (!this.iconImage) {
                     console.log('图标加载返回空值，使用默认图标')
                     this.iconImage = SFSymbol.named('paperplane.fill').image
@@ -115,7 +139,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async updateDefaultAccount(accountName) {
+    async updateDefaultAccount(accountName: string) {
         this.syncCurrentSettings('accountSettings', 'defaultAccount', accountName)
         if (!this.settings.accountSettings) this.settings.accountSettings = {}
         this.settings.accountSettings.defaultAccount = accountName
@@ -127,19 +151,19 @@ class Widget extends WidgetBase {
         // 如果通过 widgetParam 指定了索引，使用对应的账号
         const index = typeof args.widgetParameter === 'string' ? parseInt(args.widgetParameter) : false
         if (index !== false && this.settings.dataSource && this.settings.dataSource[index]) {
-            return this.settings.dataSource[index]
+            return this.settings.dataSource[index] as AirportAccount
         }
         
         // 否则使用默认账号
         if (this.settings.account) {
-            return this.settings.account
+            return this.settings.account as AirportAccount
         }
         
         // 如果都没有，尝试从 defaultAccount 名称匹配
         const defaultAccountName = this.getDefaultAccountDisplay()
         if (defaultAccountName && defaultAccountName !== '请选择或者添加账号') {
             const dataSource = this.settings.dataSource || []
-            const account = dataSource.find(acc => acc.airportName === defaultAccountName)
+            const account = dataSource.find((acc: AirportAccount) => acc.airportName === defaultAccountName)
             if (account) {
                 return account
             }
@@ -151,7 +175,7 @@ class Widget extends WidgetBase {
 
     async getData() {
         this.isRequestSuccess = false
-        const storageData = await this.storage.getStorage(this.account.airportName, 30)
+        const storageData = await this.storage.getStorage<AirportData>(this.account.airportName, 30)
         if (storageData) {
             console.log('[+]订阅信息请求时间间隔过小，使用缓存数据')
             this.data = storageData
@@ -169,25 +193,26 @@ class Widget extends WidgetBase {
             if (!userinfo || typeof userinfo !== 'string') {
                 throw new Error('SUBSCRIPTION-USERINFO header missing')
             }
-            const upload_k = Number(userinfo.match(/upload=(\d+)/)[1]) / 1048576
-            const download_k = Number(userinfo.match(/download=(\d+)/)[1]) / 1048576
-            const total_k = Number(userinfo.match(/total=(\d+)/)[1]) / 1048576
+            const upload_k = Number(userinfo.match(/upload=(\d+)/)?.[1] ?? '0') / 1048576
+            const download_k = Number(userinfo.match(/download=(\d+)/)?.[1] ?? '0') / 1048576
+            const total_k = Number(userinfo.match(/total=(\d+)/)?.[1] ?? '0') / 1048576
             const expire_time = userinfo.match(/expire=(\d+)/)
             let expires = '无信息'
             if (expire_time) {
-                expires = this.formatExpireTime(Number(expire_time[1] * 1000))
+                expires = this.formatExpireTime(Number(expire_time[1]) * 1000)
             }
-            const data = {}
-            data.expires = expires
-            data.total = total_k / 1024
-            data.remain = (total_k - upload_k - download_k) / 1024
+            const data: AirportData = {
+                expires,
+                total: total_k / 1024,
+                remain: (total_k - upload_k - download_k) / 1024,
+            }
             console.log('[+]订阅信息获取成功')
             this.storage.setStorage(this.account.airportName, data)
             this.data = data
             this.isRequestSuccess = true
         } catch (error) {
             console.log('[+]订阅信息获取失败，尝试使用缓存信息' + error)
-            this.data = await this.storage.getStorage(this.account.airportName)
+            this.data = await this.storage.getStorage<AirportData>(this.account.airportName)
             if (this.data) {
                 console.log('[+]使用历史缓存数据')
             } else {
@@ -251,7 +276,7 @@ class Widget extends WidgetBase {
         return {accountListHtml, statsCardHtml}
     }
 
-    async resetPendingAction(webView) {
+    async resetPendingAction(webView: WebView) {
         try {
             await webView.evaluateJavaScript('window.pendingAction = "";', false)
         } catch (e) {
@@ -270,7 +295,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async updateSettingDisplay(webView, category, key, text) {
+    async updateSettingDisplay(webView: WebView, category: string, key: string, text: string) {
         if (!webView || !category || !key) return
         const elementId = `${category}__${key}`
         try {
@@ -296,7 +321,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async bindAccountActions(webView) {
+    async bindAccountActions(webView: WebView) {
         try {
             await webView.evaluateJavaScript(
                 `(function() {
@@ -320,7 +345,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async rebuildAccountList(webView, skipReload = false) {
+    async rebuildAccountList(webView: WebView, skipReload = false) {
         try {
             // 只有在不跳过重新加载时才从存储重新加载
             if (!skipReload) {
@@ -372,7 +397,7 @@ class Widget extends WidgetBase {
             )
 
             // 等待DOM更新完成
-            await new Promise(resolve => Timer.schedule(150, false, resolve))
+            await new Promise<void>(resolve => Timer.schedule(150, false, () => resolve()))
 
             await this.bindAccountActions(webView)
             await this.resetPendingAction(webView)
@@ -630,7 +655,7 @@ class Widget extends WidgetBase {
             // 循环监听用户操作
             while (!isWebViewClosed) {
                 // 等待一小段时间
-                await new Promise(resolve => Timer.schedule(250, false, resolve))
+                await new Promise<void>(resolve => Timer.schedule(250, false, () => resolve()))
 
                 // 再次检查，因为在等待期间可能已关闭
                 if (isWebViewClosed) break
@@ -678,7 +703,7 @@ class Widget extends WidgetBase {
                 const dataSource = this.settings.dataSource || []
 
                 if (result.action === 'accountClick') {
-                    const index = result.index
+                    const index = result.index as number
                     const account = dataSource[index]
                     if (!account) continue
 
@@ -771,9 +796,11 @@ class Widget extends WidgetBase {
                             null,
                             false,
                         )
+                        const typedAccount = account as AirportAccount | undefined
                         // 验证必填字段（icon 和 resetDay 可以为空）
-                        if (account && account.airportName && account.url && account.subUrl) {
-                            account.resetDay = parseInt(account.resetDay) || -1
+                        if (typedAccount && typedAccount.airportName && (typedAccount.url || typedAccount.subUrl)) {
+                            const account = typedAccount
+                            account.resetDay = parseInt(String(account.resetDay)) || -1
                             // 如果没填 icon，使用默认图标
                             if (!account.icon || !account.icon.trim()) {
                                 account.icon = 'paperplane.fill'
@@ -806,7 +833,7 @@ class Widget extends WidgetBase {
         return '请选择或者添加账号'
     }
 
-    async editAccount(index, account) {
+    async editAccount(index: number, account: AirportAccount) {
         try {
             // 手动创建 Alert 并预填充现有数据
             const alert = new Alert()
@@ -827,18 +854,16 @@ class Widget extends WidgetBase {
             if (alertIndex === -1) return false // 用户取消
 
             // 获取用户输入的值
-            const editedAccount = {
+            const editedAccount: AirportAccount = {
                 airportName: alert.textFieldValue(0)?.trim() || '',
                 url: alert.textFieldValue(1)?.trim() || '',
                 subUrl: alert.textFieldValue(2)?.trim() || '',
-                resetDay: alert.textFieldValue(3)?.trim() || '',
+                resetDay: parseInt(alert.textFieldValue(3)?.trim() || '-1') || -1,
                 icon: alert.textFieldValue(4)?.trim() || '',
             }
 
             // 验证必填字段（icon 可以为空）
-            if (editedAccount.airportName && editedAccount.url && editedAccount.subUrl) {
-                // 确保 resetDay 是数字类型，如果为空则默认 -1
-                editedAccount.resetDay = parseInt(editedAccount.resetDay) || -1
+            if (editedAccount.airportName && (editedAccount.url || editedAccount.subUrl)) {
 
                 // 如果 icon 为空，使用默认图标
                 if (!editedAccount.icon) {
@@ -874,7 +899,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async copyAccount(index, account) {
+    async copyAccount(index: number, account: AirportAccount) {
         try {
             // 深拷贝账号对象
             const copiedAccount = {
@@ -918,7 +943,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async deleteAccount(index, account) {
+    async deleteAccount(index: number, account: AirportAccount) {
         try {
             // 二次确认
             const confirmAlert = new Alert()
@@ -936,7 +961,7 @@ class Widget extends WidgetBase {
 
                 const isDefaultAccount = this.settings.account?.airportName === account.airportName
                 if (isDefaultAccount) {
-                    this.settings.account = null
+                    this.settings.account = undefined
                     await this.updateDefaultAccount('请选择或者添加账号')
                 } else {
                     this.saveSettings(false)
@@ -1051,9 +1076,9 @@ class Widget extends WidgetBase {
     // ==================== 计算相关函数 ====================
 
     // 计算预计使用百分比
-    calculatePredictUsage = (diffDays, resetCircle) => {
+    calculatePredictUsage = (diffDays: number, resetCircle: number) => {
         return (
-            ((((this.data.total - this.data.remain) / (resetCircle - diffDays)) * resetCircle) / this.data.total) *
+            (((((this.data?.total ?? 1) - (this.data?.remain ?? 0)) / (resetCircle - diffDays)) * resetCircle) / (this.data?.total ?? 1)) *
             100
         ).toFixed(2)
     }
@@ -1078,37 +1103,37 @@ class Widget extends WidgetBase {
                 // 今天还没到本月重置日，上个重置日在上个月
                 prevReset.setMonth(prevReset.getMonth() - 1)
             }
-            diffDays = Math.round(Math.abs((nextReset - today) / 86400000))
-            resetCircle = Math.round(Math.abs((nextReset - prevReset) / 86400000))
+            diffDays = Math.round(Math.abs((nextReset.getTime() - today.getTime()) / 86400000))
+            resetCircle = Math.round(Math.abs((nextReset.getTime() - prevReset.getTime()) / 86400000))
         }
         return {diffDays, resetCircle}
     }
 
     // 缩放图片尺寸
-    scaleImage(imageSize, height) {
+    scaleImage(imageSize: Size, height: number) {
         const scale = height / imageSize.height
         return new Size(scale * imageSize.width, height)
     }
 
     // 格式化过期时间
-    formatExpireTime(timestamp) {
+    formatExpireTime(timestamp: number) {
         const nowDate = new Date(new Date().toLocaleDateString())
-        const dateStart = Date.parse(new Date(nowDate.getTime() + 24 * 60 * 60 * 1000))
+        const dateStart = new Date(nowDate.getTime() + 24 * 60 * 60 * 1000).getTime()
         console.log(dateStart)
         console.log(timestamp)
         return Math.ceil((timestamp - dateStart) / (1000 * 60 * 60 * 24)) + '天'
     }
 
-    sinDeg(deg) {
+    sinDeg(deg: number) {
         return Math.sin((deg * Math.PI) / 180)
     }
 
-    cosDeg(deg) {
+    cosDeg(deg: number) {
         return Math.cos((deg * Math.PI) / 180)
     }
 
     // 绘制圆弧
-    drawArc(ctr, rad, w, deg, fillColor, strokeColor, text, txtColor) {
+    drawArc(ctr: Point, rad: number, w: number, deg: number, fillColor: Color, strokeColor: Color, text: string, txtColor: Color) {
         const bgx = ctr.x - rad
         const bgy = ctr.y - rad
         const bgd = 2 * rad
@@ -1142,17 +1167,19 @@ class Widget extends WidgetBase {
 
     // 创建进度圆环
     createBatteryArc = () => {
+        const remain = this.data?.remain ?? 0
+        const total = this.data?.total ?? 1
         return this.drawArc(
             new Point(canvSize / 2, canvSize / 2),
             canvRadius,
             canvWidth,
-            Math.floor((this.data.remain / this.data.total) * 100 * 3.6),
+            Math.floor((remain / total) * 100 * 3.6),
             new Color(this.currentSettings.displaySettings.battCircleFrontColorHex.val),
             new Color(
                 this.currentSettings.displaySettings.battCircleBackgroundColorHex.val,
                 this.currentSettings.displaySettings.battCircleBackgroundColorTransparency.val,
             ),
-            Math.floor((this.data.remain / this.data.total) * 100) + '%',
+            Math.floor((remain / total) * 100) + '%',
             new Color(this.currentSettings.displaySettings.battCircleTextColorHex.val),
         )
     }
@@ -1170,7 +1197,7 @@ class Widget extends WidgetBase {
     }
 
     // 渲染底部重置信息（小尺寸）
-    renderResetInfo = (diffDays, resetCircle) => {
+    renderResetInfo = (diffDays: number, resetCircle: number) => {
         if (diffDays < 0) {
             return [
                 h(
@@ -1225,7 +1252,7 @@ class Widget extends WidgetBase {
     }
 
     // 渲染底部重置信息（中尺寸）
-    renderResetInfoMedium = (diffDays, resetCircle) => {
+    renderResetInfoMedium = (diffDays: number, resetCircle: number) => {
         if (diffDays < 0) {
             return [
                 h(
@@ -1272,9 +1299,9 @@ class Widget extends WidgetBase {
     }
 
     // 小尺寸渲染
-    renderSmall = async w => {
+    renderSmall = async (w: ListWidget) => {
         const {batteryArc, diffDays, resetCircle} = await this.prepareRender()
-        const iconSize = this.scaleImage(this.iconImage.size, 40)
+        const iconSize = this.scaleImage(this.iconImage?.size ?? {width: 40, height: 40}, 40)
 
         // 先设置 listWidget
         GenrateView.setListWidget(w)
@@ -1290,7 +1317,7 @@ class Widget extends WidgetBase {
                         src: this.iconImage,
                         width: iconSize.width,
                         height: iconSize.height,
-                        href: this.account.url,
+                        href: this.account.url ?? this.account.subUrl,
                     }),
                     h('wspacer', {}),
                     h(
@@ -1308,7 +1335,7 @@ class Widget extends WidgetBase {
                             textColor: '#E9B526',
                             font: Font.systemFont(9),
                         },
-                        `${this.data.expires}后到期`,
+                        `${(this.data?.expires ?? '')}后到期`,
                     ),
                 ]),
                 h('wspacer', {}),
@@ -1327,7 +1354,7 @@ class Widget extends WidgetBase {
                             textColor: '#3E9BF7',
                             font: Font.boldSystemFont(14),
                         },
-                        `${this.data.remain.toFixed(2)}G`,
+                        `${(this.data?.remain ?? 0).toFixed(2)}G`,
                     ),
                     h(
                         'wtext',
@@ -1346,7 +1373,7 @@ class Widget extends WidgetBase {
                             textColor: this.isRequestSuccess ? this.widgetColor : Color.red(),
                             font: Font.boldSystemFont(14),
                         },
-                        `${(this.data.total - this.data.remain).toFixed(2)}G`,
+                        `${((this.data?.total ?? 1) - (this.data?.remain ?? 0)).toFixed(2)}G`,
                     ),
                     h(
                         'wtext',
@@ -1364,9 +1391,9 @@ class Widget extends WidgetBase {
     }
 
     // 中尺寸渲染
-    renderMedium = async w => {
+    renderMedium = async (w: ListWidget) => {
         const {batteryArc, diffDays, resetCircle} = await this.prepareRender()
-        const iconSize = this.scaleImage(this.iconImage.size, 50)
+        const iconSize = this.scaleImage(this.iconImage?.size ?? {width: 50, height: 50}, 50)
         const mediumArcSize = 90
 
         // 先设置 listWidget
@@ -1384,7 +1411,7 @@ class Widget extends WidgetBase {
                         src: this.iconImage,
                         width: iconSize.width,
                         height: iconSize.height,
-                        href: this.account.url,
+                        href: this.account.url ?? this.account.subUrl,
                     }),
                     h('wspacer', {length: 8}),
                     h(
@@ -1402,7 +1429,7 @@ class Widget extends WidgetBase {
                             textColor: '#E9B526',
                             font: Font.systemFont(11),
                         },
-                        `${this.data.expires}后到期`,
+                        `${(this.data?.expires ?? '')}后到期`,
                     ),
                 ]),
                 h('wspacer', {}),
@@ -1416,7 +1443,7 @@ class Widget extends WidgetBase {
                                     textColor: '#3E9BF7',
                                     font: Font.boldSystemFont(18),
                                 },
-                                `${this.data.remain.toFixed(2)}G`,
+                                `${(this.data?.remain ?? 0).toFixed(2)}G`,
                             ),
                             h(
                                 'wtext',
@@ -1435,7 +1462,7 @@ class Widget extends WidgetBase {
                                     textColor: this.isRequestSuccess ? this.widgetColor : Color.red(),
                                     font: Font.boldSystemFont(18),
                                 },
-                                `${(this.data.total - this.data.remain).toFixed(2)}G`,
+                                `${((this.data?.total ?? 1) - (this.data?.remain ?? 0)).toFixed(2)}G`,
                             ),
                             h(
                                 'wtext',
@@ -1489,3 +1516,9 @@ class Widget extends WidgetBase {
 }
 
 EndAwait(() => Runing(Widget, args.widgetParameter, false))
+
+
+
+
+
+

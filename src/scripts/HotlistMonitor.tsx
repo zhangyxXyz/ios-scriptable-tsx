@@ -19,8 +19,17 @@ const dependencyFileName = 'Seiun.Env.js'
 const runtimeRequire = typeof require === 'undefined' ? importModule : require
 const { WidgetBase, Runing, GenrateView, h, Utils } = runtimeRequire(dependencyFileName) as SeiunEnv
 
+type HotItem = {title: string; url?: string; mobilUrl?: string; [key: string]: unknown}
+type HotData = {
+    code: number
+    data: {
+        data: HotItem[]
+        update_time?: string
+    }
+}
+
 class Widget extends WidgetBase {
-    constructor(arg) {
+    constructor(arg?: string) {
         super(arg)
         this.name = '聚合热榜'
         this.en = 'HotlistMonitor'
@@ -31,7 +40,7 @@ class Widget extends WidgetBase {
     widgetParam = args.widgetParameter
     contentRowSpacing = 5
 
-    httpData = null
+    httpData: HotData | null = null
     isRequestSuccess = false
 
     hotTypeOptions = [
@@ -50,8 +59,8 @@ class Widget extends WidgetBase {
         { label: '澎湃新闻热榜', value: 'pengPai' },
     ]
 
-    get hotTypeLabelMap() {
-        const map = {}
+    get hotTypeLabelMap(): Record<string, string> {
+        const map: Record<string, string> = {}
         this.hotTypeOptions.forEach(option => {
             map[option.value] = option.label
         })
@@ -89,11 +98,11 @@ class Widget extends WidgetBase {
         const hotType = this.currentSettings.basicSettings.hotType.val || 'history'
         const cacheKey = `hotlist_${hotType}`
         
-        const storageData = this.storage.getStorage(cacheKey, this.storageExpirationMinutes)
+        const storageData = this.storage.getStorage<HotData>(cacheKey, this.storageExpirationMinutes)
         if (storageData) {
             console.log('[+]请求间隔时间过小，使用缓存数据')
             this.httpData = storageData
-            this.isRequestSuccess = storageData && storageData.code === 200
+            this.isRequestSuccess = Boolean(storageData && storageData.code === 200)
             return
         }
         
@@ -101,7 +110,7 @@ class Widget extends WidgetBase {
         try {
             const url = `https://www.52api.cn/api/hotlist?key=${encodeURIComponent(apiKey)}&hot=${encodeURIComponent(hotType)}`
             
-            const data = await this.$request.get(url, {
+            const data = await this.$request.get<HotData>(url, {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded;charset:utf-8;',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'
@@ -110,11 +119,11 @@ class Widget extends WidgetBase {
             console.log('[+]数据请求成功：' + url)
             this.storage.setStorage(cacheKey, data)
             this.httpData = data
-            this.isRequestSuccess = data && data.code === 200
+            this.isRequestSuccess = Boolean(data && data.code === 200)
             console.log(this.httpData)
         } catch (error) {
             console.log(`[+]getData出错，尝试使用缓存数据：${error}`)
-            this.httpData = this.storage.getStorage(cacheKey)
+            this.httpData = this.storage.getStorage<HotData>(cacheKey)
         }
     }
 
@@ -225,7 +234,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderCommon = async w => {
+    renderCommon = async (w: ListWidget) => {
         if (this.httpData && this.httpData.code === 200 && this.httpData.data && this.httpData.data.data) {
             const items = this.httpData.data.data.slice(
                 0,
@@ -236,7 +245,7 @@ class Widget extends WidgetBase {
                     this.httpData.data.data.length
                 )
             )
-            items.map(item => {
+            items.map((item: HotItem) => {
                 console.log(`• ${item.title}`)
             })
 
@@ -267,7 +276,7 @@ class Widget extends WidgetBase {
                         return title
                     })()
                 ),
-                items.map(item => {
+                items.map((item: HotItem) => {
                     const itemColor = this.currentSettings.displaySettings.listDataColorShowType.val === '随机颜色'
                         ? new Color(Utils.randomColor16())
                         : this.widgetColor
@@ -295,7 +304,7 @@ class Widget extends WidgetBase {
                             verticalAlign: 'center',
                             padding: [0, 0, 5, 0]
                         },
-                        /* @__PURE__ */ h('wspacer', null),
+                        /* @__PURE__ */ h('wspacer', {}),
                         /* @__PURE__ */ h('wimage', {
                             src: 'arrow.clockwise',
                             width: 10,
@@ -321,11 +330,11 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderMedium = async (w) => {
+    renderMedium = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 
-    renderLarge = async (w) => {
+    renderLarge = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 

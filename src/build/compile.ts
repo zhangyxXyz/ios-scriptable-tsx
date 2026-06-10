@@ -200,8 +200,8 @@ async function compile(options: CompileOptions) {
     // 编译时，把 process.env 环境变量替换成 dotenv 文件参数
     const define: Record<string, string> = {}
     for (const key in process.env) {
-        //  不能含有括号、-号、空格
-        if (/[\(\)\-\s]/.test(key)) continue
+        // esbuild define key 只允许合法 JS 标识符，过滤掉含非法字符（括号、-、空格、%、. 等）的 key
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue
         define[`process.env.${key}`] = JSON.stringify(process.env[key])
     }
     define['process.env.SCRIPTABLE_RAW_BASE_URL'] = JSON.stringify(resolvedSubscriptionRawBaseUrl)
@@ -384,6 +384,15 @@ const MODULE = module;${topLevelAwaitRuntime}
         return match ? match[1].trim() : ''
     }
 
+    /**
+     * 业务 widget 类编译后 name/en 是相邻赋值，优先按这个赋值对取名，
+     * 避免匹配到其它类（例如自定义 Error）构造函数里的 this.name 赋值。
+     */
+    function readWidgetNamePair(source: string) {
+        const match = source.match(/\bthis\.name\s*=\s*["'`]([^"'`]+)["'`]\s*;?\s*this\.en\s*=\s*["'`]([^"'`]+)["'`]/)
+        return match ? {zh: match[1].trim(), en: match[2].trim()} : null
+    }
+
     function joinRawUrl(baseUrl: string, fileName: string) {
         if (!baseUrl) return fileName
         return `${baseUrl.replace(/\/+$/, '')}/${fileName}`
@@ -405,7 +414,7 @@ const MODULE = module;${topLevelAwaitRuntime}
         for (const file of files) {
             try {
                 previousOutputTexts.set(path.resolve(file), fs.readFileSync(file, 'utf8'))
-            } catch {}
+            } catch (_) {}
         }
     }
 
@@ -419,8 +428,9 @@ const MODULE = module;${topLevelAwaitRuntime}
             const source = fs.readFileSync(path.resolve(outputDir, file), 'utf8')
             const build = readHeaderField(source, 'build') || buildTime
             const version = readHeaderField(source, 'version') || build
-            const zhName = readAssignment(source, 'name') || path.basename(file, '.js')
-            const enName = readAssignment(source, 'en') || path.basename(file, '.js')
+            const namePair = readWidgetNamePair(source)
+            const zhName = namePair?.zh || readAssignment(source, 'name') || path.basename(file, '.js')
+            const enName = namePair?.en || readAssignment(source, 'en') || path.basename(file, '.js')
             const desc = readHeaderField(source, 'desc') || zhName || enName
 
             return {
@@ -454,7 +464,7 @@ const MODULE = module;${topLevelAwaitRuntime}
                 if (JSON.stringify(normalizedPrevious) === JSON.stringify(normalizedNext)) {
                     manifestText = previousManifestText
                 }
-            } catch {}
+            } catch (_) {}
         }
         await ensureFile(manifestPath)
         await writeFile(manifestPath, manifestText, {encoding: 'utf8'})

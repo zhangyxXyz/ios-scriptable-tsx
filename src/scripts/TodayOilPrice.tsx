@@ -24,8 +24,47 @@ const dependencyFileName = 'Seiun.Env.js'
 const runtimeRequire = typeof require === 'undefined' ? importModule : require
 const { WidgetBase, Runing, GenrateView, h, Utils } = runtimeRequire(dependencyFileName) as SeiunEnv
 
+type LocationInfo = {
+    administrativeArea?: string
+    locality?: string
+    subLocality?: string
+    country?: string
+    location?: {latitude?: number; longitude?: number}
+    [key: string]: unknown
+}
+
+type OilPriceItem = {cate: string; value: string}
+
+type GasStation = {
+    title: string
+    address: string
+    tel: string
+    _distance: number
+    location: {lat: number; lng: number}
+    [key: string]: unknown
+}
+
+type OilPriceApiProvince = {
+    provinceName: string
+    oilPrice92: number
+    oilPrice95: number
+    oilPrice98: number
+    oilPrice0: number
+}
+
+type OilPriceApiData = {
+    code: number
+    data: OilPriceApiProvince[]
+    msg?: string
+}
+
+type GasStationApiData = {
+    status: number
+    data: GasStation[]
+}
+
 class Widget extends WidgetBase {
-    constructor(arg) {
+    constructor(arg?: string) {
         super(arg)
         this.name = '今日油价'
         this.en = 'TodayOilPrice'
@@ -39,9 +78,9 @@ class Widget extends WidgetBase {
         tencentMapAPIKey: '@caiyun.token.tencent'
     }
 
-    locationInfo = null
-    oilPriceInfo = null
-    gasStationInfo = []
+    locationInfo: LocationInfo | null = null
+    oilPriceInfo: OilPriceItem[] | null = null
+    gasStationInfo: GasStation[] = []
 
     // 组件当前设置
     currentSettings = {
@@ -77,7 +116,7 @@ class Widget extends WidgetBase {
 
     // 获取定位信息
     async getLocation() {
-        const cachedLocation = this.storage.getStorage('location', 60)
+        const cachedLocation = this.storage.getStorage<LocationInfo>('location', 60)
         if (cachedLocation) {
             console.log('[+]使用缓存定位数据')
             this.locationInfo = cachedLocation
@@ -86,11 +125,11 @@ class Widget extends WidgetBase {
                 const location = await Location.current()
                 const locationText = await Location.reverseGeocode(location.latitude, location.longitude)
                 console.log(`[+]定位成功`)
-                this.storage.setStorage('location', locationText[0] || {})
-                this.locationInfo = locationText[0] || {}
+                this.storage.setStorage('location', locationText[0])
+                this.locationInfo = (locationText[0] as unknown as LocationInfo) ?? null
             } catch (e) {
                 console.log(`[+]无法定位，尝试使用缓存定位数据：${e}`)
-                this.locationInfo = this.storage.getStorage('location') || {}
+                this.locationInfo = this.storage.getStorage<LocationInfo>('location') ?? null
             }
         }
         console.log(this.locationInfo)
@@ -108,7 +147,7 @@ class Widget extends WidgetBase {
             const cachedDateStr = `${cachedDate.getFullYear()}-${cachedDate.getMonth()}-${cachedDate.getDate()}`
             
             if (nowDateStr === cachedDateStr) {
-                const cachedOilPrice = this.storage.getStorage('oilPrice', 60)
+                const cachedOilPrice = this.storage.getStorage<OilPriceItem[]>('oilPrice', 60)
                 if (cachedOilPrice) {
                     console.log('[+]使用缓存油价数据')
                     this.oilPriceInfo = cachedOilPrice
@@ -123,21 +162,21 @@ class Widget extends WidgetBase {
             const oilPriceAPIKey = this.currentSettings.basicSettings.oilPriceAPIKey.val
             if (!oilPriceAPIKey || oilPriceAPIKey.trim() === '') {
                 console.log('[!]油价查询 API Key 未配置，无法查询油价')
-                this.oilPriceInfo = this.storage.getStorage('oilPrice') || []
+                this.oilPriceInfo = this.storage.getStorage<OilPriceItem[]>('oilPrice') ?? null
                 return
             }
 
-            const location = this.locationInfo || (await this.getLocation())
-            const province = location.administrativeArea ? location.administrativeArea.replace('省', '').replace('市', '') : ''
+            await this.getLocation()
+            const province = this.locationInfo?.administrativeArea ? this.locationInfo.administrativeArea.replace('省', '').replace('市', '') : ''
             
             try {
                 const url = `https://www.52api.cn/api/oilPrice?key=${oilPriceAPIKey}`
-                const httpData = await this.$request.get(url)
+                const httpData = await this.$request.get<OilPriceApiData>(url)
                 
                 if (httpData && httpData.code === 200 && httpData.data && Array.isArray(httpData.data)) {
-                    let matchedProvince = null
+                    let matchedProvince: OilPriceApiProvince | undefined
                     if (province) {
-                        matchedProvince = httpData.data.find(item => 
+                        matchedProvince = httpData.data.find((item: OilPriceApiProvince) => 
                             item.provinceName === province || 
                             item.provinceName.includes(province) || 
                             province.includes(item.provinceName)
@@ -171,7 +210,7 @@ class Widget extends WidgetBase {
                 }
             } catch (error) {
                 console.log(`[+]油价查询失败，尝试使用缓存数据：${error}`)
-                this.oilPriceInfo = this.storage.getStorage('oilPrice') || []
+                this.oilPriceInfo = this.storage.getStorage<OilPriceItem[]>('oilPrice') ?? null
             }
         }
         console.log(this.oilPriceInfo)
@@ -181,24 +220,26 @@ class Widget extends WidgetBase {
     async getGasStation() {
         const isLarge = this.widgetFamily === 'large'
         const cacheKey = isLarge ? 'gasStation_large' : 'gasStation_medium'
-        const cachedGasStation = this.storage.getStorage(cacheKey, 5)
+        const cachedGasStation = this.storage.getStorage<GasStation[]>(cacheKey, 5)
         
         if (cachedGasStation) {
             console.log(`[+]使用缓存加油站数据（${isLarge ? '大尺寸' : '中尺寸'}）`)
             this.gasStationInfo = cachedGasStation
         } else {
-            const location = this.locationInfo || (await this.getLocation())
-            const { longitude = 116.46869029185218, latitude = 40.00690378888461 } = location?.location || {}
+            await this.getLocation()
+            const loc = this.locationInfo?.location as {longitude?: number; latitude?: number} | undefined
+            const longitude = loc?.longitude ?? 116.46869029185218
+            const latitude = loc?.latitude ?? 40.00690378888461
             const tencentMapAPIKey = this.currentSettings.basicSettings.tencentMapAPIKey.val
-            const distance2NearestGasStation = parseInt(this.currentSettings.basicSettings.distance2NearestGasStation.val) || 5000
+            const distance2NearestGasStation = Number(this.currentSettings.basicSettings.distance2NearestGasStation.val) || 5000
             
             if (!tencentMapAPIKey || tencentMapAPIKey.trim() === '') {
                 console.log('[!]腾讯地图 Token 未配置，无法获取加油站信息')
-                this.gasStationInfo = this.storage.getStorage(cacheKey) || []
+                this.gasStationInfo = this.storage.getStorage<GasStation[]>(cacheKey) ?? []
                 return
             }
             
-            const params = {
+            const params: Record<string, string | number> = {
                 boundary: `nearby(${latitude},${longitude},${distance2NearestGasStation})`,
                 page_size: 20,
                 page_index: 1,
@@ -210,18 +251,18 @@ class Widget extends WidgetBase {
             const url = 'https://apis.map.qq.com/ws/place/v1/search?' + encodeURIComponent(data.join('&'))
             console.log(url)
             try {
-                const httpData = await this.$request.get(url)
+                const httpData = await this.$request.get<GasStationApiData>(url)
                 const gasStationData = httpData && httpData.status == 0 ? httpData.data : []
                 const count = isLarge
-                    ? (parseInt(this.currentSettings.displaySettings.gasStationCountLarge.val) || 5)
-                    : (parseInt(this.currentSettings.displaySettings.gasStationCountMedium.val) || 1)
+                    ? (Number(this.currentSettings.displaySettings.gasStationCountLarge.val) || 5)
+                    : (Number(this.currentSettings.displaySettings.gasStationCountMedium.val) || 1)
                 const infos = gasStationData?.splice(0, count)
                 console.log(`[+]就近加油站信息请求成功（${isLarge ? '大尺寸' : '中尺寸'}，${count}条）`)
                 this.storage.setStorage(cacheKey, infos)
                 this.gasStationInfo = infos
             } catch (error) {
                 console.log(`[+]就近加油站信息请求失败，尝试使用缓存：${error}`)
-                this.gasStationInfo = this.storage.getStorage(cacheKey) || []
+                this.gasStationInfo = this.storage.getStorage<GasStation[]>(cacheKey) ?? []
             }
         }
         console.log(this.gasStationInfo)
@@ -387,7 +428,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async renderOilPrice(data) {
+    async renderOilPrice(data: OilPriceItem) {
         return /* @__PURE__ */ h(
             'wstack',
             {
@@ -399,7 +440,7 @@ class Widget extends WidgetBase {
                 {
                     verticalAlign: 'bottom'
                 },
-                /* @__PURE__ */ h('wspacer', null),
+                /* @__PURE__ */ h('wspacer', {}),
                 /* @__PURE__ */ h(
                     'wtext',
                     {
@@ -419,7 +460,7 @@ class Widget extends WidgetBase {
                         ? this.currentSettings.displaySettings.dieselNameColorHex.val
                         : this.currentSettings.displaySettings.gasolineNameColorHex.val
                 }),
-                /* @__PURE__ */ h('wspacer', null)
+                /* @__PURE__ */ h('wspacer', {})
             ),
             /* @__PURE__ */ h('wspacer', {
                 length: 10
@@ -429,7 +470,7 @@ class Widget extends WidgetBase {
                 {
                     verticalAlign: 'bottom'
                 },
-                /* @__PURE__ */ h('wspacer', null),
+                /* @__PURE__ */ h('wspacer', {}),
                 /* @__PURE__ */ h(
                     'wtext',
                     {
@@ -448,12 +489,12 @@ class Widget extends WidgetBase {
                     },
                     '/L'
                 ),
-                /* @__PURE__ */ h('wspacer', null)
+                /* @__PURE__ */ h('wspacer', {})
             )
         )
     }
 
-    renderStackCellText(data) {
+    renderStackCellText(data: {icon: string; iconColor?: string; href?: string; label: string; value?: string}) {
         return /* @__PURE__ */ h(
             'wstack',
             {
@@ -483,12 +524,12 @@ class Widget extends WidgetBase {
                 '：',
                 data.value || '-'
             ),
-            /* @__PURE__ */ h('wspacer', null)
+            /* @__PURE__ */ h('wspacer', {})
         )
     }
 
-    renderGasStation(gasStation) {
-        return gasStation.map((item, index) => {
+    renderGasStation(gasStation: GasStation[]) {
+        return gasStation.map((item: GasStation, index: number) => {
             const href = `iosamap://navi?sourceApplication=applicationName&backScheme=applicationScheme&poiname=fangheng&poiid=BGVIS&lat=${item.location.lat}&lon=${item.location.lng}&dev=1&style=2`
             return /* @__PURE__ */ h(
                 'wstack',
@@ -518,12 +559,12 @@ class Widget extends WidgetBase {
                     length: 2
                 }),
                 this.renderStackCellText({ value: item.tel, label: '电话', href: 'tel:' + item.tel, icon: 'iphone' }),
-                gasStation.length - 1 !== index && /* @__PURE__ */ h('wspacer', null)
+                gasStation.length - 1 !== index && /* @__PURE__ */ h('wspacer', {})
             )
         })
     }
 
-    renderCommon = async w => {
+    renderCommon = async (w: ListWidget) => {
         GenrateView.setListWidget(w)
         const oilPriceIcon = await this.storage.getImage('https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/IconSet/Scriptable/Application/OilPrice.png')
         return /* @__PURE__ */ h(
@@ -539,7 +580,7 @@ class Widget extends WidgetBase {
                     padding: [10, 10, 10, 10]
                 },
                 await Promise.all(
-                    this.oilPriceInfo.map(async item => {
+                    (this.oilPriceInfo ?? []).map(async (item: OilPriceItem) => {
                         const city = this.locationInfo?.locality?.replace('市', '') || ''
                         const cate = item.cate.replace(city, '').replace('#', '号').replace('价格', '')
                         return await this.renderOilPrice({ ...item, cate })
@@ -556,7 +597,7 @@ class Widget extends WidgetBase {
                     },
                     this.renderGasStation(this.gasStationInfo)
                 ),
-            /* @__PURE__ */ h('wspacer', null),
+            /* @__PURE__ */ h('wspacer', {}),
             /* @__PURE__ */ h(
                 'wstack',
                 {
@@ -584,7 +625,7 @@ class Widget extends WidgetBase {
                         (this.locationInfo?.administrativeArea?.replace('省', '') || '') +
                         (this.locationInfo?.locality?.replace('市', '') || '')
                 ),
-                /* @__PURE__ */ h('wspacer', null),
+                /* @__PURE__ */ h('wspacer', {}),
                 /* @__PURE__ */ h('wimage', {
                     src: 'arrow.clockwise',
                     width: 10,
@@ -609,11 +650,11 @@ class Widget extends WidgetBase {
         )
     }
 
-    renderMedium = async (w) => {
+    renderMedium = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 
-    renderLarge = async (w) => {
+    renderLarge = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 
@@ -637,3 +678,4 @@ class Widget extends WidgetBase {
 }
 
 EndAwait(() => Runing(Widget, args.widgetParameter, false))
+

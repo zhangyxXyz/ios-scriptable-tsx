@@ -10,22 +10,48 @@ const dependencyFileName = 'Seiun.Env.js'
 const runtimeRequire = typeof require === 'undefined' ? importModule : require
 const { WidgetBase, Runing, GenrateView, h, Utils } = runtimeRequire(dependencyFileName) as SeiunEnv
 
+type RepoConfig = {
+    repoUrl: string
+    branch?: string
+    token?: string
+    repoType?: string
+    [key: string]: unknown
+}
+
+type GitAuthor = {name?: string; date?: string; login?: string; avatar_url?: string}
+type GitCommit = {
+    sha?: string
+    id?: string
+    commit?: {message?: string; author?: GitAuthor}
+    html_url?: string
+    message?: string
+    author?: GitAuthor
+    author_name?: string
+}
+
 class Widget extends WidgetBase {
-    constructor(arg) {
+    constructor(arg?: string) {
         super(arg)
         this.name = 'Git监控'
         this.en = 'GitMonitor'
         this.Run()
     }
 
+    declare settings: {
+        dataSource?: RepoConfig[]
+        repo?: RepoConfig
+        repoSettings?: {defaultRepo?: string}
+        [key: string]: unknown
+    }
+
     widgetParam = args.widgetParameter
-
     contentRowSpacing = 5
-
-    commits = null
+    commits: GitCommit[] | null = null
     isRequestSuccess = false
-    
-    repo = {
+    defaultRepoElementId: string | undefined = undefined
+    paramColorType: string | null = null
+
+    repo: RepoConfig = {
         repoUrl: 'https://github.com/zhangyxXyz/ios-scriptable',
         branch: '',
         token: '',
@@ -90,7 +116,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    parseRepoUrl(url) {
+    parseRepoUrl(url: string) {
         const githubMatch = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
         if (githubMatch) {
             return {
@@ -126,8 +152,8 @@ class Widget extends WidgetBase {
                 throw new Error('无效的仓库地址')
             }
 
-            let apiUrl
-            const headers = {}
+            let apiUrl: string | undefined
+            const headers: Record<string, string> = {}
             const branch = this.repo.branch
             const repoType = this.repo.repoType || repoInfo.type
 
@@ -158,10 +184,11 @@ class Widget extends WidgetBase {
                 }
             }
 
-            const data = await this.$request.get(apiUrl, { headers })
+            if (!apiUrl) throw new Error('apiUrl 未定义')
+            const data = await this.$request.get<GitCommit[]>(apiUrl, { headers })
             this.commits = data
             this.isRequestSuccess = true
-            console.log(`获取到 ${this.commits.length} 条提交记录`)
+            console.log(`获取到 ${this.commits?.length} 条提交记录`)
         } catch (error) {
             console.log(error)
         }
@@ -178,7 +205,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async updateSettingDisplay(webView, category, key, text) {
+    async updateSettingDisplay(webView: WebView, category: string, key: string, text: string) {
         if (!webView || !category || !key) return
         const elementId = `${category}__${key}`
         try {
@@ -252,7 +279,7 @@ class Widget extends WidgetBase {
         return {repoListHtml, statsCardHtml}
     }
 
-    async resetPendingAction(webView) {
+    async resetPendingAction(webView: WebView) {
         try {
             await webView.evaluateJavaScript('window.pendingAction = "";', false)
         } catch (e) {
@@ -260,7 +287,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async bindRepoActions(webView) {
+    async bindRepoActions(webView: WebView) {
         try {
             await webView.evaluateJavaScript(
                 `(function() {
@@ -284,7 +311,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async rebuildRepoList(webView, skipReload = false) {
+    async rebuildRepoList(webView: WebView, skipReload = false) {
         try {
             if (!skipReload) {
                 await this.reloadSettingsFromStorage()
@@ -320,7 +347,7 @@ class Widget extends WidgetBase {
                 false,
             )
 
-            await new Promise(resolve => Timer.schedule(150, false, resolve))
+            await new Promise<void>(resolve => Timer.schedule(150, false, () => resolve()))
             await this.bindRepoActions(webView)
             await this.resetPendingAction(webView)
         } catch (e) {
@@ -569,7 +596,7 @@ class Widget extends WidgetBase {
             })
 
             while (!isWebViewClosed) {
-                await new Promise(resolve => Timer.schedule(250, false, resolve))
+                await new Promise<void>(resolve => Timer.schedule(250, false, () => resolve()))
                 if (isWebViewClosed) break
 
                 let action = ''
@@ -612,7 +639,7 @@ class Widget extends WidgetBase {
                 const dataSource = this.settings.dataSource || []
 
                 if (result.action === 'repoClick') {
-                    const index = result.index
+                    const index = result.index as number
                     const repo = dataSource[index]
                     if (!repo) continue
 
@@ -690,7 +717,9 @@ class Widget extends WidgetBase {
                             null,
                             false,
                         )
-                        if (repo && repo.repoUrl) {
+                        const typedRepo = repo as RepoConfig | undefined
+                        if (typedRepo && typedRepo.repoUrl) {
+                            const repo = typedRepo
                             if (!repo.repoType || !repo.repoType.trim()) {
                                 const repoInfo = this.parseRepoUrl(repo.repoUrl)
                                 repo.repoType = repoInfo ? repoInfo.type : 'github'
@@ -715,7 +744,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async updateDefaultRepo(repoUrl) {
+    async updateDefaultRepo(repoUrl: string) {
         this.syncCurrentSettings('repoSettings', 'defaultRepo', repoUrl)
         if (!this.settings.repoSettings) this.settings.repoSettings = {}
         this.settings.repoSettings.defaultRepo = repoUrl
@@ -729,7 +758,7 @@ class Widget extends WidgetBase {
         return '请选择或者添加仓库'
     }
 
-    async editRepo(index, repo) {
+    async editRepo(index: number, repo: RepoConfig) {
         try {
             const alert = new Alert()
             alert.title = '修改仓库'
@@ -782,7 +811,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async copyRepo(index, repo) {
+    async copyRepo(index: number, repo: RepoConfig) {
         try {
             const copiedRepo = {
                 repoUrl: repo.repoUrl + ' 副本',
@@ -820,7 +849,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async deleteRepo(index, repo) {
+    async deleteRepo(index: number, repo: RepoConfig) {
         try {
             const confirmAlert = new Alert()
             confirmAlert.title = '确认删除'
@@ -837,7 +866,7 @@ class Widget extends WidgetBase {
 
                 const isDefaultRepo = this.settings.repo?.repoUrl === repo.repoUrl
                 if (isDefaultRepo) {
-                    this.settings.repo = null
+                    this.settings.repo = undefined
                     await this.updateDefaultRepo('请选择或者添加仓库')
                 } else {
                     this.saveSettings(false)
@@ -1013,7 +1042,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    decideGoto(commit) {
+    decideGoto(commit: GitCommit) {
         switch (this.currentSettings.displaySettings.urlJumpType.val) {
             case '跳转至浏览器': {
                 if (commit.html_url) {
@@ -1040,7 +1069,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderCommon = async w => {
+    renderCommon = async (w: ListWidget) => {
         if (this.commits && this.commits.length > 0) {
             const items = this.commits.slice(
                 0,
@@ -1122,8 +1151,8 @@ class Widget extends WidgetBase {
                         repoName
                     )
                 ),
-                items.map(item => {
-                    const message = (item.commit ? item.commit.message : item.message || '').split('\n')[0]
+                items.map((item: GitCommit) => {
+                    const message = (item.commit ? item.commit.message ?? '' : item.message ?? '').split('\n')[0]
                     const shortSha = (item.sha || item.id || '').substring(0, 7)
                     const colorType = this.paramColorType !== null 
                         ? (this.paramColorType === '0' ? '组件文本颜色' : '随机颜色')
@@ -1175,7 +1204,7 @@ class Widget extends WidgetBase {
                             verticalAlign: 'center',
                             padding: [0, 0, 5, 0]
                         },
-                        /* @__PURE__ */ h('wspacer', null),
+                        /* @__PURE__ */ h('wspacer', {}),
                         /* @__PURE__ */ h('wimage', {
                             src: 'arrow.clockwise',
                             width: 10,
@@ -1205,7 +1234,7 @@ class Widget extends WidgetBase {
                 {
                     spacing: this.contentRowSpacing
                 },
-                /* @__PURE__ */ h('wspacer', null),
+                /* @__PURE__ */ h('wspacer', {}),
                 /* @__PURE__ */ h(
                     'wtext',
                     {
@@ -1219,11 +1248,11 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderMedium = async (w) => {
+    renderMedium = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 
-    renderLarge = async (w) => {
+    renderLarge = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 

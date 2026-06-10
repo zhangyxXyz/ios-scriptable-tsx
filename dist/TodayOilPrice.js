@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/24
- * build    :  2026-06-10 18:57:50
+ * build    :  2026-06-11 00:23:36
  * desc     :  今日油价
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -103,7 +103,7 @@ var Widget = class extends WidgetBase {
             padding: [10, 10, 10, 10],
           },
           await Promise.all(
-            this.oilPriceInfo.map(async (item) => {
+            (this.oilPriceInfo ?? []).map(async (item) => {
               const city = this.locationInfo?.locality?.replace("市", "") || "";
               const cate = item.cate
                 .replace(city, "")
@@ -124,7 +124,7 @@ var Widget = class extends WidgetBase {
             },
             this.renderGasStation(this.gasStationInfo),
           ),
-        /* @__PURE__ */ h("wspacer", null),
+        /* @__PURE__ */ h("wspacer", {}),
         /* @__PURE__ */ h(
           "wstack",
           {
@@ -152,7 +152,7 @@ var Widget = class extends WidgetBase {
               (this.locationInfo?.administrativeArea?.replace("省", "") || "") +
               (this.locationInfo?.locality?.replace("市", "") || ""),
           ),
-          /* @__PURE__ */ h("wspacer", null),
+          /* @__PURE__ */ h("wspacer", {}),
           /* @__PURE__ */ h("wimage", {
             src: "arrow.clockwise",
             width: 10,
@@ -200,11 +200,11 @@ var Widget = class extends WidgetBase {
           location.longitude,
         );
         console.log(`[+]定位成功`);
-        this.storage.setStorage("location", locationText[0] || {});
-        this.locationInfo = locationText[0] || {};
+        this.storage.setStorage("location", locationText[0]);
+        this.locationInfo = locationText[0] ?? null;
       } catch (e) {
         console.log(`[+]无法定位，尝试使用缓存定位数据：${e}`);
-        this.locationInfo = this.storage.getStorage("location") || {};
+        this.locationInfo = this.storage.getStorage("location") ?? null;
       }
     }
     console.log(this.locationInfo);
@@ -234,12 +234,14 @@ var Widget = class extends WidgetBase {
         this.currentSettings.basicSettings.oilPriceAPIKey.val;
       if (!oilPriceAPIKey || oilPriceAPIKey.trim() === "") {
         console.log("[!]油价查询 API Key 未配置，无法查询油价");
-        this.oilPriceInfo = this.storage.getStorage("oilPrice") || [];
+        this.oilPriceInfo = this.storage.getStorage("oilPrice") ?? null;
         return;
       }
-      const location = this.locationInfo || (await this.getLocation());
-      const province = location.administrativeArea
-        ? location.administrativeArea.replace("省", "").replace("市", "")
+      await this.getLocation();
+      const province = this.locationInfo?.administrativeArea
+        ? this.locationInfo.administrativeArea
+            .replace("省", "")
+            .replace("市", "")
         : "";
       try {
         const url = `https://www.52api.cn/api/oilPrice?key=${oilPriceAPIKey}`;
@@ -250,7 +252,7 @@ var Widget = class extends WidgetBase {
           httpData.data &&
           Array.isArray(httpData.data)
         ) {
-          let matchedProvince = null;
+          let matchedProvince;
           if (province) {
             matchedProvince = httpData.data.find(
               (item) =>
@@ -299,7 +301,7 @@ var Widget = class extends WidgetBase {
         }
       } catch (error) {
         console.log(`[+]油价查询失败，尝试使用缓存数据：${error}`);
-        this.oilPriceInfo = this.storage.getStorage("oilPrice") || [];
+        this.oilPriceInfo = this.storage.getStorage("oilPrice") ?? null;
       }
     }
     console.log(this.oilPriceInfo);
@@ -313,18 +315,19 @@ var Widget = class extends WidgetBase {
       console.log(`[+]使用缓存加油站数据（${isLarge ? "大尺寸" : "中尺寸"}）`);
       this.gasStationInfo = cachedGasStation;
     } else {
-      const location = this.locationInfo || (await this.getLocation());
-      const { longitude = 116.46869029185218, latitude = 40.00690378888461 } =
-        location?.location || {};
+      await this.getLocation();
+      const loc = this.locationInfo?.location;
+      const longitude = loc?.longitude ?? 116.46869029185218;
+      const latitude = loc?.latitude ?? 40.00690378888461;
       const tencentMapAPIKey =
         this.currentSettings.basicSettings.tencentMapAPIKey.val;
       const distance2NearestGasStation =
-        parseInt(
+        Number(
           this.currentSettings.basicSettings.distance2NearestGasStation.val,
         ) || 5e3;
       if (!tencentMapAPIKey || tencentMapAPIKey.trim() === "") {
         console.log("[!]腾讯地图 Token 未配置，无法获取加油站信息");
-        this.gasStationInfo = this.storage.getStorage(cacheKey) || [];
+        this.gasStationInfo = this.storage.getStorage(cacheKey) ?? [];
         return;
       }
       const params = {
@@ -345,10 +348,10 @@ var Widget = class extends WidgetBase {
         const gasStationData =
           httpData && httpData.status == 0 ? httpData.data : [];
         const count = isLarge
-          ? parseInt(
+          ? Number(
               this.currentSettings.displaySettings.gasStationCountLarge.val,
             ) || 5
-          : parseInt(
+          : Number(
               this.currentSettings.displaySettings.gasStationCountMedium.val,
             ) || 1;
         const infos = gasStationData?.splice(0, count);
@@ -359,7 +362,7 @@ var Widget = class extends WidgetBase {
         this.gasStationInfo = infos;
       } catch (error) {
         console.log(`[+]就近加油站信息请求失败，尝试使用缓存：${error}`);
-        this.gasStationInfo = this.storage.getStorage(cacheKey) || [];
+        this.gasStationInfo = this.storage.getStorage(cacheKey) ?? [];
       }
     }
     console.log(this.gasStationInfo);
@@ -543,7 +546,7 @@ var Widget = class extends WidgetBase {
         {
           verticalAlign: "bottom",
         },
-        /* @__PURE__ */ h("wspacer", null),
+        /* @__PURE__ */ h("wspacer", {}),
         /* @__PURE__ */ h(
           "wtext",
           {
@@ -565,7 +568,7 @@ var Widget = class extends WidgetBase {
               ? this.currentSettings.displaySettings.dieselNameColorHex.val
               : this.currentSettings.displaySettings.gasolineNameColorHex.val,
         }),
-        /* @__PURE__ */ h("wspacer", null),
+        /* @__PURE__ */ h("wspacer", {}),
       ),
       /* @__PURE__ */ h("wspacer", {
         length: 10,
@@ -575,7 +578,7 @@ var Widget = class extends WidgetBase {
         {
           verticalAlign: "bottom",
         },
-        /* @__PURE__ */ h("wspacer", null),
+        /* @__PURE__ */ h("wspacer", {}),
         /* @__PURE__ */ h(
           "wtext",
           {
@@ -598,7 +601,7 @@ var Widget = class extends WidgetBase {
           },
           "/L",
         ),
-        /* @__PURE__ */ h("wspacer", null),
+        /* @__PURE__ */ h("wspacer", {}),
       ),
     );
   }
@@ -632,7 +635,7 @@ var Widget = class extends WidgetBase {
         "：",
         data.value || "-",
       ),
-      /* @__PURE__ */ h("wspacer", null),
+      /* @__PURE__ */ h("wspacer", {}),
     );
   }
   renderGasStation(gasStation) {
@@ -674,7 +677,7 @@ var Widget = class extends WidgetBase {
           href: "tel:" + item.tel,
           icon: "iphone",
         }),
-        gasStation.length - 1 !== index && /* @__PURE__ */ h("wspacer", null),
+        gasStation.length - 1 !== index && /* @__PURE__ */ h("wspacer", {}),
       );
     });
   }

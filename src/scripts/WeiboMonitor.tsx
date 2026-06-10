@@ -19,8 +19,25 @@ const dependencyFileName = 'Seiun.Env.js'
 const runtimeRequire = typeof require === 'undefined' ? importModule : require
 const { WidgetBase, Runing, GenrateView, h, Utils } = runtimeRequire(dependencyFileName) as SeiunEnv
 
+type WeiboCardItem = {
+    pic?: string
+    desc: string
+    desc_extr?: string
+    icon?: string
+    scheme?: string
+}
+
+type WeiboData = {
+    data: {
+        cards: Array<{
+            title?: {text?: string; indexOf?: never}
+            card_group: WeiboCardItem[]
+        }>
+    }
+}
+
 class Widget extends WidgetBase {
-    constructor(arg) {
+    constructor(arg?: string) {
         super(arg)
         this.name = '微博热搜'
         this.en = 'WeiboMonitor'
@@ -31,6 +48,7 @@ class Widget extends WidgetBase {
     widgetParam = args.widgetParameter
 
     url = 'https://m.weibo.cn/api/container/getIndex?containerid=106003%26filter_type%3Drealtimehot'
+    httpData: WeiboData | null = null
     isRequestSuccess = false
     
     getHeaders() {
@@ -69,7 +87,7 @@ class Widget extends WidgetBase {
         const headers = this.getHeaders()
         
         try {
-            const data = await this.$request.get(this.url, { headers })
+            const data = await this.$request.get<WeiboData>(this.url, { headers })
             if (data && data.data && data.data.cards !== undefined) {
                 this.httpData = data
                 this.isRequestSuccess = true
@@ -90,7 +108,7 @@ class Widget extends WidgetBase {
             const maxAttempts = 20
             
             while (attempts < maxAttempts && !jsonText) {
-                await new Promise(resolve => Timer.schedule(800, false, resolve))
+                await new Promise<void>(resolve => Timer.schedule(800, false, () => resolve()))
                 attempts++
                 
                 try {
@@ -118,7 +136,7 @@ class Widget extends WidgetBase {
             } else {
                 console.log('[+]WebView超时，尝试最后请求')
                 try {
-                    const data = await this.$request.get(this.url, { headers })
+                    const data = await this.$request.get<WeiboData>(this.url, { headers })
                     if (data && data.data && data.data.cards !== undefined) {
                         this.httpData = data
                         this.isRequestSuccess = true
@@ -130,7 +148,7 @@ class Widget extends WidgetBase {
                 }
                 
                 if (!this.httpData) {
-                    const cached = this.storage.getStorage('weiboData')
+                    const cached = this.storage.getStorage<WeiboData>('weiboData')
                     if (cached) {
                         this.httpData = cached
                         console.log('[+]使用缓存数据')
@@ -140,7 +158,7 @@ class Widget extends WidgetBase {
                 }
             }
         } catch (error) {
-            const cached = this.storage.getStorage('weiboData')
+            const cached = this.storage.getStorage<WeiboData>('weiboData')
             if (cached) {
                 this.httpData = cached
                 console.log('[+]异常，使用缓存数据')
@@ -257,7 +275,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    decideGoto(item) {
+    decideGoto(item: WeiboCardItem) {
         switch (this.currentSettings.basicSettings.urlJumpType.val) {
             case '跳转至浏览器':
                 return item.scheme
@@ -268,8 +286,8 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderCommon = async w => {
-        if (this.httpData && this.httpData.data.cards[0] && this.httpData.data.cards[0].title.indexOf('实时热点') != -1) {
+    renderCommon = async (w: ListWidget) => {
+        if (this.httpData && this.httpData.data.cards[0] && String(this.httpData.data.cards[0].title?.text ?? '').indexOf('实时热点') != -1) {
             // 剔除第一条
             const items = this.httpData['data']['cards'][0]['card_group'].splice(
                 1,
@@ -280,7 +298,7 @@ class Widget extends WidgetBase {
                     this.httpData['data']['cards'][0]['card_group'].length - 1
                 )
             )
-            items.map(item => {
+            items.map((item: WeiboCardItem) => {
                 console.log(`• ${item.desc}`)
             })
 
@@ -305,7 +323,7 @@ class Widget extends WidgetBase {
                     },
                     `🔥 微博热搜`
                 ),
-                items.map(item => {
+                items.map((item: WeiboCardItem) => {
                     if (this.currentSettings.displaySettings.isEnhancedEffect.val) {
                         return /* @__PURE__ */ h(
                             'wstack',
@@ -343,7 +361,7 @@ class Widget extends WidgetBase {
                                     width: 18,
                                     height: 18
                                 }),
-                            /* @__PURE__ */ h('wspacer', null),
+                            /* @__PURE__ */ h('wspacer', {}),
                             /* @__PURE__ */ h(
                                 'wtext',
                                 {
@@ -376,7 +394,7 @@ class Widget extends WidgetBase {
                             verticalAlign: 'center',
                             padding: [0, 0, 5, 0]
                         },
-                        /* @__PURE__ */ h('wspacer', null),
+                        /* @__PURE__ */ h('wspacer', {}),
                         /* @__PURE__ */ h('wimage', {
                             src: 'arrow.clockwise',
                             width: 10,
@@ -402,11 +420,11 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderMedium = async (w) => {
+    renderMedium = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 
-    renderLarge = async (w) => {
+    renderLarge = async (w: ListWidget) => {
         return await this.renderCommon(w)
     }
 

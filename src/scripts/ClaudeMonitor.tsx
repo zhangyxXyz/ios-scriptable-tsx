@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/10
- * desc     :  Claude额度监控
+ * desc     :  Claude 额度监控，支持 OAuth、API Key 与 Done Hub 代理
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
@@ -914,11 +914,25 @@ class ClaudeMonitor extends WidgetBase {
     getLayoutMetrics() {
         const padding = {top: 10, right: 10, bottom: 10, left: 10}
         const cardGap = 12
+        // 真机可用宽度通常比估算值小，额外收窄一段避免两张卡片铺得太开
+        const contentInset = 16
         const widgetSize = this.getWidgetSize(this.widgetFamily === 'large' ? 'large' : 'medium')
-        const contentWidth = Math.floor(widgetSize.width - padding.left - padding.right)
-        const cardWidth = Math.floor((contentWidth - cardGap) / 2)
+        const cardWidth = Math.floor((widgetSize.width - padding.left - padding.right - contentInset - cardGap) / 2)
+        const contentWidth = cardWidth * 2 + cardGap
         const progressWidth = cardWidth - 20
-        return {padding, cardGap, cardWidth, progressWidth}
+        return {padding, cardGap, contentWidth, cardWidth, progressWidth}
+    }
+
+    addAlignedRow(widget: ListWidget, contentWidth: number) {
+        const outer = widget.addStack()
+        outer.layoutHorizontally()
+        outer.addSpacer()
+        const inner = outer.addStack()
+        inner.layoutHorizontally()
+        inner.centerAlignContent()
+        inner.size = new Size(contentWidth, 0)
+        outer.addSpacer()
+        return inner
     }
 
     async addClaudeIcon(stack: WidgetStack, size: number) {
@@ -1068,12 +1082,10 @@ class ClaudeMonitor extends WidgetBase {
 
     async renderCommon(widget: ListWidget, maxRows: number) {
         GenrateView.setListWidget(widget)
-        const {padding, cardGap, cardWidth, progressWidth} = this.getLayoutMetrics()
+        const {padding, cardGap, contentWidth, cardWidth, progressWidth} = this.getLayoutMetrics()
         widget.setPadding(padding.top, padding.left, padding.bottom, padding.right)
 
-        const header = widget.addStack()
-        header.layoutHorizontally()
-        header.centerAlignContent()
+        const header = this.addAlignedRow(widget, contentWidth)
         await this.addClaudeIcon(header, 16)
         header.addSpacer(6)
         const title = header.addText(this.getHeaderTitleText())
@@ -1095,8 +1107,7 @@ class ClaudeMonitor extends WidgetBase {
             widget.addSpacer()
         } else {
             for (let i = 0; i < rows.length; i += 2) {
-                const rowStack = widget.addStack()
-                rowStack.layoutHorizontally()
+                const rowStack = this.addAlignedRow(widget, contentWidth)
                 rowStack.spacing = cardGap
                 this.renderRowCard(rowStack, rows[i], cardWidth, progressWidth)
                 if (rows[i + 1]) this.renderRowCard(rowStack, rows[i + 1], cardWidth, progressWidth)
@@ -1104,9 +1115,7 @@ class ClaudeMonitor extends WidgetBase {
             }
         }
 
-        const footer = widget.addStack()
-        footer.layoutHorizontally()
-        footer.centerAlignContent()
+        const footer = this.addAlignedRow(widget, contentWidth)
         const requestMode = footer.addText(this.getAccountMode(this.currentAccount))
         requestMode.textColor = this.widgetColor
         requestMode.font = Font.mediumSystemFont(10)

@@ -132,6 +132,9 @@ export interface SettingItem {
     /** 自定义点击行为；提供后接管默认 webview 输入界面。返回 true 时由脚本层自行表示动作已处理。 */
     onAction?: (webView: WebView, item: SettingItem) => void | boolean | Promise<void | boolean>
 
+    /** 指定保存到的设置分类，未配置时保存到当前分类。 */
+    saveCategory?: string
+
     /** 唯一标识符，通常由 env 自动生成。 */
     id?: string
 }
@@ -192,12 +195,16 @@ export interface SeiunUtils {
 
 export interface SeiunGenrateView {
     setListWidget(listWidget: ListWidget): void
+    wbox(props: Record<string, unknown>, ...children: unknown[]): Promise<ListWidget | undefined>
 }
 
 export interface WidgetStorage {
     getStorage<T = unknown>(key: string, expirationMinutes?: number, isDelStorageWhenTimeExceed?: boolean): T | null
     setStorage<T = unknown>(key: string, value: T): void
     removeStorage(key: string): void
+    getStorageTime(key: string): string | Date | null
+    getImage(key: string, returnImage?: boolean, useCache?: boolean, logable?: boolean, cacheKey?: string | null): Promise<Image | string | null>
+    removeFile(key: string, useImagesPath?: boolean): boolean
 }
 
 export declare class WidgetBase {
@@ -205,6 +212,8 @@ export declare class WidgetBase {
 
     name?: string
     en?: string
+    noneCategoryName: string
+    basicSettingsCategoryName: string
     storageExpirationMinutes: number
     backgroundColor: string
     widgetFamily?: WidgetFamily
@@ -232,14 +241,27 @@ export declare class WidgetBase {
     getWidgetSize(size: WidgetSizeName): Size
     dynamicColor(light: string, dark: string): Color
     changeBgMode2OnLineBg(urls: string[]): void
-    getImageByUrl(url: string): Promise<Image>
+    getImageByUrl(url: string, storage?: WidgetStorage | null, cacheKey?: string | null): Promise<Image | null>
     getWidgetBackgroundImage(widget: ListWidget): Promise<boolean>
-    notify(title: string, body: string, url?: string | null, opts?: Record<string, unknown>): Promise<void>
+    notify(title: string, body: string, url?: string | null, opts?: Record<string, unknown> | null): Promise<void>
     reopenScript(): void
     setWidgetConfig(): Promise<void>
     presentSettings(...args: unknown[]): Promise<void>
     registerSetting(items: SettingItem | SettingItem[]): void
     registerSettingCategory(category: string, title: string, items: SettingItem[]): void
+    md5(str: string): string
+    getSettings(json?: boolean): Record<string, unknown>
+    syncCurrentSettings(category: string, key: string, value: unknown): void
+    setAlertInput(
+        title: string,
+        desc?: string,
+        opt?: Record<string, string>,
+        category?: string | null,
+        isSave?: boolean,
+    ): Promise<Record<string, string> | undefined>
+    insertTextByElementId(webView: WebView, elementId: string, text: string): Promise<void>
+    getSettingElementId(category?: string, optionKey?: string): string
+    shadowImage(img: Image, color?: string, opacity?: number): Promise<Image>
 }
 
 export type RunnableWidget = new (scriptName?: string) => {

@@ -5,7 +5,7 @@
 /*
 * author   :  seiun
 * date     :  2025/12/20
-* desc     :  Cursor监控
+* desc     :  Cursor 用量监控，支持每日用量、总用量与套餐概览
 * version  :  1.0.0
 * github   :  https://github.com/zhangyxXyz/ios-scriptable
 * changelog:
@@ -140,14 +140,13 @@ class CursorMonitor extends WidgetBase {
     declare settings: CursorRuntime['settings']
     declare storage: CursorRuntime['storage']
     declare defaultAccountElementId?: string
-    declare basicSettingsCategoryName?: string
+    declare basicSettingsCategoryName: string
     declare isNight?: boolean
     declare getSettings: CursorRuntime['getSettings']
     declare saveSettings: CursorRuntime['saveSettings']
     declare syncCurrentSettings: CursorRuntime['syncCurrentSettings']
     declare insertTextByElementId: CursorRuntime['insertTextByElementId']
     declare getSettingElementId: CursorRuntime['getSettingElementId']
-    declare setAlertInput: CursorRuntime['setAlertInput']
     declare registerSetting: CursorRuntime['registerSetting']
     declare registerSettingCategory: CursorRuntime['registerSettingCategory']
 
@@ -2078,7 +2077,7 @@ class CursorMonitor extends WidgetBase {
             const iconUrl = 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/cursor.png'
             try {
                 const iconImg = await this.storage.getImage(iconUrl, true, true, false)
-                if (iconImg) {
+                if (iconImg && typeof iconImg !== 'string') {
                     const icon = titleStack.addImage(iconImg)
                     icon.imageSize = new Size(16, 16)
                     icon.tintColor = this.widgetColor

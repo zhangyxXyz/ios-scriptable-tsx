@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2025/12/26
- * desc     :  电影日历
+ * desc     :  每日电影推荐日历，含豆瓣评分、农历与海报背景
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
  * changelog:
@@ -19,8 +19,37 @@ const dependencyFileName = 'Seiun.Env.js'
 const runtimeRequire = typeof require === 'undefined' ? importModule : require
 const { WidgetBase, Runing, GenrateView, h, Utils } = runtimeRequire(dependencyFileName) as SeiunEnv
 
+type MovieData = {
+    movieImg: string
+    movieDesc: string
+    movieName: string
+    movieInformation: string
+    movieRating: string
+    movieLink: string
+}
+
+type MovieRenderData = {
+    movieName: string
+    movieDesc: string
+    movieInformation: string
+    movieRating: string
+    movieLink: string
+    image: Image | null
+    descColor: Color
+    titleColor: Color
+    subTitleColor: Color
+}
+
+type LunarInfo = {
+    infoLunarText: string
+    lunarYearText?: string
+    holidayText?: string
+}
+
+type WidgetSizeSpec = {width: number; height: number}
+
 class Widget extends WidgetBase {
-    constructor(arg) {
+    constructor(arg?: string) {
         super(arg)
         this.name = '电影日历'
         this.en = 'MovieCalendar'
@@ -29,7 +58,9 @@ class Widget extends WidgetBase {
         this.Run()
     }
 
-    httpData = null
+    domain: string
+    httpData: MovieData | null = null
+    lunarInfo: LunarInfo | null = null
     isRequestSuccess = false
 
     currentSettings = {
@@ -45,8 +76,8 @@ class Widget extends WidgetBase {
         },
     }
 
-    getWidgetSize(name) {
-        const sizes = {
+    getWidgetSize(name: string) {
+        const sizes: Record<string, WidgetSizeSpec> = {
             '小号': {width: 155, height: 155},
             '中号': {width: 329, height: 155},
             '大号': {width: 329, height: 345},
@@ -54,20 +85,27 @@ class Widget extends WidgetBase {
         return sizes[name] || sizes['大号']
     }
 
-    getSFSymbol(name) {
+    getSFSymbol(name: string) {
         const symbol = SFSymbol.named(name)
         return symbol ? symbol.image : null
     }
 
-    resolveUrl(url) {
-        try {
-            return new URL(url, this.domain).toString()
-        } catch {
-            return url
-        }
+    // Scriptable 真机的 JSContext 没有全局 URL 类，不能用 new URL 做相对路径解析
+    resolveUrl(url: string) {
+        const raw = String(url || '').trim()
+        if (!raw) return raw
+        if (/^https?:\/\//i.test(raw)) return raw
+        if (raw.startsWith('//')) return `https:${raw}`
+        if (raw.startsWith('data:')) return raw
+
+        // webview loadHTML 无 baseURL 时，src/href 可能被解析成 about:/applewebdata: 等前缀，截回 path 部分
+        const schemeMatch = raw.match(/^[a-z][\w+.-]*:(?:\/\/[^/]*)?(\/.*)?$/i)
+        const path = schemeMatch ? schemeMatch[1] || '' : raw
+        if (!path) return raw
+        return path.startsWith('/') ? `${this.domain}${path}` : `${this.domain}/${path}`
     }
 
-    decodeHtmlText(text) {
+    decodeHtmlText(text: string) {
         return String(text || '')
             .replace(/&nbsp;/gi, ' ')
             .replace(/&amp;/gi, '&')
@@ -79,12 +117,12 @@ class Widget extends WidgetBase {
             .trim()
     }
 
-    extractHtmlById(html, id) {
+    extractHtmlById(html: string, id: string) {
         const match = String(html || '').match(new RegExp(`<([a-zA-Z0-9]+)[^>]*id=["']${id}["'][^>]*>([\\s\\S]*?)<\\/\\1>`, 'i'))
         return match ? match[0] : ''
     }
 
-    extractInnerHtmlById(html, id) {
+    extractInnerHtmlById(html: string, id: string) {
         const source = String(html || '')
         const idIndex = source.search(new RegExp(`id=["']${id}["']`, 'i'))
         if (idIndex === -1) return ''
@@ -104,16 +142,16 @@ class Widget extends WidgetBase {
         return contentStart === -1 ? '' : beforeClose.slice(contentStart + 1)
     }
 
-    extractAttr(html, name) {
+    extractAttr(html: string, name: string) {
         const match = String(html || '').match(new RegExp(`${name}=["']([^"']+)["']`, 'i'))
         return match ? this.decodeHtmlText(match[1]) : ''
     }
 
-    extractText(html) {
+    extractText(html: string) {
         return this.decodeHtmlText(String(html || '').replace(/<[^>]+>/g, ''))
     }
 
-    parseMovieDataFromHtml(html) {
+    parseMovieDataFromHtml(html: string): MovieData | null {
         const movieImgHtml = this.extractHtmlById(html, 'movie-img')
         const bgimgHtml = this.extractHtmlById(html, 'bgimg')
         const movieNameHtml = this.extractHtmlById(html, 'movie-name')
@@ -134,7 +172,7 @@ class Widget extends WidgetBase {
         return {movieImg, movieDesc, movieName, movieInformation, movieRating, movieLink}
     }
 
-    normalizeMovieData(data) {
+    normalizeMovieData(data: MovieData | null): MovieData | null {
         if (!data) return data
         return {
             ...data,
@@ -143,7 +181,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    isValidMovieData(data) {
+    isValidMovieData(data: MovieData | null | undefined): data is MovieData {
         return Boolean(
             data &&
             data.movieImg &&
@@ -154,7 +192,7 @@ class Widget extends WidgetBase {
         )
     }
 
-    async analyzeImageColor(img) {
+    async analyzeImageColor(img: Image | null) {
         if (!img) return new Color('#FFFFFF')
         
         try {
@@ -188,7 +226,7 @@ class Widget extends WidgetBase {
                     img.src = 'data:image/png;base64,${base64}'
                 </script>
             `)
-            await new Promise(resolve => Timer.schedule(500, false, resolve))
+            await new Promise<void>(resolve => Timer.schedule(500, false, () => resolve()))
             const result = await webview.evaluateJavaScript('window.result || "#FFFFFF"')
             return new Color(result || '#FFFFFF')
         } catch (e) {
@@ -209,7 +247,7 @@ class Widget extends WidgetBase {
     async getLunarInfo() {
         const day = new Date().getDate()
         try {
-            const cachedLunar = this.storage.getStorage('lunar')
+            const cachedLunar = this.storage.getStorage<LunarInfo>('lunar')
             if (cachedLunar) {
                 this.lunarInfo = cachedLunar
                 return cachedLunar
@@ -219,7 +257,7 @@ class Widget extends WidgetBase {
             const defaultHeaders = {
                 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36'
             }
-            const html = await this.$request.get({ url: requestUrl, headers: defaultHeaders }, 'STRING')
+            const html = await this.$request.get<string>({ url: requestUrl, headers: defaultHeaders }, 'STRING')
 
             const webview = new WebView()
             await webview.loadHTML(html)
@@ -240,23 +278,23 @@ class Widget extends WidgetBase {
                 }
                 getData()`
 
-            const response = await webview.evaluateJavaScript(getData, false)
+            const response = (await webview.evaluateJavaScript(getData, false)) as LunarInfo
             console.log(`[+]农历请求成功`)
             this.storage.setStorage('lunar', response)
             this.lunarInfo = response
             return response
         } catch (e) {
             console.log(`[+]农历请求出错，尝试使用缓存信息：${e}`)
-            this.lunarInfo = this.storage.getStorage('lunar') || {infoLunarText: ''}
+            this.lunarInfo = this.storage.getStorage<LunarInfo>('lunar') || {infoLunarText: ''}
             return this.lunarInfo
         }
     }
 
-    async loadHTML(url) {
+    async loadHTML(url: string) {
         const defaultHeaders = {
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
         }
-        const html = await this.$request.get({ url, headers: defaultHeaders }, 'STRING')
+        const html = await this.$request.get<string>({ url, headers: defaultHeaders }, 'STRING')
         return html.replace(/(\r\n|\n|\r)/gm, '')
     }
 
@@ -266,7 +304,7 @@ class Widget extends WidgetBase {
         const cacheTimeKey = `${cacheKey}_time`
         const cacheMinutes = 30
         
-        const cachedTime = this.storage.getStorage(cacheTimeKey)
+        const cachedTime = this.storage.getStorage<string>(cacheTimeKey)
         const now = new Date()
         const cachedDate = cachedTime ? new Date(cachedTime) : null
         
@@ -283,7 +321,7 @@ class Widget extends WidgetBase {
                 shouldRefresh = true
                 console.log(`-->>检测到跨天，立即更新数据`)
             } else {
-                const diffMinutes = (now - cachedDate) / (1000 * 60)
+                const diffMinutes = (now.getTime() - cachedDate.getTime()) / (1000 * 60)
                 if (diffMinutes >= cacheMinutes) {
                     shouldRefresh = true
                 }
@@ -292,7 +330,7 @@ class Widget extends WidgetBase {
             shouldRefresh = true
         }
         
-        const cachedData = this.storage.getStorage(cacheKey)
+        const cachedData = this.storage.getStorage<MovieData>(cacheKey)
         if (!shouldRefresh && this.isValidMovieData(cachedData)) {
             console.log(`-->>加载缓存网页数据：${link}`)
             const normalizedCachedData = this.normalizeMovieData(cachedData)
@@ -319,9 +357,9 @@ class Widget extends WidgetBase {
                 }
                 getData()
             `
-            let response = null
+            let response: MovieData | null = null
             try {
-                response = await webview.evaluateJavaScript(getData, false)
+                response = (await webview.evaluateJavaScript(getData, false)) as MovieData
             } catch (error) {
                 console.log(`-->>DOM解析失败，尝试HTML兜底解析：${error}`)
                 response = this.parseMovieDataFromHtml(html)
@@ -344,7 +382,7 @@ class Widget extends WidgetBase {
         } catch (error) {
             console.error(`🚫 请求数据出错了=>${error}`)
             this.isRequestSuccess = false
-            const fallbackData = this.storage.getStorage(cacheKey)
+            const fallbackData = this.storage.getStorage<MovieData>(cacheKey)
             if (this.isValidMovieData(fallbackData)) {
                 const normalizedFallbackData = this.normalizeMovieData(fallbackData)
                 this.httpData = normalizedFallbackData
@@ -431,7 +469,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    async prepareCommonData() {
+    async prepareCommonData(): Promise<MovieRenderData | null> {
         if (!this.httpData) return null
 
         const { movieImg, movieDesc, movieName, movieInformation, movieRating, movieLink } = this.httpData
@@ -439,9 +477,8 @@ class Widget extends WidgetBase {
         const titleColor = new Color(this.currentSettings.displaySettings.titleColor.val || '#FFFFFF')
         const subTitleColor = new Color(this.currentSettings.displaySettings.subTitleColor.val || '#CCCCCC')
 
-        let image = null
-        image = await this.getImageByUrl(movieImg, null, 'movieCover')
-        image = await this.shadowImage(image, '#000000', 0.4)
+        let image: Image | null = await this.getImageByUrl(movieImg, null, 'movieCover')
+        if (image) image = await this.shadowImage(image, '#000000', 0.4)
 
         return {
             movieName,
@@ -456,13 +493,14 @@ class Widget extends WidgetBase {
         }
     }
 
-    generateStars(movieRating, starSize = 18) {
+    generateStars(movieRating: string | number, starSize = 18) {
         const ratingColor = new Color('#F8D454')
         const emptyStar = SFSymbol.named('star').image
         const fillStar = SFSymbol.named('star.fill').image
         const halfStar = SFSymbol.named('star.leadinghalf.filled').image
-        const fillCount = Math.floor(movieRating / 2)
-        const remainCount = movieRating / 2 - fillCount
+        const rating = Number(movieRating)
+        const fillCount = Math.floor(rating / 2)
+        const remainCount = rating / 2 - fillCount
         let totalCount = 0
 
         const stars = []
@@ -486,7 +524,14 @@ class Widget extends WidgetBase {
         return stars
     }
 
-    generateMovieInfo(data, starSize, titleFontSize, subTitleFontSize, descFontSize, ratingTextSize) {
+    generateMovieInfo(
+        data: MovieRenderData,
+        starSize: number,
+        titleFontSize: number,
+        subTitleFontSize: number,
+        descFontSize: number,
+        ratingTextSize: number,
+    ) {
         const stars = this.generateStars(data.movieRating, starSize)
         const ratingText = starSize >= 18 ? `豆瓣评分${data.movieRating}` : `豆瓣${data.movieRating}`
 
@@ -513,18 +558,18 @@ class Widget extends WidgetBase {
         )
     }
 
-    generateMovieDesc(data, descFontSize, quoteFontSize) {
+    generateMovieDesc(data: MovieRenderData, descFontSize: number, quoteFontSize: number) {
         const spacerLength = descFontSize >= 14 ? 12 : 8
 
         return [
             /* @__PURE__ */ h('wspacer', { length: spacerLength }),
             /* @__PURE__ */ h('wtext', { textColor: data.descColor, font: Font.lightSystemFont(quoteFontSize) }, '❝'),
             /* @__PURE__ */ h('wtext', { textColor: data.descColor, font: Font.systemFont(descFontSize), opacity: 0.9 }, data.movieDesc),
-            /* @__PURE__ */ h('wspacer', null)
+            /* @__PURE__ */ h('wspacer', {})
         ]
     }
 
-    async generatePosterBackground(image, widgetSize, posterRatio) {
+    async generatePosterBackground(image: Image | null, widgetSize: WidgetSizeSpec, posterRatio: number) {
         if (!image || !image.size) return null
 
         try {
@@ -534,15 +579,16 @@ class Widget extends WidgetBase {
             ctx.size = new Size(widgetSize.width, widgetSize.height)
 
             const bgColor = this.backGroundColor || new Color('#000000')
-            if (bgColor && bgColor.colors && Array.isArray(bgColor.colors)) {
+            if (bgColor instanceof LinearGradient && Array.isArray(bgColor.colors)) {
                 const gradient = new LinearGradient()
                 gradient.locations = [0, 1]
                 gradient.colors = bgColor.colors
                 gradient.startPoint = new Point(0, 0)
                 gradient.endPoint = new Point(widgetSize.width, widgetSize.height)
-                ctx.setFillGradient(gradient)
+                // Scriptable 的 DrawContext 没有 setFillGradient，调用失败时由外层 catch 兜底回退
+                ;(ctx as unknown as {setFillGradient(gradient: LinearGradient): void}).setFillGradient(gradient)
             } else {
-                ctx.setFillColor(bgColor)
+                ctx.setFillColor(bgColor as Color)
             }
             ctx.fillRect(new Rect(0, 0, widgetSize.width, widgetSize.height))
 
@@ -583,7 +629,7 @@ class Widget extends WidgetBase {
         }
     }
 
-    renderCommon = async (w, sizeSplit, descSpan, useMoviePoster4FullBG, name) => {
+    renderCommon = async (w: ListWidget, sizeSplit: number, descSpan: number, useMoviePoster4FullBG: boolean, name: string) => {
         const data = await this.prepareCommonData()
         if (!data) {
             GenrateView.setListWidget(w)
@@ -649,7 +695,7 @@ class Widget extends WidgetBase {
         )
     }
 
-    renderSmall = async (w) => {
+    renderSmall = async (w: ListWidget) => {
         const data = await this.prepareCommonData()
         if (!data) {
             GenrateView.setListWidget(w)
@@ -674,11 +720,11 @@ class Widget extends WidgetBase {
         )
     }
 
-    renderMedium = async (w) => {
+    renderMedium = async (w: ListWidget) => {
         return await this.renderCommon(w, 0.35, 10, false, '中号')
     }
 
-    renderLarge = async (w) => {
+    renderLarge = async (w: ListWidget) => {
         return await this.renderCommon(w, 0.3, 16, true, '大号')
     }
 

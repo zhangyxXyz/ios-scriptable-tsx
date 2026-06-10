@@ -5,8 +5,8 @@
 /*
  * author   :  seiun
  * date     :  2025/12/20
- * build    :  2026-06-04 04:11:22
- * desc     :  Cursor监控
+ * build    :  2026-06-11 00:23:36
+ * desc     :  Cursor 用量监控，支持每日用量、总用量与套餐概览
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
  * changelog:
@@ -561,7 +561,7 @@ var CursorMonitor = class extends WidgetBase {
             true,
             false,
           );
-          if (iconImg) {
+          if (iconImg && typeof iconImg !== "string") {
             const icon = titleStack.addImage(iconImg);
             icon.imageSize = new Size(16, 16);
             icon.tintColor = this.widgetColor;

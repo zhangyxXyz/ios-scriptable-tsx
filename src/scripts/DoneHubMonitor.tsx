@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * desc     :  Done Hub 聚合额度监控
+ * desc     :  Done Hub 聚合额度监控，汇总 Codex 与 Claude 渠道用量
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
@@ -472,12 +472,26 @@ class DoneHubMonitor extends WidgetBase {
     getLayoutMetrics(compact = false) {
         const padding = {top: 10, right: 10, bottom: 10, left: 10}
         const cardGap = 10
+        // 真机可用宽度通常比估算值小，额外收窄一段避免两张卡片铺得太开
+        const contentInset = 16
         const widgetSize = this.getWidgetSize(this.widgetFamily === 'large' ? 'large' : 'medium')
-        const contentWidth = Math.floor(widgetSize.width - padding.left - padding.right)
-        const cardWidth = Math.floor((contentWidth - cardGap) / 2)
+        const cardWidth = Math.floor((widgetSize.width - padding.left - padding.right - contentInset - cardGap) / 2)
+        const contentWidth = cardWidth * 2 + cardGap
         const cardHeight = compact ? 52 : 84
         const progressWidth = cardWidth - 20
-        return {padding, cardGap, cardWidth, cardHeight, progressWidth}
+        return {padding, cardGap, contentWidth, cardWidth, cardHeight, progressWidth}
+    }
+
+    addAlignedRow(widget: ListWidget, contentWidth: number) {
+        const outer = widget.addStack()
+        outer.layoutHorizontally()
+        outer.addSpacer()
+        const inner = outer.addStack()
+        inner.layoutHorizontally()
+        inner.centerAlignContent()
+        inner.size = new Size(contentWidth, 0)
+        outer.addSpacer()
+        return inner
     }
 
     renderProgressBar(stack: WidgetStack, percent: number, width: number, height = 7) {
@@ -554,7 +568,7 @@ class DoneHubMonitor extends WidgetBase {
     }
 
     renderRows(widget: ListWidget, rows: UsageRow[], compact = false) {
-        const {cardGap, cardWidth, cardHeight, progressWidth} = this.getLayoutMetrics(compact)
+        const {cardGap, contentWidth, cardWidth, cardHeight, progressWidth} = this.getLayoutMetrics(compact)
         if (rows.length === 0) {
             widget.addSpacer()
             const empty = widget.addText(this.statusMessage || '暂无额度数据')
@@ -566,8 +580,7 @@ class DoneHubMonitor extends WidgetBase {
         }
 
         for (let i = 0; i < rows.length; i += 2) {
-            const rowStack = widget.addStack()
-            rowStack.layoutHorizontally()
+            const rowStack = this.addAlignedRow(widget, contentWidth)
             rowStack.spacing = cardGap
             this.renderRowCard(rowStack, rows[i], cardWidth, cardHeight, progressWidth, compact)
             if (rows[i + 1]) this.renderRowCard(rowStack, rows[i + 1], cardWidth, cardHeight, progressWidth, compact)
@@ -576,9 +589,7 @@ class DoneHubMonitor extends WidgetBase {
     }
 
     renderHeader(widget: ListWidget, subtitle: string) {
-        const header = widget.addStack()
-        header.layoutHorizontally()
-        header.centerAlignContent()
+        const header = this.addAlignedRow(widget, this.getLayoutMetrics().contentWidth)
         const icon = header.addImage(SFSymbol.named('gauge.high').image)
         icon.imageSize = new Size(16, 16)
         icon.tintColor = new Color('#2563EB')
@@ -593,9 +604,7 @@ class DoneHubMonitor extends WidgetBase {
     }
 
     renderFooter(widget: ListWidget) {
-        const footer = widget.addStack()
-        footer.layoutHorizontally()
-        footer.centerAlignContent()
+        const footer = this.addAlignedRow(widget, this.getLayoutMetrics().contentWidth)
         const summary = footer.addText(`${this.getCodexRows().length} Codex · ${this.getClaudeRows().length} Claude`)
         summary.textColor = this.widgetColor
         summary.font = Font.mediumSystemFont(10)
