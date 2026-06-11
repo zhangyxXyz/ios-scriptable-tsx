@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * build    :  2026-06-12 00:28:07
+ * build    :  2026-06-12 01:45:57
  * desc     :  中国联通话费、流量、语音余量小组件
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -203,7 +203,7 @@ var ChinaUnicom = class extends WidgetBase {
       {
         title: "Cookie",
         desc: "填写中国联通 App 或 BoxJS 抓取到的 cookie",
-        icon: { name: "person.crop.circle.badge.key", color: "#F86527" },
+        icon: { name: "key.fill", color: "#F86527" },
         type: "password",
         option: { cookie: "" },
         config: { placeholder: "cookie" },

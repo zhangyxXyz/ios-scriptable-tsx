@@ -137,7 +137,7 @@ class ChinaUnicom extends WidgetBase {
             {
                 title: 'Cookie',
                 desc: '填写中国联通 App 或 BoxJS 抓取到的 cookie',
-                icon: {name: 'person.crop.circle.badge.key', color: '#F86527'},
+                icon: {name: 'key.fill', color: '#F86527'},
                 type: 'password',
                 option: {cookie: ''},
                 config: {placeholder: 'cookie'},

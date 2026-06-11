@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-11 14:10:30
+ * build    :  2026-06-12 01:44:17
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -1246,7 +1246,7 @@ function createWidgetBaseRuntime(deps2) {
       fontSize = 14,
     ) => {
       if (cornerWidthOrPure === true) {
-        const sfi = SFSymbol.named(icon);
+        const sfi = SFSymbol.named(icon) || SFSymbol.named("square.grid.2x2");
         sfi.applyFont(Font.semiboldSystemFont(fontSize));
         const imgData = Data.fromPNG(sfi.image).toBase64String();
         const html = `<img id="src" src="data:image/png;base64,${imgData}" /><canvas id="c" />`;
@@ -2513,7 +2513,7 @@ function createWidgetBaseRuntime(deps2) {
       cornerWidth = 42,
       iconSize = 160,
     ) => {
-      const sfi = SFSymbol.named(icon);
+      const sfi = SFSymbol.named(icon) || SFSymbol.named("square.grid.2x2");
       sfi.applyFont(Font.mediumSystemFont(iconSize));
       const imgData = Data.fromPNG(sfi.image).toBase64String();
       const html = `
@@ -5839,7 +5839,7 @@ function createStackUI(deps2) {
           } else if (isUrl(src)) {
             _image = await getImage({ url: src });
           } else if (!isUrl(src)) {
-            _image = SFSymbol.named(src).image;
+            _image = (SFSymbol.named(src) || SFSymbol.named("photo")).image;
           }
         } else if (
           src &&

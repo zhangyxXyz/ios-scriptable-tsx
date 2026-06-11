@@ -101,7 +101,7 @@ function createStackUI(deps: any) {
                     } else if (isUrl(src)) {
                         _image = await getImage({url: src})
                     } else if (!isUrl(src)) {
-                        _image = SFSymbol.named(src).image
+                        _image = (SFSymbol.named(src) || SFSymbol.named('photo')).image
                     }
                 } else if (src && typeof src === 'object' && src.size && typeof src.size.width === 'number') {
                     // src is already an Image object (has size property with width/height)

@@ -1187,7 +1187,7 @@ function createWidgetBaseRuntime(deps: any) {
         ) => {
             // 纯色模式：不带背景
             if (cornerWidthOrPure === true) {
-                const sfi = SFSymbol.named(icon)
+                const sfi = SFSymbol.named(icon) || SFSymbol.named('square.grid.2x2')
                 sfi.applyFont(Font.semiboldSystemFont(fontSize))
                 const imgData = Data.fromPNG(sfi.image).toBase64String()
 
@@ -2452,7 +2452,7 @@ function createWidgetBaseRuntime(deps: any) {
             cornerWidth: any = 42,
             iconSize: any = 160,
         ) => {
-            const sfi = SFSymbol.named(icon)
+            const sfi = SFSymbol.named(icon) || SFSymbol.named('square.grid.2x2')
             sfi.applyFont(Font.mediumSystemFont(iconSize))
             const imgData = Data.fromPNG(sfi.image).toBase64String()
             const html = `
