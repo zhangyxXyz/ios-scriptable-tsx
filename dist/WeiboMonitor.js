@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/19
- * build    :  2026-06-11 00:23:36
+ * build    :  2026-06-11 22:34:45
  * desc     :  微博热搜
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -64,9 +64,7 @@ var Widget = class extends WidgetBase {
       if (
         this.httpData &&
         this.httpData.data.cards[0] &&
-        String(this.httpData.data.cards[0].title?.text ?? "").indexOf(
-          "实时热点",
-        ) != -1
+        this.httpData.data.cards[0].title?.indexOf("实时热点") != -1
       ) {
         const items = this.httpData["data"]["cards"][0]["card_group"].splice(
           1,

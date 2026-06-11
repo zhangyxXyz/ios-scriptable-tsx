@@ -2,15 +2,16 @@
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-gray; icon-glyph: code-branch;
 
-/********************************************************
+/*
  * author   :  seiun
- * date     :  6/11/2026, 14:10:30
- * build    :  2026-06-11 14:10:30
- * desc     :
+ * date     :  6/11/2026, 22:23:00
+ * build    :  2026-06-11 22:24:31
+ * build    :  2026-06-11 22:23:00
+ * desc     :  Git 监控，支持 GitHub 与 GitLab 仓库
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
- *********************************************************/
+ */
 
 const MODULE = module;
 let __topLevelAwait__ = () => Promise.resolve();

@@ -9,6 +9,17 @@
         }
     }
 
+    function findMockResponse(mockMap, url) {
+        if (!mockMap || typeof mockMap !== 'object') return undefined
+        if (Object.prototype.hasOwnProperty.call(mockMap, url)) return mockMap[url]
+        const matchKey = Object.keys(mockMap).find(key => key && String(url).includes(key))
+        return matchKey ? mockMap[matchKey] : undefined
+    }
+
+    function mockResponseToText(mockResponse) {
+        return typeof mockResponse === 'string' ? mockResponse : JSON.stringify(mockResponse)
+    }
+
     ScriptableMock.register('WebView', context => {
         class WebView {
             constructor() {
@@ -41,6 +52,12 @@
             async loadURL(url) {
                 this.url = url
                 this.html = ''
+                const mockResponse = findMockResponse(context.mockMap, url)
+                if (mockResponse !== undefined) {
+                    this.html = mockResponseToText(mockResponse)
+                    await this.followJsonRedirect()
+                    return
+                }
                 try {
                     const response = await fetch('/api/proxy', {
                         method: 'POST',
@@ -60,6 +77,12 @@
             async loadRequest(request) {
                 this.url = request.url
                 this.html = ''
+                const mockResponse = findMockResponse(context.mockMap, request.url)
+                if (mockResponse !== undefined) {
+                    this.html = mockResponseToText(mockResponse)
+                    await this.followJsonRedirect(request)
+                    return
+                }
                 try {
                     const response = await fetch('/api/proxy', {
                         method: 'POST',

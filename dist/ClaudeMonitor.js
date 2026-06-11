@@ -1,11 +1,11 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
-// icon-color: orange; icon-glyph: bolt.horizontal.circle;
+// icon-color: orange; icon-glyph: bolt;
 
 /*
  * author   :  seiun
  * date     :  2026/06/10
- * build    :  2026-06-11 14:00:27
+ * build    :  2026-06-11 22:23:00
  * desc     :  Claude 额度监控，支持 OAuth、API Key 与 Done Hub 代理
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx

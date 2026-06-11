@@ -30,7 +30,7 @@ type WeiboCardItem = {
 type WeiboData = {
     data: {
         cards: Array<{
-            title?: {text?: string; indexOf?: never}
+            title?: string
             card_group: WeiboCardItem[]
         }>
     }
@@ -287,7 +287,7 @@ class Widget extends WidgetBase {
     }
 
     renderCommon = async (w: ListWidget) => {
-        if (this.httpData && this.httpData.data.cards[0] && String(this.httpData.data.cards[0].title?.text ?? '').indexOf('实时热点') != -1) {
+        if (this.httpData && this.httpData.data.cards[0] && this.httpData.data.cards[0].title?.indexOf('实时热点') != -1) {
             // 剔除第一条
             const items = this.httpData['data']['cards'][0]['card_group'].splice(
                 1,
