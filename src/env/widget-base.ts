@@ -3408,10 +3408,24 @@ function createWidgetBaseRuntime(deps: any) {
                                 if (window._jbridgeHandler) {
                                     window.removeEventListener('JBridge', window._jbridgeHandler);
                                 }
+                                if (window._jbridgeTimeout) {
+                                    clearTimeout(window._jbridgeTimeout);
+                                }
+                                var completed = false;
+                                var finish = (detail) => {
+                                    if (completed) return;
+                                    completed = true;
+                                    if (window._jbridgeTimeout) {
+                                        clearTimeout(window._jbridgeTimeout);
+                                        window._jbridgeTimeout = null;
+                                    }
+                                    completion(JSON.stringify(detail || {}));
+                                };
                                 window._jbridgeHandler = (e) => {
-                                    completion(JSON.stringify(e.detail || {}))
+                                    finish(e.detail || {})
                                 };
                                 window.addEventListener('JBridge', window._jbridgeHandler);
+                                window._jbridgeTimeout = setTimeout(() => finish({ code: '__idle__' }), 1000);
                             } catch (e) {
                                 alert("界面出错：" + e);
                             }
@@ -3426,6 +3440,10 @@ function createWidgetBaseRuntime(deps: any) {
                 if (isWebViewClosed) return
 
                 const { code, data } = JSON.parse(event)
+                if (code === '__idle__') {
+                    if (!isWebViewClosed) injectListener()
+                    return
+                }
 
                 try {
                     // 优先调用自定义操作处理器

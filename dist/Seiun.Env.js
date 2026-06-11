@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-11 01:05:03
+ * build    :  2026-06-11 14:10:30
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
  * version  :  2.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -3473,10 +3473,24 @@ function createWidgetBaseRuntime(deps2) {
                                 if (window._jbridgeHandler) {
                                     window.removeEventListener('JBridge', window._jbridgeHandler);
                                 }
+                                if (window._jbridgeTimeout) {
+                                    clearTimeout(window._jbridgeTimeout);
+                                }
+                                var completed = false;
+                                var finish = (detail) => {
+                                    if (completed) return;
+                                    completed = true;
+                                    if (window._jbridgeTimeout) {
+                                        clearTimeout(window._jbridgeTimeout);
+                                        window._jbridgeTimeout = null;
+                                    }
+                                    completion(JSON.stringify(detail || {}));
+                                };
                                 window._jbridgeHandler = (e) => {
-                                    completion(JSON.stringify(e.detail || {}))
+                                    finish(e.detail || {})
                                 };
                                 window.addEventListener('JBridge', window._jbridgeHandler);
+                                window._jbridgeTimeout = setTimeout(() => finish({ code: '__idle__' }), 1000);
                             } catch (e) {
                                 alert("界面出错：" + e);
                             }
@@ -3488,6 +3502,10 @@ function createWidgetBaseRuntime(deps2) {
         }
         if (isWebViewClosed) return;
         const { code: code2, data: data2 } = JSON.parse(event);
+        if (code2 === "__idle__") {
+          if (!isWebViewClosed) injectListener();
+          return;
+        }
         try {
           if (customActionHandler) {
             const handled = await customActionHandler.call(
