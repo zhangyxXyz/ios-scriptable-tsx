@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/10
- * build    :  2026-06-11 22:23:00
+ * build    :  2026-06-11 22:51:50
  * desc     :  Claude 额度监控，支持 OAuth、API Key 与 Done Hub 代理
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -412,6 +412,34 @@ var ClaudeMonitor = class extends WidgetBase {
     const value = Number(account?.doneHubChannelId || 0);
     return Number.isFinite(value) ? Math.floor(value) : 0;
   }
+  safeJsonPreview(value, maxLength = 1200) {
+    let text = "";
+    try {
+      text = JSON.stringify(value);
+    } catch {
+      text = String(value);
+    }
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  }
+  logRequestStart(label, url) {
+    console.log(`[${this.en}] 请求开始: ${label} ${url}`);
+  }
+  logRequestResponse(label, request, data) {
+    console.log(
+      `[${this.en}] 请求响应: ${label} HTTP ${this.getHttpStatusLabel(request)} ${this.safeJsonPreview(data)}`,
+    );
+  }
+  logCacheState(label, cache, cacheKey = this.getCacheKey()) {
+    console.log(
+      `[${this.en}] 缓存状态: ${label} key=${cacheKey} hit=${Boolean(cache?.usage)} fetchedAt=${cache?.fetchedAt ? Utils.time("yyyy-MM-dd HH:mm:ss", new Date(cache.fetchedAt)) : "none"}`,
+    );
+  }
+  logCredentialState(credential) {
+    const store = this.getAccountStore();
+    console.log(
+      `[${this.en}] Keychain状态: contains=${Keychain.contains(CREDENTIAL_KEY)} accounts=${store.accounts.length} default=${store.defaultAccountName} selected=${credential?.accountName || "none"} mode=${this.getAccountMode(credential)} auth=${credential?.authMode || "n/a"} token=${credential?.token ? this.maskSecret(credential.token) : "none"}`,
+    );
+  }
   extractToken(input) {
     const raw = input.trim();
     if (!raw) return "";
@@ -555,6 +583,7 @@ var ClaudeMonitor = class extends WidgetBase {
     return headers;
   }
   async requestJson(url, headers) {
+    this.logRequestStart("Claude官方", url);
     const request = new Request(url);
     request.method = "GET";
     request.headers = headers;
@@ -572,10 +601,12 @@ var ClaudeMonitor = class extends WidgetBase {
     }
     const statusCode = Number(request.response?.statusCode ?? 0);
     if (statusCode >= 400) {
+      this.logRequestResponse("Claude官方错误", request, data);
       throw new Error(
         `请求失败: HTTP ${statusCode}${this.getAnthropicErrorText(data)}${this.getRetryAfterText(request)}`,
       );
     }
+    this.logRequestResponse("Claude官方", request, data);
     return data;
   }
   getAnthropicErrorText(data) {
@@ -648,9 +679,9 @@ var ClaudeMonitor = class extends WidgetBase {
     if (!baseUrl) throw new Error("请配置 Done Hub 地址");
     if (!apiKey) throw new Error("请配置 Done Hub Key");
     if (channelId <= 0) throw new Error("请配置 Done Hub 渠道 ID");
-    const request = new Request(
-      `${baseUrl}${DONE_HUB_USAGE_PATH}?channel_id=${encodeURIComponent(String(channelId))}`,
-    );
+    const url = `${baseUrl}${DONE_HUB_USAGE_PATH}?channel_id=${encodeURIComponent(String(channelId))}`;
+    this.logRequestStart("Done Hub Claude", url);
+    const request = new Request(url);
     request.method = "GET";
     request.headers = {
       Authorization: apiKey.startsWith("Bearer ") ? apiKey : `Bearer ${apiKey}`,
@@ -667,6 +698,7 @@ var ClaudeMonitor = class extends WidgetBase {
       throw error;
     }
     const response = payload;
+    this.logRequestResponse("Done Hub Claude", request, payload);
     if (response?.success === false)
       throw new Error(response.message || "Done Hub 请求失败");
     if (response?.data?.empty) {
@@ -796,8 +828,10 @@ var ClaudeMonitor = class extends WidgetBase {
   }
   async loadUsage() {
     const credential = this.readCredential();
+    this.logCredentialState(credential);
     if (!credential) {
       const cache = this.getAnyCachedUsage();
+      this.logCacheState("未配置鉴权 fallback", cache);
       if (cache?.usage) {
         this.useCache(cache, true, "未配置鉴权，显示缓存");
         return;
@@ -806,6 +840,7 @@ var ClaudeMonitor = class extends WidgetBase {
       return;
     }
     const freshCache = this.getCachedUsage();
+    this.logCacheState("fresh", freshCache);
     if (freshCache?.usage) {
       this.useCache(freshCache, false, "使用缓存");
       return;
@@ -826,6 +861,7 @@ var ClaudeMonitor = class extends WidgetBase {
     } catch (error) {
       console.log(`请求Claude额度失败: ${error}`);
       const cache = this.getAnyCachedUsage();
+      this.logCacheState("请求失败 fallback", cache);
       if (cache?.usage) {
         this.useCache(
           cache,

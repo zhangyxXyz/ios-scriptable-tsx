@@ -274,6 +274,44 @@ class DoneHubMonitor extends WidgetBase {
         return `${CACHE_KEY}_${baseUrl}_${this.getLimit()}`.replace(/[^A-Za-z0-9_-]/g, '_')
     }
 
+    maskSecret(value: string) {
+        if (!value) return '未配置'
+        if (value.length <= 10) return `${value.slice(0, 2)}***`
+        return `${value.slice(0, 6)}...${value.slice(-4)}`
+    }
+
+    safeJsonPreview(value: unknown, maxLength = 1200) {
+        let text = ''
+        try {
+            text = JSON.stringify(value)
+        } catch {
+            text = String(value)
+        }
+        return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
+    }
+
+    logRequestStart(label: string, url: string) {
+        console.log(`[${this.en}] 请求开始: ${label} ${url}`)
+    }
+
+    logRequestResponse(label: string, request: Request, data: unknown) {
+        console.log(`[${this.en}] 请求响应: ${label} HTTP ${this.getHttpStatusLabel(request)} ${this.safeJsonPreview(data)}`)
+    }
+
+    logCacheState(label: string, cache: DoneHubUsageCache | null, cacheKey = this.getCacheKey()) {
+        console.log(
+            `[${this.en}] 缓存状态: ${label} key=${cacheKey} hit=${Boolean(cache?.items)} items=${cache?.items?.length ?? 0} fetchedAt=${
+                cache?.fetchedAt ? Utils.time('yyyy-MM-dd HH:mm:ss', new Date(cache.fetchedAt)) : 'none'
+            }`,
+        )
+    }
+
+    logConfigState() {
+        console.log(
+            `[${this.en}] 配置状态: baseUrl=${this.getDoneHubBaseUrl() || '未配置'} key=${this.maskSecret(this.getDoneHubApiKey())} limit=${this.getLimit()}`,
+        )
+    }
+
     getCachedUsage(ignoreFreshness = false) {
         const interval = ignoreFreshness ? undefined : this.getPollIntervalMinutes()
         return this.storage.getStorage<DoneHubUsageCache>(this.getCacheKey(), interval)
@@ -293,7 +331,9 @@ class DoneHubMonitor extends WidgetBase {
         if (!baseUrl) throw new Error('请配置 Done Hub 地址')
         if (!apiKey) throw new Error('请配置 Done Hub Key')
 
-        const request = new Request(`${baseUrl}${DONE_HUB_USAGE_PATH}?provider=all&limit=${encodeURIComponent(String(this.getLimit()))}`)
+        const url = `${baseUrl}${DONE_HUB_USAGE_PATH}?provider=all&limit=${encodeURIComponent(String(this.getLimit()))}`
+        this.logRequestStart('Done Hub 聚合', url)
+        const request = new Request(url)
         request.method = 'GET'
         request.headers = {
             Authorization: apiKey.startsWith('Bearer ') ? apiKey : `Bearer ${apiKey}`,
@@ -311,6 +351,7 @@ class DoneHubMonitor extends WidgetBase {
         }
 
         const response = payload as DoneHubAggregateResponse
+        this.logRequestResponse('Done Hub 聚合', request, payload)
         if (response?.success === false) throw new Error(response.message || 'Done Hub 请求失败')
         const items = response?.data?.items
         if (!Array.isArray(items)) throw new Error('Done Hub 响应缺少 items')
@@ -324,7 +365,9 @@ class DoneHubMonitor extends WidgetBase {
     }
 
     async loadUsage() {
+        this.logConfigState()
         const freshCache = this.getCachedUsage()
+        this.logCacheState('fresh', freshCache)
         if (freshCache?.items) {
             this.useCache(freshCache, false, '使用缓存')
             return
@@ -342,6 +385,7 @@ class DoneHubMonitor extends WidgetBase {
         } catch (error) {
             console.log(`请求Done Hub聚合额度失败: ${error}`)
             const cache = this.getCachedUsage(true)
+            this.logCacheState('请求失败 fallback', cache)
             if (cache?.items) {
                 this.useCache(cache, true, '请求失败/使用缓存')
                 return

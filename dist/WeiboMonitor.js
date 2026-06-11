@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/19
- * build    :  2026-06-11 22:34:45
+ * build    :  2026-06-11 22:48:04
  * desc     :  微博热搜
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -66,15 +66,14 @@ var Widget = class extends WidgetBase {
         this.httpData.data.cards[0] &&
         this.httpData.data.cards[0].title?.indexOf("实时热点") != -1
       ) {
-        const items = this.httpData["data"]["cards"][0]["card_group"].splice(
-          1,
-          Math.min(
-            this.widgetFamily == "medium"
-              ? this.currentSettings.displaySettings.mediaWidgetShowDataNum.val
-              : this.currentSettings.displaySettings.largeWidgetShowDataNum.val,
-            this.httpData["data"]["cards"][0]["card_group"].length - 1,
-          ),
-        );
+        const showDataNum =
+          this.widgetFamily == "medium"
+            ? this.currentSettings.displaySettings.mediaWidgetShowDataNum.val
+            : this.currentSettings.displaySettings.largeWidgetShowDataNum.val;
+        const items = this.httpData["data"]["cards"][0]["card_group"]
+          .slice(1)
+          .filter((item) => !this.isAdItem(item))
+          .slice(0, showDataNum);
         items.map((item) => {
           console.log(`• ${item.desc}`);
         });
@@ -412,6 +411,21 @@ var Widget = class extends WidgetBase {
       default:
         return void 0;
     }
+  }
+  isAdItem(item) {
+    const marker = [item.itemid, item.actionlog?.ext, item.scheme]
+      .filter(Boolean)
+      .join("|");
+    return (
+      marker.includes("is_ad_pos:1") ||
+      marker.includes("is_ad_pos%3D1") ||
+      marker.includes("adid:") ||
+      marker.includes("adid=") ||
+      marker.includes("adid%3D") ||
+      marker.includes("topic_ad=1") ||
+      marker.includes("topic_ad%3D1") ||
+      marker.includes("ads_word")
+    );
   }
   async render() {
     const widget = new ListWidget();

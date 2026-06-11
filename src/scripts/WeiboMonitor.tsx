@@ -25,6 +25,10 @@ type WeiboCardItem = {
     desc_extr?: string
     icon?: string
     scheme?: string
+    itemid?: string
+    actionlog?: {
+        ext?: string
+    }
 }
 
 type WeiboData = {
@@ -286,17 +290,30 @@ class Widget extends WidgetBase {
         }
     }
 
+    isAdItem(item: WeiboCardItem) {
+        const marker = [item.itemid, item.actionlog?.ext, item.scheme].filter(Boolean).join('|')
+        return (
+            marker.includes('is_ad_pos:1') ||
+            marker.includes('is_ad_pos%3D1') ||
+            marker.includes('adid:') ||
+            marker.includes('adid=') ||
+            marker.includes('adid%3D') ||
+            marker.includes('topic_ad=1') ||
+            marker.includes('topic_ad%3D1') ||
+            marker.includes('ads_word')
+        )
+    }
+
     renderCommon = async (w: ListWidget) => {
         if (this.httpData && this.httpData.data.cards[0] && this.httpData.data.cards[0].title?.indexOf('实时热点') != -1) {
             // 剔除第一条
-            const items = this.httpData['data']['cards'][0]['card_group'].splice(
-                1,
-                Math.min(
-                    this.widgetFamily == 'medium'
-                        ? this.currentSettings.displaySettings.mediaWidgetShowDataNum.val
-                        : this.currentSettings.displaySettings.largeWidgetShowDataNum.val,
-                    this.httpData['data']['cards'][0]['card_group'].length - 1
-                )
+            const showDataNum =
+                this.widgetFamily == 'medium'
+                    ? this.currentSettings.displaySettings.mediaWidgetShowDataNum.val
+                    : this.currentSettings.displaySettings.largeWidgetShowDataNum.val
+            const items = this.httpData['data']['cards'][0]['card_group'].slice(1).filter(item => !this.isAdItem(item)).slice(
+                0,
+                showDataNum,
             )
             items.map((item: WeiboCardItem) => {
                 console.log(`• ${item.desc}`)

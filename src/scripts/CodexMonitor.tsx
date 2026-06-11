@@ -456,6 +456,43 @@ class CodexMonitor extends WidgetBase {
         return Number.isFinite(value) ? Math.floor(value) : 0
     }
 
+    safeJsonPreview(value: unknown, maxLength = 1200) {
+        let text = ''
+        try {
+            text = JSON.stringify(value)
+        } catch {
+            text = String(value)
+        }
+        return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
+    }
+
+    logRequestStart(label: string, url: string) {
+        console.log(`[${this.en}] 请求开始: ${label} ${url}`)
+    }
+
+    logRequestResponse(label: string, request: Request, data: unknown) {
+        console.log(`[${this.en}] 请求响应: ${label} HTTP ${this.getHttpStatusLabel(request)} ${this.safeJsonPreview(data)}`)
+    }
+
+    logCacheState(label: string, cache: CodexUsageCache | null, cacheKey = this.getCacheKey()) {
+        console.log(
+            `[${this.en}] 缓存状态: ${label} key=${cacheKey} hit=${Boolean(cache?.usage)} fetchedAt=${
+                cache?.fetchedAt ? Utils.time('yyyy-MM-dd HH:mm:ss', new Date(cache.fetchedAt)) : 'none'
+            }`,
+        )
+    }
+
+    logCredentialState(credential: CodexCredential | null) {
+        const store = this.getAccountStore()
+        console.log(
+            `[${this.en}] Keychain状态: contains=${Keychain.contains(CREDENTIAL_KEY)} accounts=${store.accounts.length} default=${store.defaultAccountName} selected=${
+                credential?.accountName || 'none'
+            } mode=${this.getAccountMode(credential)} accountId=${credential?.accountId || 'none'} token=${
+                credential?.accessToken ? this.maskSecret(credential.accessToken) : 'none'
+            }`,
+        )
+    }
+
     parseCredentialFromInput(input: string, accountNameInput?: string): CodexCredential {
         const accessToken = this.extractAccessToken(input)
         if (!accessToken) throw new Error('未找到 access token')
@@ -567,6 +604,7 @@ class CodexMonitor extends WidgetBase {
 
     async probeCodexSite(): Promise<ProbeResult> {
         try {
+            this.logRequestStart('Codex官网探测', PROBE_URL)
             const request = new Request(PROBE_URL)
             request.method = 'GET'
             request.timeoutInterval = 8
@@ -606,6 +644,7 @@ class CodexMonitor extends WidgetBase {
             headers['ChatGPT-Account-Id'] = credential.accountId
         }
 
+        this.logRequestStart('Codex官方', USAGE_URL)
         const request = new Request(USAGE_URL)
         request.method = 'GET'
         request.headers = headers
@@ -618,6 +657,7 @@ class CodexMonitor extends WidgetBase {
             if (statusCode > 0) throw new Error(`请求失败: HTTP ${statusCode}`)
             throw error
         }
+        this.logRequestResponse('Codex官方', request, data)
         if (!data || typeof data !== 'object' || !data.rate_limit) {
             const statusCode = Number(request.response?.statusCode ?? 0)
             if (statusCode > 0) throw new Error(`请求失败: HTTP ${statusCode}`)
@@ -635,7 +675,9 @@ class CodexMonitor extends WidgetBase {
         if (!apiKey) throw new Error('请配置 Done Hub Key')
         if (channelId <= 0) throw new Error('请配置 Done Hub 渠道 ID')
 
-        const request = new Request(`${baseUrl}${DONE_HUB_USAGE_PATH}?channel_id=${encodeURIComponent(String(channelId))}`)
+        const url = `${baseUrl}${DONE_HUB_USAGE_PATH}?channel_id=${encodeURIComponent(String(channelId))}`
+        this.logRequestStart('Done Hub Codex', url)
+        const request = new Request(url)
         request.method = 'GET'
         request.headers = {
             Authorization: apiKey.startsWith('Bearer ') ? apiKey : `Bearer ${apiKey}`,
@@ -653,6 +695,7 @@ class CodexMonitor extends WidgetBase {
         }
 
         const response = payload as {success?: boolean; message?: string; data?: {usage?: CodexUsageStatus}}
+        this.logRequestResponse('Done Hub Codex', request, payload)
         if (response?.success === false) throw new Error(response.message || 'Done Hub 请求失败')
         const data = response?.data?.usage || (payload as CodexUsageStatus)
         if (!data || typeof data !== 'object' || !data.rate_limit) {
@@ -694,9 +737,11 @@ class CodexMonitor extends WidgetBase {
 
     async loadUsage() {
         const credential = this.readCredential()
+        this.logCredentialState(credential)
         const isDoneHub = this.isDoneHubMode(credential)
         if (!credential) {
             const cache = this.getAnyCachedUsage()
+            this.logCacheState('未配置鉴权 fallback', cache)
             if (cache?.usage) {
                 this.useCache(cache, true, '未配置鉴权，显示缓存')
                 return
@@ -706,6 +751,7 @@ class CodexMonitor extends WidgetBase {
         }
 
         const freshCache = this.getCachedUsage()
+        this.logCacheState('fresh', freshCache)
         if (freshCache?.usage) {
             this.useCache(freshCache, false, '使用缓存')
             return
@@ -713,6 +759,7 @@ class CodexMonitor extends WidgetBase {
 
         if (!isDoneHub && this.isCredentialExpired(credential)) {
             const cache = this.getAnyCachedUsage()
+            this.logCacheState('鉴权过期 fallback', cache)
             if (cache?.usage) {
                 this.useCache(cache, true, '鉴权已过期，显示缓存')
                 return
@@ -725,6 +772,7 @@ class CodexMonitor extends WidgetBase {
             const probe = await this.probeCodexSite()
             if (!probe.ok) {
                 const cache = this.getAnyCachedUsage()
+                this.logCacheState('网络探测失败 fallback', cache)
                 if (cache?.usage) {
                     this.useCache(cache, true, '网络障碍/使用缓存')
                     return
@@ -736,6 +784,7 @@ class CodexMonitor extends WidgetBase {
 
         if (isDoneHub && (!this.getDoneHubBaseUrl(credential) || !this.getDoneHubApiKey(credential) || this.getDoneHubChannelId(credential) <= 0)) {
             const cache = this.getAnyCachedUsage()
+            this.logCacheState('Done Hub 未配置 fallback', cache)
             if (cache?.usage) {
                 this.useCache(cache, true, '代理未配置/使用缓存')
                 return
@@ -756,6 +805,7 @@ class CodexMonitor extends WidgetBase {
         } catch (error) {
             console.log(`请求Codex额度失败: ${error}`)
             const cache = this.getAnyCachedUsage()
+            this.logCacheState('请求失败 fallback', cache)
             if (cache?.usage) {
                 this.useCache(cache, true, this.isRateLimitError(error) ? '频率限制/使用缓存' : '请求失败/使用缓存')
                 return
