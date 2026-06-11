@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-11 22:52:38",
+  "generatedAt": "2026-06-12 01:13:44",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -38,6 +38,18 @@
       "desc": "B站热门排行榜单轮播展示",
       "version": "1.0.0",
       "build": "2026-06-11 00:23:36"
+    },
+    {
+      "id": "ChinaUnicom",
+      "fileName": "ChinaUnicom.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/ChinaUnicom.js",
+      "name": {
+        "zh": "中国联通",
+        "en": "ChinaUnicom"
+      },
+      "desc": "中国联通话费、流量、语音余量小组件",
+      "version": "1.0.0",
+      "build": "2026-06-12 00:28:07"
     },
     {
       "id": "ClaudeMonitor",
@@ -182,6 +194,18 @@
       "desc": "Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts",
       "version": "2.0.0",
       "build": "2026-06-11 14:10:30"
+    },
+    {
+      "id": "SuperDaily",
+      "fileName": "SuperDaily.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/SuperDaily.js",
+      "name": {
+        "zh": "日期助手",
+        "en": "SuperDaily"
+      },
+      "desc": "日期助手，回答今天是不是周五，并展示本周进度",
+      "version": "1.1.0",
+      "build": "2026-06-12 01:13:43"
     },
     {
       "id": "TodayOilPrice",
