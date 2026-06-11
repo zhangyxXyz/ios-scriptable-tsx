@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/18
- * build    :  2026-06-12 01:13:43
+ * build    :  2026-06-12 01:30:07
  * desc     :  日期助手，回答今天是不是周五，并展示本周进度
  * version  :  1.1.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -249,10 +249,31 @@ var solarTerms = [
     subtitle: "寒到极处，春天就在路上。",
   },
 ];
-var solarTermCenturyValues = [
-  3.87, 18.73, 5.63, 20.646, 4.81, 20.1, 5.52, 21.04, 5.678, 21.37, 6.5, 22.2,
-  7.928, 23.65, 8.35, 23.95, 8.44, 23.822, 9.098, 24.218, 8.218, 23.08, 7.9,
-  22.6,
+var solarTermDateRules = [
+  { name: "小寒", month: 1, c: 5.4055 },
+  { name: "大寒", month: 1, c: 20.12 },
+  { name: "立春", month: 2, c: 3.87 },
+  { name: "雨水", month: 2, c: 18.73 },
+  { name: "惊蛰", month: 3, c: 5.63 },
+  { name: "春分", month: 3, c: 20.646 },
+  { name: "清明", month: 4, c: 4.81 },
+  { name: "谷雨", month: 4, c: 20.1 },
+  { name: "立夏", month: 5, c: 5.52 },
+  { name: "小满", month: 5, c: 21.04 },
+  { name: "芒种", month: 6, c: 5.678 },
+  { name: "夏至", month: 6, c: 21.37 },
+  { name: "小暑", month: 7, c: 7.108 },
+  { name: "大暑", month: 7, c: 22.83 },
+  { name: "立秋", month: 8, c: 7.5 },
+  { name: "处暑", month: 8, c: 23.13 },
+  { name: "白露", month: 9, c: 7.646 },
+  { name: "秋分", month: 9, c: 23.042 },
+  { name: "寒露", month: 10, c: 8.318 },
+  { name: "霜降", month: 10, c: 23.438 },
+  { name: "立冬", month: 11, c: 7.438 },
+  { name: "小雪", month: 11, c: 22.36 },
+  { name: "大雪", month: 12, c: 7.18 },
+  { name: "冬至", month: 12, c: 21.94 },
 ];
 var debugThemeOptions = [
   { label: debugThemeNone, value: debugThemeNone },
@@ -512,21 +533,23 @@ var SuperDaily = class extends WidgetBase {
     }
     return this.storage.getStorage(cacheKey) || {};
   }
-  getSolarTermDate(year, termIndex) {
+  getSolarTermDate(year, rule) {
     const yearInCentury = year % 100;
     const day =
-      Math.floor(yearInCentury * 0.2422 + solarTermCenturyValues[termIndex]) -
+      Math.floor(yearInCentury * 0.2422 + rule.c) -
       Math.floor((yearInCentury - 1) / 4);
-    const month = Math.floor(termIndex / 2) + 1;
+    const month = rule.month;
     return `${year}-${`${month}`.padStart(2, "0")}-${`${day}`.padStart(2, "0")}`;
   }
   getSolarTermTheme(date) {
     const dateKey = this.getDateKey(date);
     const year = date.getFullYear();
-    const index = solarTerms.findIndex(
-      (_, termIndex) => this.getSolarTermDate(year, termIndex) === dateKey,
+    const rule = solarTermDateRules.find(
+      (item) => this.getSolarTermDate(year, item) === dateKey,
     );
-    return index >= 0 ? solarTerms[index] : null;
+    return rule
+      ? solarTerms.find((item) => item.name === rule.name) || null
+      : null;
   }
   async getSpecialDayTheme(info) {
     if (!this.currentSettings.displaySettings.holidayMode.val) return null;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-12 01:13:44",
+  "generatedAt": "2026-06-12 01:30:07",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -205,7 +205,7 @@
       },
       "desc": "日期助手，回答今天是不是周五，并展示本周进度",
       "version": "1.1.0",
-      "build": "2026-06-12 01:13:43"
+      "build": "2026-06-12 01:30:07"
     },
     {
       "id": "TodayOilPrice",
