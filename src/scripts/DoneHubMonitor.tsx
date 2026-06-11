@@ -47,6 +47,7 @@ type CodexRateLimitWindow = {
 }
 
 type CodexUsage = {
+    plan_type?: string
     rate_limit?: {
         primary_window?: CodexRateLimitWindow
         secondary_window?: CodexRateLimitWindow
@@ -70,6 +71,13 @@ type ClaudeUsage = {
     seven_day?: ClaudeUsageWindow
     seven_day_sonnet?: ClaudeUsageWindow | null
     seven_day_opus?: ClaudeUsageWindow | null
+    seven_day_oauth_apps?: ClaudeUsageWindow | null
+    seven_day_cowork?: ClaudeUsageWindow | null
+    seven_day_omelette?: ClaudeUsageWindow | null
+    extra_usage?: {
+        is_enabled?: boolean
+        utilization?: number | null
+    } | null
 }
 
 type DoneHubUsageItem = {
@@ -121,6 +129,8 @@ type DoneHubStorage = WidgetStorage & {
 
 const DONE_HUB_USAGE_PATH = '/api/usage/channels'
 const CACHE_KEY = 'donehub_usage_channels'
+const CODEX_ICON_URL = 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/codex.png'
+const CLAUDE_ICON_URL = 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/claude.png'
 
 class DoneHubMonitor extends WidgetBase {
     name = 'DoneHub聚合监控'
@@ -369,14 +379,14 @@ class DoneHubMonitor extends WidgetBase {
 
     getWindowLabel(seconds?: number) {
         const minutes = Number(seconds ?? 0) / 60
-        if (Math.abs(minutes - 300) <= 15) return {label: '5小时使用限额', kind: 'five-hour' as WindowKind}
+        if (Math.abs(minutes - 300) <= 15) return {label: '5 小时使用限额', kind: 'five-hour' as WindowKind}
         if (Math.abs(minutes - 10080) <= 504) return {label: '每周使用限额', kind: 'long' as WindowKind}
         if (Math.abs(minutes - 1440) <= 72) return {label: '每日使用限额', kind: 'long' as WindowKind}
         if (minutes >= 60) return {label: `${Math.round(minutes / 60)} 小时`, kind: 'long' as WindowKind}
         return {label: '额度', kind: 'long' as WindowKind}
     }
 
-    normalizeCodexWindow(item: DoneHubUsageItem, windowInfo: CodexRateLimitWindow | undefined, suffix: string, index: number): UsageRow | null {
+    normalizeCodexWindow(item: DoneHubUsageItem, windowInfo: CodexRateLimitWindow | undefined, titlePrefix: string, suffix: string, index: number): UsageRow | null {
         if (!windowInfo || typeof windowInfo.used_percent !== 'number') return null
         const channelName = this.getChannelName(item)
         const usedPercent = this.clampPercent(windowInfo.used_percent)
@@ -384,7 +394,7 @@ class DoneHubMonitor extends WidgetBase {
         return {
             key: `codex-${item.channel?.id ?? index}-${suffix}`,
             provider: 'codex',
-            title: `${channelName} ${windowLabel.label}`,
+            title: `${titlePrefix ? `${titlePrefix} ` : ''}${windowLabel.label}`,
             channelName,
             usedPercent,
             remainingPercent: this.clampPercent(100 - usedPercent),
@@ -401,7 +411,7 @@ class DoneHubMonitor extends WidgetBase {
         return {
             key: `claude-${item.channel?.id ?? index}-${label}`,
             provider: 'claude',
-            title: `${channelName} ${label}`,
+            title: label,
             channelName,
             usedPercent,
             remainingPercent: this.clampPercent(100 - usedPercent),
@@ -411,38 +421,89 @@ class DoneHubMonitor extends WidgetBase {
         }
     }
 
-    getCodexRows() {
+    getCodexCoreRows() {
         const rows: UsageRow[] = []
         this.items.forEach((item, index) => {
             if (this.getProvider(item) !== 'codex') return
             const usage = item.data?.usage as CodexUsage | undefined
-            const primary = this.normalizeCodexWindow(item, usage?.rate_limit?.primary_window, 'primary', index)
-            const secondary = this.normalizeCodexWindow(item, usage?.rate_limit?.secondary_window, 'secondary', index)
+            const primary = this.normalizeCodexWindow(item, usage?.rate_limit?.primary_window, '', 'primary', index)
+            const secondary = this.normalizeCodexWindow(item, usage?.rate_limit?.secondary_window, '', 'secondary', index)
             if (primary) rows.push(primary)
             if (secondary) rows.push(secondary)
         })
         return rows
     }
 
-    getClaudeRows() {
+    getCodexAdditionalRows() {
+        const rows: UsageRow[] = []
+        this.items.forEach((item, index) => {
+            if (this.getProvider(item) !== 'codex') return
+            const usage = item.data?.usage as CodexUsage | undefined
+            const additional = usage?.additional_rate_limits ?? []
+            additional.forEach((limit, limitIndex) => {
+                const rawName = String(limit.limit_name || '模型').trim()
+                const name = this.formatCodexLimitName(rawName)
+                const primary = this.normalizeCodexWindow(item, limit.rate_limit?.primary_window, name, `${name}-${limitIndex}-primary`, index)
+                const secondary = this.normalizeCodexWindow(item, limit.rate_limit?.secondary_window, name, `${name}-${limitIndex}-secondary`, index)
+                if (primary) rows.push(primary)
+                if (secondary) rows.push(secondary)
+            })
+        })
+        return rows
+    }
+
+    getCodexRows() {
+        return [...this.getCodexCoreRows(), ...this.getCodexAdditionalRows()]
+    }
+
+    formatCodexLimitName(name: string) {
+        const normalized = name.replace(/[-_\s]+/g, ' ').trim()
+        if (/spark/i.test(normalized)) return 'Codex Spark'
+        if (/codex/i.test(normalized)) return normalized.replace(/\bcodex\b/i, 'Codex')
+        return normalized
+    }
+
+    getClaudeCoreRows() {
         const rows: UsageRow[] = []
         this.items.forEach((item, index) => {
             if (this.getProvider(item) !== 'claude') return
             const usage = item.data?.usage as ClaudeUsage | undefined
-            const fiveHour = this.normalizeClaudeWindow(item, usage?.five_hour, '5小时使用限额', 'five-hour', index)
-            const sevenDay = this.normalizeClaudeWindow(item, usage?.seven_day, '每周使用限额', 'long', index)
+            const fiveHour = this.normalizeClaudeWindow(item, usage?.five_hour, '5 小时使用限额', 'five-hour', index)
+            const sevenDay = this.normalizeClaudeWindow(item, usage?.seven_day, '7 天使用限额', 'long', index)
             if (fiveHour) rows.push(fiveHour)
             if (sevenDay) rows.push(sevenDay)
         })
         return rows
     }
 
-    getMediumRows() {
-        return [...this.getCodexRows(), ...this.getClaudeRows()].slice(0, 4)
+    getClaudeRows() {
+        return this.getClaudeCoreRows()
     }
 
-    getLargeRows() {
-        return [...this.getCodexRows().slice(0, 4), ...this.getClaudeRows().slice(0, 2)]
+    getMediumRows() {
+        return [...this.getCodexCoreRows().slice(0, 2), ...this.getClaudeCoreRows().slice(0, 2)]
+    }
+
+    getLargeCodexRows() {
+        return this.getCodexRows().slice(0, 4)
+    }
+
+    getLargeClaudeRows() {
+        return this.getClaudeCoreRows().slice(0, 2)
+    }
+
+    getCodexPlanLabel() {
+        for (const item of this.items) {
+            if (this.getProvider(item) !== 'codex') continue
+            const usage = item.data?.usage as CodexUsage | undefined
+            const planType = usage?.plan_type
+            if (planType) return String(planType).toUpperCase()
+        }
+        return this.getLargeCodexRows().length > 0 ? 'PRO' : '未连接'
+    }
+
+    getClaudePlanLabel() {
+        return this.getLargeClaudeRows().length > 0 ? 'PRO' : '未连接'
     }
 
     clampPercent(value: number) {
@@ -458,7 +519,7 @@ class DoneHubMonitor extends WidgetBase {
 
     formatResetTime(ms: number | null) {
         if (!ms) return '未知'
-        return Utils.time('MM-dd HH:mm', new Date(ms))
+        return Utils.time('yyyy年MM月dd日 HH:mm', new Date(ms))
     }
 
     formatUpdateTime() {
@@ -525,6 +586,24 @@ class DoneHubMonitor extends WidgetBase {
         mark.minimumScaleFactor = 0.8
     }
 
+    async addProviderIcon(parent: WidgetStack, provider: UsageProvider, size = 16) {
+        const iconUrl = provider === 'codex' ? CODEX_ICON_URL : CLAUDE_ICON_URL
+        try {
+            const iconImage = await this.getImageByUrl(iconUrl)
+            if (iconImage) {
+                const icon = parent.addImage(iconImage)
+                icon.imageSize = new Size(size, size)
+                icon.cornerRadius = Math.max(3, Math.floor(size / 5))
+                return
+            }
+        } catch (error) {
+            console.log(`加载${provider === 'codex' ? 'Codex' : 'Claude'}图标失败: ${error}`)
+        }
+        const fallback = parent.addImage(SFSymbol.named(provider === 'codex' ? 'terminal.fill' : 'bolt.horizontal.circle.fill').image)
+        fallback.imageSize = new Size(size, size)
+        fallback.tintColor = provider === 'codex' ? new Color('#0F9F58') : new Color('#D97706')
+    }
+
     renderRowCard(parent: WidgetStack, row: UsageRow, cardWidth: number, cardHeight: number, progressWidth: number, compact = false) {
         const card = parent.addStack()
         card.layoutVertically()
@@ -533,18 +612,12 @@ class DoneHubMonitor extends WidgetBase {
         card.cornerRadius = 8
         card.size = new Size(cardWidth, cardHeight)
 
-        const titleRow = card.addStack()
-        titleRow.layoutHorizontally()
-        titleRow.centerAlignContent()
-        this.renderProviderMark(titleRow, row.provider)
-        titleRow.addSpacer(5)
-        const title = titleRow.addText(row.title)
+        const title = card.addText(row.title)
         title.textColor = this.widgetColor
         title.font = Font.mediumSystemFont(compact ? 8 : 9)
         title.textOpacity = 0.68
         title.lineLimit = 1
         title.minimumScaleFactor = 0.65
-        titleRow.addSpacer()
 
         card.addSpacer(compact ? 2 : 3)
         const valueRow = card.addStack()
@@ -612,15 +685,43 @@ class DoneHubMonitor extends WidgetBase {
         header.addSpacer()
     }
 
+    async renderProviderHeader(widget: ListWidget, provider: UsageProvider) {
+        const header = this.addAlignedRow(widget, this.getLayoutMetrics().contentWidth)
+        await this.addProviderIcon(header, provider, 16)
+        header.addSpacer(6)
+        const titleText = provider === 'codex' ? `Codex | ${this.getCodexPlanLabel()}` : `Claude | ${this.getClaudePlanLabel()}`
+        const title = header.addText(titleText)
+        title.textColor = this.widgetColor
+        title.font = Font.boldSystemFont(15)
+        title.textOpacity = 0.86
+        title.lineLimit = 1
+        title.minimumScaleFactor = 0.65
+        header.addSpacer()
+    }
+
     renderFooter(widget: ListWidget) {
         const footer = this.addAlignedRow(widget, this.getLayoutMetrics().contentWidth)
         footer.addSpacer()
-        const status = footer.addText(this.getFooterText())
+        const status = footer.addText(this.statusMessage)
         status.textColor = this.getStatusColor()
         status.font = new Font('SF Mono', 10)
-        status.textOpacity = 0.82
+        status.textOpacity = 0.5
         status.lineLimit = 1
         status.minimumScaleFactor = 0.7
+        if (this.currentSettings.displaySettings.showUpdateTime.val === '显示') {
+            footer.addSpacer(5)
+            const timeIcon = footer.addImage(SFSymbol.named('arrow.clockwise').image)
+            timeIcon.imageSize = new Size(10, 10)
+            timeIcon.tintColor = this.getStatusColor()
+            timeIcon.imageOpacity = 0.5
+            footer.addSpacer(5)
+            const time = footer.addText(this.formatUpdateTime())
+            time.textColor = this.getStatusColor()
+            time.font = new Font('SF Mono', 10)
+            time.textOpacity = 0.5
+            time.lineLimit = 1
+            time.minimumScaleFactor = 0.7
+        }
     }
 
     async renderMedium(widget: ListWidget) {
@@ -630,7 +731,7 @@ class DoneHubMonitor extends WidgetBase {
         this.renderHeader(widget)
         widget.addSpacer(8)
         this.renderRows(widget, this.getMediumRows(), true)
-        widget.addSpacer()
+        widget.addSpacer(8)
         this.renderFooter(widget)
         return widget
     }
@@ -639,10 +740,14 @@ class DoneHubMonitor extends WidgetBase {
         GenrateView.setListWidget(widget)
         const {padding} = this.getLayoutMetrics()
         widget.setPadding(padding.top, padding.left, padding.bottom, padding.right)
-        this.renderHeader(widget)
+        await this.renderProviderHeader(widget, 'codex')
         widget.addSpacer(10)
-        this.renderRows(widget, this.getLargeRows())
-        widget.addSpacer()
+        this.renderRows(widget, this.getLargeCodexRows())
+        widget.addSpacer(8)
+        await this.renderProviderHeader(widget, 'claude')
+        widget.addSpacer(10)
+        this.renderRows(widget, this.getLargeClaudeRows())
+        widget.addSpacer(8)
         this.renderFooter(widget)
         return widget
     }

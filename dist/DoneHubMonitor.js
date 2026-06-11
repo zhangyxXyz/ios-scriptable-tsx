@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * build    :  2026-06-11 01:12:53
+ * build    :  2026-06-11 12:32:55
  * desc     :  Done Hub 聚合额度监控，汇总 Codex 与 Claude 渠道用量
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -25,6 +25,10 @@ var { WidgetBase, Runing, Utils, GenrateView } =
   runtimeRequire(dependencyFileName);
 var DONE_HUB_USAGE_PATH = "/api/usage/channels";
 var CACHE_KEY = "donehub_usage_channels";
+var CODEX_ICON_URL =
+  "https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/codex.png";
+var CLAUDE_ICON_URL =
+  "https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/claude.png";
 var DoneHubMonitor = class extends WidgetBase {
   constructor(scriptName) {
     super(scriptName);
@@ -266,7 +270,7 @@ var DoneHubMonitor = class extends WidgetBase {
   getWindowLabel(seconds) {
     const minutes = Number(seconds ?? 0) / 60;
     if (Math.abs(minutes - 300) <= 15)
-      return { label: "5小时使用限额", kind: "five-hour" };
+      return { label: "5 小时使用限额", kind: "five-hour" };
     if (Math.abs(minutes - 10080) <= 504)
       return { label: "每周使用限额", kind: "long" };
     if (Math.abs(minutes - 1440) <= 72)
@@ -275,7 +279,7 @@ var DoneHubMonitor = class extends WidgetBase {
       return { label: `${Math.round(minutes / 60)} 小时`, kind: "long" };
     return { label: "额度", kind: "long" };
   }
-  normalizeCodexWindow(item, windowInfo, suffix, index) {
+  normalizeCodexWindow(item, windowInfo, titlePrefix, suffix, index) {
     if (!windowInfo || typeof windowInfo.used_percent !== "number") return null;
     const channelName = this.getChannelName(item);
     const usedPercent = this.clampPercent(windowInfo.used_percent);
@@ -283,7 +287,7 @@ var DoneHubMonitor = class extends WidgetBase {
     return {
       key: `codex-${item.channel?.id ?? index}-${suffix}`,
       provider: "codex",
-      title: `${channelName} ${windowLabel.label}`,
+      title: `${titlePrefix ? `${titlePrefix} ` : ""}${windowLabel.label}`,
       channelName,
       usedPercent,
       remainingPercent: this.clampPercent(100 - usedPercent),
@@ -302,7 +306,7 @@ var DoneHubMonitor = class extends WidgetBase {
     return {
       key: `claude-${item.channel?.id ?? index}-${label}`,
       provider: "claude",
-      title: `${channelName} ${label}`,
+      title: label,
       channelName,
       usedPercent,
       remainingPercent: this.clampPercent(100 - usedPercent),
@@ -311,7 +315,7 @@ var DoneHubMonitor = class extends WidgetBase {
       stale: Boolean(item.data?.stale),
     };
   }
-  getCodexRows() {
+  getCodexCoreRows() {
     const rows = [];
     this.items.forEach((item, index) => {
       if (this.getProvider(item) !== "codex") return;
@@ -319,12 +323,14 @@ var DoneHubMonitor = class extends WidgetBase {
       const primary = this.normalizeCodexWindow(
         item,
         usage?.rate_limit?.primary_window,
+        "",
         "primary",
         index,
       );
       const secondary = this.normalizeCodexWindow(
         item,
         usage?.rate_limit?.secondary_window,
+        "",
         "secondary",
         index,
       );
@@ -333,7 +339,46 @@ var DoneHubMonitor = class extends WidgetBase {
     });
     return rows;
   }
-  getClaudeRows() {
+  getCodexAdditionalRows() {
+    const rows = [];
+    this.items.forEach((item, index) => {
+      if (this.getProvider(item) !== "codex") return;
+      const usage = item.data?.usage;
+      const additional = usage?.additional_rate_limits ?? [];
+      additional.forEach((limit, limitIndex) => {
+        const rawName = String(limit.limit_name || "模型").trim();
+        const name = this.formatCodexLimitName(rawName);
+        const primary = this.normalizeCodexWindow(
+          item,
+          limit.rate_limit?.primary_window,
+          name,
+          `${name}-${limitIndex}-primary`,
+          index,
+        );
+        const secondary = this.normalizeCodexWindow(
+          item,
+          limit.rate_limit?.secondary_window,
+          name,
+          `${name}-${limitIndex}-secondary`,
+          index,
+        );
+        if (primary) rows.push(primary);
+        if (secondary) rows.push(secondary);
+      });
+    });
+    return rows;
+  }
+  getCodexRows() {
+    return [...this.getCodexCoreRows(), ...this.getCodexAdditionalRows()];
+  }
+  formatCodexLimitName(name) {
+    const normalized = name.replace(/[-_\s]+/g, " ").trim();
+    if (/spark/i.test(normalized)) return "Codex Spark";
+    if (/codex/i.test(normalized))
+      return normalized.replace(/\bcodex\b/i, "Codex");
+    return normalized;
+  }
+  getClaudeCoreRows() {
     const rows = [];
     this.items.forEach((item, index) => {
       if (this.getProvider(item) !== "claude") return;
@@ -341,14 +386,14 @@ var DoneHubMonitor = class extends WidgetBase {
       const fiveHour = this.normalizeClaudeWindow(
         item,
         usage?.five_hour,
-        "5小时使用限额",
+        "5 小时使用限额",
         "five-hour",
         index,
       );
       const sevenDay = this.normalizeClaudeWindow(
         item,
         usage?.seven_day,
-        "每周使用限额",
+        "7 天使用限额",
         "long",
         index,
       );
@@ -357,14 +402,32 @@ var DoneHubMonitor = class extends WidgetBase {
     });
     return rows;
   }
-  getMediumRows() {
-    return [...this.getCodexRows(), ...this.getClaudeRows()].slice(0, 4);
+  getClaudeRows() {
+    return this.getClaudeCoreRows();
   }
-  getLargeRows() {
+  getMediumRows() {
     return [
-      ...this.getCodexRows().slice(0, 4),
-      ...this.getClaudeRows().slice(0, 2),
+      ...this.getCodexCoreRows().slice(0, 2),
+      ...this.getClaudeCoreRows().slice(0, 2),
     ];
+  }
+  getLargeCodexRows() {
+    return this.getCodexRows().slice(0, 4);
+  }
+  getLargeClaudeRows() {
+    return this.getClaudeCoreRows().slice(0, 2);
+  }
+  getCodexPlanLabel() {
+    for (const item of this.items) {
+      if (this.getProvider(item) !== "codex") continue;
+      const usage = item.data?.usage;
+      const planType = usage?.plan_type;
+      if (planType) return String(planType).toUpperCase();
+    }
+    return this.getLargeCodexRows().length > 0 ? "PRO" : "未连接";
+  }
+  getClaudePlanLabel() {
+    return this.getLargeClaudeRows().length > 0 ? "PRO" : "未连接";
   }
   clampPercent(value) {
     if (!Number.isFinite(value)) return 0;
@@ -377,7 +440,7 @@ var DoneHubMonitor = class extends WidgetBase {
   }
   formatResetTime(ms) {
     if (!ms) return "未知";
-    return Utils.time("MM-dd HH:mm", new Date(ms));
+    return Utils.time("yyyy年MM月dd日 HH:mm", new Date(ms));
   }
   formatUpdateTime() {
     if (!this.dataFetchTime) return "暂无缓存";
@@ -460,6 +523,30 @@ var DoneHubMonitor = class extends WidgetBase {
     mark.lineLimit = 1;
     mark.minimumScaleFactor = 0.8;
   }
+  async addProviderIcon(parent, provider, size = 16) {
+    const iconUrl = provider === "codex" ? CODEX_ICON_URL : CLAUDE_ICON_URL;
+    try {
+      const iconImage = await this.getImageByUrl(iconUrl);
+      if (iconImage) {
+        const icon = parent.addImage(iconImage);
+        icon.imageSize = new Size(size, size);
+        icon.cornerRadius = Math.max(3, Math.floor(size / 5));
+        return;
+      }
+    } catch (error) {
+      console.log(
+        `加载${provider === "codex" ? "Codex" : "Claude"}图标失败: ${error}`,
+      );
+    }
+    const fallback = parent.addImage(
+      SFSymbol.named(
+        provider === "codex" ? "terminal.fill" : "bolt.horizontal.circle.fill",
+      ).image,
+    );
+    fallback.imageSize = new Size(size, size);
+    fallback.tintColor =
+      provider === "codex" ? new Color("#0F9F58") : new Color("#D97706");
+  }
   renderRowCard(
     parent,
     row,
@@ -477,18 +564,12 @@ var DoneHubMonitor = class extends WidgetBase {
     );
     card.cornerRadius = 8;
     card.size = new Size(cardWidth, cardHeight);
-    const titleRow = card.addStack();
-    titleRow.layoutHorizontally();
-    titleRow.centerAlignContent();
-    this.renderProviderMark(titleRow, row.provider);
-    titleRow.addSpacer(5);
-    const title = titleRow.addText(row.title);
+    const title = card.addText(row.title);
     title.textColor = this.widgetColor;
     title.font = Font.mediumSystemFont(compact ? 8 : 9);
     title.textOpacity = 0.68;
     title.lineLimit = 1;
     title.minimumScaleFactor = 0.65;
-    titleRow.addSpacer();
     card.addSpacer(compact ? 2 : 3);
     const valueRow = card.addStack();
     valueRow.layoutHorizontally();
@@ -576,18 +657,51 @@ var DoneHubMonitor = class extends WidgetBase {
     title.minimumScaleFactor = 0.65;
     header.addSpacer();
   }
+  async renderProviderHeader(widget, provider) {
+    const header = this.addAlignedRow(
+      widget,
+      this.getLayoutMetrics().contentWidth,
+    );
+    await this.addProviderIcon(header, provider, 16);
+    header.addSpacer(6);
+    const titleText =
+      provider === "codex"
+        ? `Codex | ${this.getCodexPlanLabel()}`
+        : `Claude | ${this.getClaudePlanLabel()}`;
+    const title = header.addText(titleText);
+    title.textColor = this.widgetColor;
+    title.font = Font.boldSystemFont(15);
+    title.textOpacity = 0.86;
+    title.lineLimit = 1;
+    title.minimumScaleFactor = 0.65;
+    header.addSpacer();
+  }
   renderFooter(widget) {
     const footer = this.addAlignedRow(
       widget,
       this.getLayoutMetrics().contentWidth,
     );
     footer.addSpacer();
-    const status = footer.addText(this.getFooterText());
+    const status = footer.addText(this.statusMessage);
     status.textColor = this.getStatusColor();
     status.font = new Font("SF Mono", 10);
-    status.textOpacity = 0.82;
+    status.textOpacity = 0.5;
     status.lineLimit = 1;
     status.minimumScaleFactor = 0.7;
+    if (this.currentSettings.displaySettings.showUpdateTime.val === "显示") {
+      footer.addSpacer(5);
+      const timeIcon = footer.addImage(SFSymbol.named("arrow.clockwise").image);
+      timeIcon.imageSize = new Size(10, 10);
+      timeIcon.tintColor = this.getStatusColor();
+      timeIcon.imageOpacity = 0.5;
+      footer.addSpacer(5);
+      const time = footer.addText(this.formatUpdateTime());
+      time.textColor = this.getStatusColor();
+      time.font = new Font("SF Mono", 10);
+      time.textOpacity = 0.5;
+      time.lineLimit = 1;
+      time.minimumScaleFactor = 0.7;
+    }
   }
   async renderMedium(widget) {
     GenrateView.setListWidget(widget);
@@ -596,7 +710,7 @@ var DoneHubMonitor = class extends WidgetBase {
     this.renderHeader(widget);
     widget.addSpacer(8);
     this.renderRows(widget, this.getMediumRows(), true);
-    widget.addSpacer();
+    widget.addSpacer(8);
     this.renderFooter(widget);
     return widget;
   }
@@ -604,10 +718,14 @@ var DoneHubMonitor = class extends WidgetBase {
     GenrateView.setListWidget(widget);
     const { padding } = this.getLayoutMetrics();
     widget.setPadding(padding.top, padding.left, padding.bottom, padding.right);
-    this.renderHeader(widget);
+    await this.renderProviderHeader(widget, "codex");
     widget.addSpacer(10);
-    this.renderRows(widget, this.getLargeRows());
-    widget.addSpacer();
+    this.renderRows(widget, this.getLargeCodexRows());
+    widget.addSpacer(8);
+    await this.renderProviderHeader(widget, "claude");
+    widget.addSpacer(10);
+    this.renderRows(widget, this.getLargeClaudeRows());
+    widget.addSpacer(8);
     this.renderFooter(widget);
     return widget;
   }

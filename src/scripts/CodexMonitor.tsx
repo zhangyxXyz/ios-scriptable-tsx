@@ -1397,14 +1397,14 @@ toggleModeFields();
         timeRow.layoutHorizontally()
         timeRow.addSpacer()
         const timeIcon = timeRow.addImage(SFSymbol.named('arrow.clockwise').image)
-        timeIcon.imageSize = new Size(8, 8)
+        timeIcon.imageSize = new Size(10, 10)
         timeIcon.tintColor = this.getStatusColor()
-        timeIcon.imageOpacity = 0.75
-        timeRow.addSpacer(4)
+        timeIcon.imageOpacity = 0.5
+        timeRow.addSpacer(5)
         const time = timeRow.addText(this.formatUpdateTime())
         time.textColor = this.getStatusColor()
-        time.font = new Font('SF Mono', 9)
-        time.textOpacity = 0.75
+        time.font = new Font('SF Mono', 10)
+        time.textOpacity = 0.5
         return widget
     }
 
@@ -1473,16 +1473,26 @@ toggleModeFields();
         credit.minimumScaleFactor = 0.75
         footer.addSpacer()
 
-        const statusText =
-            this.currentSettings.displaySettings.showUpdateTime.val === '显示'
-                ? `${this.statusMessage}  ↻ ${this.formatUpdateTime()}`
-                : this.statusMessage
-        const status = footer.addText(statusText)
+        const status = footer.addText(this.statusMessage)
         status.textColor = this.getStatusColor()
         status.font = new Font('SF Mono', 10)
-        status.textOpacity = 0.82
+        status.textOpacity = 0.5
         status.lineLimit = 1
         status.minimumScaleFactor = 0.7
+        if (this.currentSettings.displaySettings.showUpdateTime.val === '显示') {
+            footer.addSpacer(5)
+            const timeIcon = footer.addImage(SFSymbol.named('arrow.clockwise').image)
+            timeIcon.imageSize = new Size(10, 10)
+            timeIcon.tintColor = this.getStatusColor()
+            timeIcon.imageOpacity = 0.5
+            footer.addSpacer(5)
+            const time = footer.addText(this.formatUpdateTime())
+            time.textColor = this.getStatusColor()
+            time.font = new Font('SF Mono', 10)
+            time.textOpacity = 0.5
+            time.lineLimit = 1
+            time.minimumScaleFactor = 0.7
+        }
 
         return widget
     }

@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/10
- * build    :  2026-06-11 00:23:36
+ * build    :  2026-06-11 12:32:55
  * desc     :  Claude 额度监控，支持 OAuth、API Key 与 Done Hub 代理
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -1086,14 +1086,14 @@ var ClaudeMonitor = class extends WidgetBase {
     timeRow.layoutHorizontally();
     timeRow.addSpacer();
     const timeIcon = timeRow.addImage(SFSymbol.named("arrow.clockwise").image);
-    timeIcon.imageSize = new Size(8, 8);
+    timeIcon.imageSize = new Size(10, 10);
     timeIcon.tintColor = this.getStatusColor();
-    timeIcon.imageOpacity = 0.75;
-    timeRow.addSpacer(4);
+    timeIcon.imageOpacity = 0.5;
+    timeRow.addSpacer(5);
     const time = timeRow.addText(this.formatUpdateTime());
     time.textColor = this.getStatusColor();
-    time.font = new Font("SF Mono", 9);
-    time.textOpacity = 0.75;
+    time.font = new Font("SF Mono", 10);
+    time.textOpacity = 0.5;
     return widget;
   }
   async renderMedium(widget) {
@@ -1146,12 +1146,26 @@ var ClaudeMonitor = class extends WidgetBase {
     requestMode.lineLimit = 1;
     requestMode.minimumScaleFactor = 0.75;
     footer.addSpacer();
-    const status = footer.addText(this.getFooterText());
+    const status = footer.addText(this.statusMessage);
     status.textColor = this.getStatusColor();
     status.font = new Font("SF Mono", 10);
-    status.textOpacity = 0.82;
+    status.textOpacity = 0.5;
     status.lineLimit = 1;
     status.minimumScaleFactor = 0.7;
+    if (this.currentSettings.displaySettings.showUpdateTime.val === "显示") {
+      footer.addSpacer(5);
+      const timeIcon = footer.addImage(SFSymbol.named("arrow.clockwise").image);
+      timeIcon.imageSize = new Size(10, 10);
+      timeIcon.tintColor = this.getStatusColor();
+      timeIcon.imageOpacity = 0.5;
+      footer.addSpacer(5);
+      const time = footer.addText(this.formatUpdateTime());
+      time.textColor = this.getStatusColor();
+      time.font = new Font("SF Mono", 10);
+      time.textOpacity = 0.5;
+      time.lineLimit = 1;
+      time.minimumScaleFactor = 0.7;
+    }
     return widget;
   }
   async presentAuthPage() {
