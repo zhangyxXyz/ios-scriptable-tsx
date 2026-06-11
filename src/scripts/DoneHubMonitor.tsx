@@ -518,8 +518,13 @@ class DoneHubMonitor extends WidgetBase {
     }
 
     formatResetTime(ms: number | null) {
-        if (!ms) return '未知'
+        if (!ms) return '使用后滚动计量'
         return Utils.time('yyyy年MM月dd日 HH:mm', new Date(ms))
+    }
+
+    getResetText(row: UsageRow) {
+        if (!row.resetAt) return this.formatResetTime(row.resetAt)
+        return `${row.stale ? '缓存 ' : '重置 '}${this.formatResetTime(row.resetAt)}`
     }
 
     formatUpdateTime() {
@@ -640,7 +645,7 @@ class DoneHubMonitor extends WidgetBase {
 
         if (!compact) {
             card.addSpacer(5)
-            const reset = card.addText(`${row.stale ? '缓存 ' : '重置 '}${this.formatResetTime(row.resetAt)}`)
+            const reset = card.addText(this.getResetText(row))
             reset.textColor = this.widgetColor
             reset.font = Font.systemFont(9)
             reset.textOpacity = 0.55

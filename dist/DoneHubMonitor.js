@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * build    :  2026-06-11 12:32:55
+ * build    :  2026-06-11 13:59:48
  * desc     :  Done Hub 聚合额度监控，汇总 Codex 与 Claude 渠道用量
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -439,8 +439,12 @@ var DoneHubMonitor = class extends WidgetBase {
     return Number.isNaN(date.getTime()) ? null : date.getTime();
   }
   formatResetTime(ms) {
-    if (!ms) return "未知";
+    if (!ms) return "使用后滚动计量";
     return Utils.time("yyyy年MM月dd日 HH:mm", new Date(ms));
+  }
+  getResetText(row) {
+    if (!row.resetAt) return this.formatResetTime(row.resetAt);
+    return `${row.stale ? "缓存 " : "重置 "}${this.formatResetTime(row.resetAt)}`;
   }
   formatUpdateTime() {
     if (!this.dataFetchTime) return "暂无缓存";
@@ -595,9 +599,7 @@ var DoneHubMonitor = class extends WidgetBase {
     );
     if (!compact) {
       card.addSpacer(5);
-      const reset = card.addText(
-        `${row.stale ? "缓存 " : "重置 "}${this.formatResetTime(row.resetAt)}`,
-      );
+      const reset = card.addText(this.getResetText(row));
       reset.textColor = this.widgetColor;
       reset.font = Font.systemFont(9);
       reset.textOpacity = 0.55;

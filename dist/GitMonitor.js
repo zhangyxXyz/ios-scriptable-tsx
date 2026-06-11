@@ -4,8 +4,8 @@
 
 /********************************************************
  * author   :  seiun
- * date     :  6/11/2026, 12:32:55
- * build    :  2026-06-11 12:32:55
+ * date     :  6/11/2026, 14:01:08
+ * build    :  2026-06-11 14:01:08
  * desc     :
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx

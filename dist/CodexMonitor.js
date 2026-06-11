@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/05
- * build    :  2026-06-11 12:32:55
+ * build    :  2026-06-11 14:00:37
  * desc     :  Codex 额度监控，支持官方直连与 Done Hub 代理
  * version  :  1.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -811,8 +811,13 @@ var CodexMonitor = class extends WidgetBase {
     return Math.max(0, Math.min(100, value));
   }
   formatResetTime(seconds) {
-    if (!seconds) return "未知";
+    if (!seconds) return "使用后滚动计量";
     return Utils.time("yyyy年MM月dd日 HH:mm", new Date(seconds * 1e3));
+  }
+  getResetText(seconds) {
+    return seconds
+      ? `重置 ${this.formatResetTime(seconds)}`
+      : this.formatResetTime(seconds);
   }
   formatUpdateTime() {
     if (!this.dataFetchTime) return "暂无缓存";
@@ -1181,7 +1186,7 @@ ${this.getAccountSummary(account)}`;
 .title{font-size:28px;font-weight:750;margin:18px 2px 6px}.sub{font-size:14px;line-height:1.45;color:var(--muted);margin:0 2px 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
 .label{font-size:13px;color:var(--muted);margin-bottom:8px}.saved{font-family:"SF Mono",ui-monospace,monospace;font-size:12px;line-height:1.45;color:var(--muted)}
-input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--text);padding:12px;font-family:"SF Mono",ui-monospace,monospace;font-size:12px;outline:none}textarea{min-height:150px;margin-top:10px}select{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;font-size:15px;color-scheme:dark}option{background:var(--field);color:var(--text)}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--text);padding:10px 12px;font-family:"SF Mono",ui-monospace,monospace;font-size:16px;line-height:1.35;outline:none;-webkit-text-size-adjust:100%}input,select{min-height:44px}textarea{min-height:132px;margin-top:10px;resize:vertical}select{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;font-size:16px;color-scheme:dark}option{background:var(--field);color:var(--text)}::placeholder{color:var(--muted);opacity:.72}
 .row{display:flex;gap:10px;margin-top:12px}.btn{flex:1;border:0;border-radius:8px;padding:12px 10px;font-size:15px;font-weight:650;color:#fff;background:#2563eb}.btn.secondary{background:#374151}.btn.warn{background:var(--danger)}
 .hint{font-size:12px;color:var(--muted);line-height:1.5}.status{font-size:13px;font-weight:650;margin-top:10px}.status.ok{color:var(--accent)}.status.bad,.status.warn{color:var(--danger)}
 .check{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin-top:10px}.check input{width:auto}.field{margin-top:10px}.mode-fields{display:none}.mode-fields.active{display:block}.account{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}.account:first-child{border-top:0}.account:active{opacity:.72}.account-main{flex:1;min-width:0}.account-name{font-size:15px;font-weight:700}.account-meta{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;color:var(--muted);line-height:1.45;word-break:break-all}.badge,.mode-badge{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px}.mode-badge{margin-left:0;background:#374151;white-space:nowrap}.arrow{font-size:24px;color:var(--muted)}.empty{color:var(--muted);font-size:13px;padding:8px 0}
@@ -1299,7 +1304,7 @@ toggleModeFields();
     card.addSpacer(3);
     this.renderProgressBar(card, row.remainingPercent, progressWidth);
     card.addSpacer(5);
-    const reset = card.addText(`重置 ${this.formatResetTime(row.resetAt)}`);
+    const reset = card.addText(this.getResetText(row.resetAt));
     reset.textColor = this.widgetColor;
     reset.font = Font.systemFont(9);
     reset.textOpacity = 0.55;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-11 12:32:56",
+  "generatedAt": "2026-06-11 14:01:09",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -49,7 +49,7 @@
       },
       "desc": "Claude 额度监控，支持 OAuth、API Key 与 Done Hub 代理",
       "version": "1.0.0",
-      "build": "2026-06-11 12:32:55"
+      "build": "2026-06-11 14:00:27"
     },
     {
       "id": "CodexMonitor",
@@ -61,7 +61,7 @@
       },
       "desc": "Codex 额度监控，支持官方直连与 Done Hub 代理",
       "version": "1.0.1",
-      "build": "2026-06-11 12:32:55"
+      "build": "2026-06-11 14:00:37"
     },
     {
       "id": "CryptoCurrency",
@@ -97,7 +97,7 @@
       },
       "desc": "Done Hub 聚合额度监控，汇总 Codex 与 Claude 渠道用量",
       "version": "1.0.0",
-      "build": "2026-06-11 12:32:55"
+      "build": "2026-06-11 13:59:48"
     },
     {
       "id": "DoubanMonitor",
@@ -121,7 +121,7 @@
       },
       "desc": "* version  :  1.0.0",
       "version": "1.0.0",
-      "build": "2026-06-11 12:32:55"
+      "build": "2026-06-11 14:01:08"
     },
     {
       "id": "HotlistMonitor",
