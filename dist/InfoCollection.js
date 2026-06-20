@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2021/10/24
- * build    :  2026-06-20 23:50:33
+ * build    :  2026-06-20 23:54:00
  * desc     :  万年历、天气、电池、年进度等信息聚合面板
  * version  :  1.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -31,13 +31,19 @@ var builtInHoneyInfo = {
 };
 var getTrimmedString = (value) =>
   typeof value === "string" ? value.trim() : "";
+var sanitizeHoneyContent = (value) =>
+  getTrimmedString(value)
+    .replace(/<\s*\/?\s*br\s*\/?\s*>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 var honeyApiSources = [
   {
     name: "素颜 API",
     url: "https://api.suyanw.cn/api/love.php?type=json",
     getContent: (data) => {
       const response = data;
-      return getTrimmedString(response.text) || null;
+      return sanitizeHoneyContent(response.text) || null;
     },
   },
   {
@@ -46,7 +52,7 @@ var honeyApiSources = [
     getContent: (data) => {
       const response = data;
       if (String(response.code) !== "200") return null;
-      return getTrimmedString(response.text) || null;
+      return sanitizeHoneyContent(response.text) || null;
     },
   },
   {
@@ -55,7 +61,7 @@ var honeyApiSources = [
     getContent: (data) => {
       const response = data;
       if (response.code !== 200) return null;
-      return getTrimmedString(response.returnObj?.[0]) || null;
+      return sanitizeHoneyContent(response.returnObj?.[0]) || null;
     },
   },
 ];

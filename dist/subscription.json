@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-06-20 23:50:33",
+  "generatedAt": "2026-06-20 23:54:01",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -157,7 +157,7 @@
       },
       "desc": "万年历、天气、电池、年进度等信息聚合面板",
       "version": "1.0.1",
-      "build": "2026-06-20 23:50:33"
+      "build": "2026-06-20 23:54:00"
     },
     {
       "id": "RSSMonitor",

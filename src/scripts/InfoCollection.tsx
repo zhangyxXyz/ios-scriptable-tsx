@@ -116,13 +116,20 @@ const builtInHoneyInfo: HoneyInfo = {
 
 const getTrimmedString = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
 
+const sanitizeHoneyContent = (value: unknown) =>
+    getTrimmedString(value)
+        .replace(/<\s*\/?\s*br\s*\/?\s*>/gi, ' ')
+        .replace(/<[^>]*>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+
 const honeyApiSources: HoneyApiSource[] = [
     {
         name: '素颜 API',
         url: 'https://api.suyanw.cn/api/love.php?type=json',
         getContent: data => {
             const response = data as SuyanHoneyResponse
-            return getTrimmedString(response.text) || null
+            return sanitizeHoneyContent(response.text) || null
         },
     },
     {
@@ -131,7 +138,7 @@ const honeyApiSources: HoneyApiSource[] = [
         getContent: data => {
             const response = data as OddfarHoneyResponse
             if (String(response.code) !== '200') return null
-            return getTrimmedString(response.text) || null
+            return sanitizeHoneyContent(response.text) || null
         },
     },
     {
@@ -140,7 +147,7 @@ const honeyApiSources: HoneyApiSource[] = [
         getContent: data => {
             const response = data as HoneyResponse
             if (response.code !== 200) return null
-            return getTrimmedString(response.returnObj?.[0]) || null
+            return sanitizeHoneyContent(response.returnObj?.[0]) || null
         },
     },
 ]
