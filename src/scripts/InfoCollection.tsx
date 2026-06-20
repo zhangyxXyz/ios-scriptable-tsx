@@ -6,7 +6,7 @@
  * author   :  seiun
  * date     :  2021/10/24
  * desc     :  万年历、天气、电池、年进度等信息聚合面板
- * version  :  1.0.0
+ * version  :  1.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -89,9 +89,61 @@ type HoneyResponse = {
     returnObj?: string[]
 }
 
+type SuyanHoneyResponse = {
+    text?: string
+}
+
+type OddfarHoneyResponse = {
+    code?: number | string
+    text?: string
+}
+
+type HoneyApiSource = {
+    name: string
+    url: string
+    getContent: (data: unknown) => string | null
+}
+
 type WebViewEvaluate = {
     evaluateJavaScript<T = unknown>(script: string, useCallback?: boolean): Promise<T>
 }
+
+const builtInHoneyInfo: HoneyInfo = {
+    data: {
+        content: '愿你今天也有好心情。',
+    },
+}
+
+const getTrimmedString = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
+
+const honeyApiSources: HoneyApiSource[] = [
+    {
+        name: '素颜 API',
+        url: 'https://api.suyanw.cn/api/love.php?type=json',
+        getContent: data => {
+            const response = data as SuyanHoneyResponse
+            return getTrimmedString(response.text) || null
+        },
+    },
+    {
+        name: '奇远 API',
+        url: 'https://api.oddfar.com/yl/q.php?c=1001&encode=json',
+        getContent: data => {
+            const response = data as OddfarHoneyResponse
+            if (String(response.code) !== '200') return null
+            return getTrimmedString(response.text) || null
+        },
+    },
+    {
+        name: 'LovLive Tools',
+        url: 'https://api.lovelive.tools/api/SweetNothings?type=json',
+        getContent: data => {
+            const response = data as HoneyResponse
+            if (response.code !== 200) return null
+            return getTrimmedString(response.returnObj?.[0]) || null
+        },
+    },
+]
 
 const lunarDayNames = [
     '',
@@ -336,23 +388,30 @@ class InfoCollection extends WidgetBase {
     }
 
     async getHoney() {
-        try {
-            const honeyData = await this.$request.get<HoneyResponse>('https://api.lovelive.tools/api/SweetNothings?type=json')
-            if (honeyData.code === 200 && honeyData.returnObj && honeyData.returnObj[0]) {
-                console.log('[+]情话获取成功')
+        let lastError: unknown = null
+        for (const apiSource of honeyApiSources) {
+            try {
+                const honeyData = await this.$request.get<unknown>(apiSource.url, {
+                    timeoutInterval: 3,
+                })
+                const content = apiSource.getContent(honeyData)
+                if (!content) throw new Error('return unexpected data')
+                console.log(`[+]情话获取成功：${apiSource.name}`)
                 this.honeyInfo = {
                     data: {
-                        content: honeyData.returnObj[0],
+                        content,
                     },
                 }
                 storage.setStorage('honey', this.honeyInfo)
-            } else {
-                throw new Error(`return unexpected error code: ${honeyData.code}`)
+                console.log(JSON.stringify(this.honeyInfo))
+                return
+            } catch (error) {
+                lastError = error
+                console.log(`[+]情话 API 请求失败：${apiSource.name}，尝试下一个：${error}`)
             }
-        } catch (error) {
-            console.log(`[+]获取情话失败，尝试使用缓存数据：${error}`)
-            this.honeyInfo = storage.getStorage<HoneyInfo>('honey')
         }
+        console.log(`[+]全部情话 API 获取失败，尝试使用缓存数据：${lastError}`)
+        this.honeyInfo = storage.getStorage<HoneyInfo>('honey') || builtInHoneyInfo
         console.log(JSON.stringify(this.honeyInfo))
     }
 

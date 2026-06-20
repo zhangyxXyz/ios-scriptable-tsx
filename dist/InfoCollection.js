@@ -5,9 +5,9 @@
 /*
  * author   :  seiun
  * date     :  2021/10/24
- * build    :  2026-06-11 00:23:36
+ * build    :  2026-06-20 23:50:33
  * desc     :  万年历、天气、电池、年进度等信息聚合面板
- * version  :  1.0.0
+ * version  :  1.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -24,6 +24,41 @@ var runtimeRequire = typeof require === "undefined" ? importModule : require;
 var { WidgetBase, Runing, GenrateView, h, Utils, Storage } =
   runtimeRequire(dependencyFileName);
 var storage = new Storage("InfoCollectionData");
+var builtInHoneyInfo = {
+  data: {
+    content: "愿你今天也有好心情。",
+  },
+};
+var getTrimmedString = (value) =>
+  typeof value === "string" ? value.trim() : "";
+var honeyApiSources = [
+  {
+    name: "素颜 API",
+    url: "https://api.suyanw.cn/api/love.php?type=json",
+    getContent: (data) => {
+      const response = data;
+      return getTrimmedString(response.text) || null;
+    },
+  },
+  {
+    name: "奇远 API",
+    url: "https://api.oddfar.com/yl/q.php?c=1001&encode=json",
+    getContent: (data) => {
+      const response = data;
+      if (String(response.code) !== "200") return null;
+      return getTrimmedString(response.text) || null;
+    },
+  },
+  {
+    name: "LovLive Tools",
+    url: "https://api.lovelive.tools/api/SweetNothings?type=json",
+    getContent: (data) => {
+      const response = data;
+      if (response.code !== 200) return null;
+      return getTrimmedString(response.returnObj?.[0]) || null;
+    },
+  },
+];
 var lunarDayNames = [
   "",
   "初一",
@@ -289,29 +324,32 @@ var InfoCollection = class extends WidgetBase {
     }
   }
   async getHoney() {
-    try {
-      const honeyData = await this.$request.get(
-        "https://api.lovelive.tools/api/SweetNothings?type=json",
-      );
-      if (
-        honeyData.code === 200 &&
-        honeyData.returnObj &&
-        honeyData.returnObj[0]
-      ) {
-        console.log("[+]情话获取成功");
+    let lastError = null;
+    for (const apiSource of honeyApiSources) {
+      try {
+        const honeyData = await this.$request.get(apiSource.url, {
+          timeoutInterval: 3,
+        });
+        const content = apiSource.getContent(honeyData);
+        if (!content) throw new Error("return unexpected data");
+        console.log(`[+]情话获取成功：${apiSource.name}`);
         this.honeyInfo = {
           data: {
-            content: honeyData.returnObj[0],
+            content,
           },
         };
         storage.setStorage("honey", this.honeyInfo);
-      } else {
-        throw new Error(`return unexpected error code: ${honeyData.code}`);
+        console.log(JSON.stringify(this.honeyInfo));
+        return;
+      } catch (error) {
+        lastError = error;
+        console.log(
+          `[+]情话 API 请求失败：${apiSource.name}，尝试下一个：${error}`,
+        );
       }
-    } catch (error) {
-      console.log(`[+]获取情话失败，尝试使用缓存数据：${error}`);
-      this.honeyInfo = storage.getStorage("honey");
     }
+    console.log(`[+]全部情话 API 获取失败，尝试使用缓存数据：${lastError}`);
+    this.honeyInfo = storage.getStorage("honey") || builtInHoneyInfo;
     console.log(JSON.stringify(this.honeyInfo));
   }
   getDayHourGreetings(date) {

@@ -11,8 +11,8 @@
 - `src/build/compile.ts`: esbuild bundler、入口发现、TSX 注入、`compileFilter` 和输出写入。
 - `src/build/server.ts`: 9090 端口的 Playground server。
 - `src/build/static/playground.html`: 浏览器 Playground 外壳。
-- `docs/build.md`: 构建模式和 TSX 注入说明。
-- `docs/playground.md`, `docs/zh-CN/playground.md`, `docs/en/playground.md`: Playground 行为和测试面。
+- `docs/zh-CN/build.md`, `docs/en/build.md`: 构建模式和 TSX 注入说明。
+- `docs/zh-CN/playground.md`, `docs/en/playground.md`: Playground 行为和测试面。
 - `docs/scriptable-docs`: Playground 内提供的本地 Scriptable API docs。
 - `manual`: 原始 JavaScript widget 和移植素材。
 

@@ -9,15 +9,15 @@ description: 在 ios-scriptable-tsx 仓库中编写、修改、构建并验证 S
 
 1. 先阅读本地项目上下文：
    - `README.md`
-   - `docs/build.md`
-   - `docs/playground.md` 或 `docs/zh-CN/playground.md`
+   - `docs/zh-CN/build.md` 或 `docs/en/build.md`
+   - `docs/zh-CN/playground.md` 或 `docs/en/playground.md`
    - `src/scripts` 中已有的 widget，通常是 `BilibiliMonitor.tsx`
    - `src/env/types.ts` 和 `src/env/stack-ui/types` 中相关 runtime/types
 2. 在 `src/scripts` 中创建或编辑 widget 脚本。
 3. 使用普通单入口构建时，确认脚本已经被 `src/index.ts` 引入。
 4. 运行开发构建。
 5. 如果任务修改了 widget UI 或 runtime 行为，用 Playground 验证。
-6. 汇报 `dist` 中生成的文件，以及验证中仍然存在的限制。
+6. 业务脚本、入口或 runtime 改动需要保留同步生成的 `dist/*.js` 与 `dist/subscription.json`；汇报 `dist` 中生成的文件，以及验证中仍然存在的限制。
 
 ## Widget 模式
 
@@ -83,7 +83,7 @@ import './scripts/MyWidget'
 $env:compileFilter='MyWidget'; npm run dev
 ```
 
-构建产物输出到 `dist`。Scriptable 运行时需要把业务脚本和 `dist/Seiun.Env.js` 放在同一个 Scriptable 目录。
+构建产物输出到 `dist`。业务脚本、入口或 runtime 改动后，保留对应 `dist/*.js` 与 `dist/subscription.json` 变更。Scriptable 运行时需要把业务脚本和 `dist/Seiun.Env.js` 放在同一个 Scriptable 目录。
 
 ## Playground 验证
 

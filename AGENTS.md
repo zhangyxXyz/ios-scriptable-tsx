@@ -17,8 +17,8 @@
 编辑前先阅读相关源码和文档，不要凭空猜：
 
 - `README.md`
-- `docs/build.md`
-- `docs/playground.md` 或 `docs/zh-CN/playground.md`
+- `docs/zh-CN/build.md` 或 `docs/en/build.md`
+- `docs/zh-CN/playground.md` 或 `docs/en/playground.md`
 - `src/scripts` 中已有脚本
 - `src/env/types.ts` 和 `src/env/stack-ui/types` 中的相关 types
 
@@ -28,6 +28,7 @@
 - 新增 widget 入口时，在 `src/index.ts` 中添加静态 import。
 - 只有在需要验证 `src/scripts` 中所有脚本时，才使用 `npm run dev:all`。
 - 需要定向本地构建时，可以使用 `$env:compileFilter='Name'; npm run dev`。
+- 修改业务脚本或运行时后，运行对应构建并保留生成的 `dist/*.js` 与 `dist/subscription.json` 变更；这些产物需要随源码一起提交。
 - UI/runtime 验证使用 `npm run watch`，然后打开 `http://localhost:9090/playground`。
 - Playground 状态存储在 `.cache`；不要提交它。
 
@@ -36,4 +37,4 @@
 - 优先沿用现有 `WidgetBase`、`Runing`、`Utils`、`GenrateView` 和 Stack UI TSX 模式。
 - 使用 TSX 的业务 widget 应该从 `Seiun.Env.js` 消费 `h`。
 - 改动范围保持在请求涉及的 widget/runtime 行为内。
-- 除非用户明确要求提交构建产物，否则不要编辑生成的 `dist` 文件。
+- 纯文档或非构建行为改动不需要刷新 `dist`；涉及业务脚本、入口或 runtime 的改动需要同步刷新 `dist`。
