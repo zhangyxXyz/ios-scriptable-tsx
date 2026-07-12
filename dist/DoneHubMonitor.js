@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * build    :  2026-07-12 23:12:27
+ * build    :  2026-07-13 04:00:40
  * desc     :  Done Hub 聚合额度监控，汇总 Codex、Claude 与 GitHub Copilot 渠道用量
  * version  :  1.1.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -566,6 +566,25 @@ var DoneHubMonitor = class extends WidgetBase {
       ...this.getCopilotRows().slice(0, 2),
     ].slice(0, 4);
   }
+  getMediumRowPairs() {
+    const providerRows = [
+      this.getCodexCoreRows().slice(0, 2),
+      this.getClaudeCoreRows().slice(0, 2),
+      this.getCopilotRows().slice(0, 2),
+    ];
+    const pairs = [];
+    let usedSlots = 0;
+    for (const rows of providerRows) {
+      if (usedSlots >= 4) break;
+      for (let i = 0; i < rows.length && usedSlots < 4; i += 2) {
+        const first = rows[i];
+        if (!first) continue;
+        pairs.push([first, rows[i + 1] || null]);
+        usedSlots += 2;
+      }
+    }
+    return pairs;
+  }
   getLargeCodexRows() {
     return this.getCodexRows().slice(0, 4);
   }
@@ -810,9 +829,23 @@ var DoneHubMonitor = class extends WidgetBase {
     }
   }
   renderRows(widget, rows, compact = false) {
+    return this.renderRowPairs(
+      widget,
+      this.getSequentialRowPairs(rows),
+      compact,
+    );
+  }
+  getSequentialRowPairs(rows) {
+    const pairs = [];
+    for (let i = 0; i < rows.length; i += 2) {
+      pairs.push([rows[i], rows[i + 1] || null]);
+    }
+    return pairs;
+  }
+  renderRowPairs(widget, rowPairs, compact = false) {
     const { cardGap, contentWidth, cardWidth, cardHeight, progressWidth } =
       this.getLayoutMetrics(compact);
-    if (rows.length === 0) {
+    if (rowPairs.length === 0) {
       widget.addSpacer();
       const empty = widget.addText(this.statusMessage || "暂无额度数据");
       empty.textColor = Color.red();
@@ -821,27 +854,31 @@ var DoneHubMonitor = class extends WidgetBase {
       widget.addSpacer();
       return;
     }
-    for (let i = 0; i < rows.length; i += 2) {
+    for (let i = 0; i < rowPairs.length; i += 1) {
+      const [first, second] = rowPairs[i];
       const rowStack = this.addAlignedRow(widget, contentWidth);
       rowStack.spacing = cardGap;
-      this.renderRowCard(
-        rowStack,
-        rows[i],
-        cardWidth,
-        cardHeight,
-        progressWidth,
-        compact,
-      );
-      if (rows[i + 1])
+      if (first)
         this.renderRowCard(
           rowStack,
-          rows[i + 1],
+          first,
           cardWidth,
           cardHeight,
           progressWidth,
           compact,
         );
-      if (i + 2 < rows.length) widget.addSpacer(compact ? 6 : 8);
+      else rowStack.addSpacer(cardWidth);
+      if (second)
+        this.renderRowCard(
+          rowStack,
+          second,
+          cardWidth,
+          cardHeight,
+          progressWidth,
+          compact,
+        );
+      else rowStack.addSpacer(cardWidth);
+      if (i + 1 < rowPairs.length) widget.addSpacer(compact ? 6 : 8);
     }
   }
   renderHeader(widget) {
@@ -919,7 +956,7 @@ var DoneHubMonitor = class extends WidgetBase {
     widget.setPadding(padding.top, padding.left, padding.bottom, padding.right);
     this.renderHeader(widget);
     widget.addSpacer(8);
-    this.renderRows(widget, this.getMediumRows(), true);
+    this.renderRowPairs(widget, this.getMediumRowPairs(), true);
     widget.addSpacer(8);
     this.renderFooter(widget);
     return widget;

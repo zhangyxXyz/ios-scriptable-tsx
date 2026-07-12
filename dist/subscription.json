@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-12 23:34:00",
+  "generatedAt": "2026-07-13 04:00:40",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -109,7 +109,7 @@
       },
       "desc": "Done Hub 聚合额度监控，汇总 Codex、Claude 与 GitHub Copilot 渠道用量",
       "version": "1.1.0",
-      "build": "2026-07-12 23:12:27"
+      "build": "2026-07-13 04:00:40"
     },
     {
       "id": "DoubanMonitor",
