@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2025/12/20
- * build    :  2026-06-11 00:23:36
+ * build    :  2026-07-12 23:33:59
  * desc     :  Cursor 用量监控，支持每日用量、总用量与套餐概览
  * version  :  1.0.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
@@ -465,6 +465,7 @@ var CursorMonitor = class extends WidgetBase {
               }
             });
           }
+          barStack.addSpacer();
           rowStack.addSpacer();
           const amountText = rowStack.addText(`$${this.formatSpend(total)}`);
           amountText.textColor = isLastItem ? Color.orange() : rowTextColor;

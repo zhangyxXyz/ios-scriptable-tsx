@@ -1996,6 +1996,8 @@ class CursorMonitor extends WidgetBase {
                     })
                 }
 
+                barStack.addSpacer()
+
                 // 弹性间距
                 rowStack.addSpacer()
 
