@@ -5,8 +5,8 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * desc     :  Done Hub 聚合额度监控，汇总 Codex 与 Claude 渠道用量
- * version  :  1.0.0
+ * desc     :  Done Hub 聚合额度监控，汇总 Codex、Claude 与 GitHub Copilot 渠道用量
+ * version  :  1.1.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -23,6 +23,9 @@ type DoneHubSettings = {
     requestSettings: {
         doneHubBaseUrl: SettingValue<string>
         doneHubApiKey: SettingValue<string>
+        queryMode: SettingValue<string>
+        providers: SettingValue<string>
+        channelIds: SettingValue<string>
         limit: SettingValue<number>
     }
     displaySettings: {
@@ -80,10 +83,27 @@ type ClaudeUsage = {
     } | null
 }
 
+type CopilotQuotaSnapshot = {
+    percent_remaining?: number
+    remaining?: number
+    entitlement?: number
+    unlimited?: boolean
+    quota_reset_at?: number
+}
+
+type CopilotUsage = {
+    copilot_plan?: string
+    quota_reset_date_utc?: string
+    quota_snapshots?: {
+        premium_interactions?: CopilotQuotaSnapshot
+        completions?: CopilotQuotaSnapshot
+    }
+}
+
 type DoneHubUsageItem = {
     channel?: DoneHubChannel
     data?: {
-        usage?: CodexUsage | ClaudeUsage
+        usage?: CodexUsage | ClaudeUsage | CopilotUsage
         cached?: boolean
         stale?: boolean
         fetched_at?: number
@@ -103,7 +123,7 @@ type DoneHubAggregateResponse = {
     }
 }
 
-type UsageProvider = 'codex' | 'claude'
+type UsageProvider = 'codex' | 'claude' | 'copilot'
 type WindowKind = 'five-hour' | 'long'
 
 type UsageRow = {
@@ -116,6 +136,7 @@ type UsageRow = {
     resetAt: number | null
     windowKind: WindowKind
     stale: boolean
+    unlimited?: boolean
 }
 
 type DoneHubUsageCache = {
@@ -131,6 +152,7 @@ const DONE_HUB_USAGE_PATH = '/api/usage/channels'
 const CACHE_KEY = 'donehub_usage_channels'
 const CODEX_ICON_URL = 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/codex.png'
 const CLAUDE_ICON_URL = 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/claude.png'
+const GITHUB_ICON_URL = 'https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/github.png'
 
 class DoneHubMonitor extends WidgetBase {
     name = 'DoneHub聚合监控'
@@ -148,6 +170,9 @@ class DoneHubMonitor extends WidgetBase {
         requestSettings: {
             doneHubBaseUrl: {val: '', type: this.settingValTypeString},
             doneHubApiKey: {val: '', type: this.settingValTypeString},
+            queryMode: {val: 'Provider', type: this.settingValTypeString},
+            providers: {val: 'github-copilot', type: this.settingValTypeString},
+            channelIds: {val: '', type: this.settingValTypeString},
             limit: {val: 12, type: this.settingValTypeInt},
         },
         displaySettings: {
@@ -181,6 +206,37 @@ class DoneHubMonitor extends WidgetBase {
                 type: 'text',
                 option: {doneHubApiKey: ''},
                 config: {placeholder: 'sk-...', style: 'compact'},
+            },
+            {
+                title: '查询方式',
+                desc: '按 Provider 或 Channel ID 筛选渠道',
+                icon: {name: 'line.3.horizontal.decrease.circle', color: '#8B5CF6'},
+                type: 'select',
+                option: {queryMode: 'Provider'},
+                config: {
+                    selectOptions: [
+                        {label: 'Provider', value: 'Provider'},
+                        {label: 'Channel ID', value: 'Channel ID'},
+                    ],
+                    defaultShowContent: 'Provider',
+                    multiple: false,
+                },
+            },
+            {
+                title: 'Provider',
+                desc: '例如 github-copilot；多个值用逗号分隔',
+                icon: {name: 'shippingbox', color: '#24292F'},
+                type: 'text',
+                option: {providers: 'github-copilot'},
+                config: {placeholder: 'github-copilot,codex,claude', style: 'compact'},
+            },
+            {
+                title: 'Channel ID',
+                desc: '例如 2；多个 ID 用逗号分隔',
+                icon: {name: 'number.circle', color: '#0EA5E9'},
+                type: 'text',
+                option: {channelIds: ''},
+                config: {placeholder: '2 或 1,2', style: 'compact'},
             },
             {
                 title: '聚合数量',
@@ -263,6 +319,16 @@ class DoneHubMonitor extends WidgetBase {
         return Math.max(1, Math.min(Math.floor(value), 50))
     }
 
+    getQueryMode() {
+        return String(this.currentSettings.requestSettings.queryMode.val || 'Provider') === 'Channel ID' ? 'channel-id' : 'provider'
+    }
+
+    getQueryValue() {
+        const settings = this.currentSettings.requestSettings
+        const raw = this.getQueryMode() === 'channel-id' ? settings.channelIds.val : settings.providers.val
+        return String(raw || '').trim()
+    }
+
     getPollIntervalMinutes() {
         const value = Number(this.currentSettings.displaySettings.pollIntervalMinutes.val)
         if (!Number.isFinite(value) || value < 1) return 5
@@ -271,7 +337,7 @@ class DoneHubMonitor extends WidgetBase {
 
     getCacheKey() {
         const baseUrl = this.getDoneHubBaseUrl() || 'donehub'
-        return `${CACHE_KEY}_${baseUrl}_${this.getLimit()}`.replace(/[^A-Za-z0-9_-]/g, '_')
+        return `${CACHE_KEY}_${baseUrl}_${this.getQueryMode()}_${this.getQueryValue()}_${this.getLimit()}`.replace(/[^A-Za-z0-9_-]/g, '_')
     }
 
     maskSecret(value: string) {
@@ -308,7 +374,7 @@ class DoneHubMonitor extends WidgetBase {
 
     logConfigState() {
         console.log(
-            `[${this.en}] 配置状态: baseUrl=${this.getDoneHubBaseUrl() || '未配置'} key=${this.maskSecret(this.getDoneHubApiKey())} limit=${this.getLimit()}`,
+            `[${this.en}] 配置状态: baseUrl=${this.getDoneHubBaseUrl() || '未配置'} key=${this.maskSecret(this.getDoneHubApiKey())} ${this.getQueryMode()}=${this.getQueryValue() || '未配置'} limit=${this.getLimit()}`,
         )
     }
 
@@ -331,7 +397,10 @@ class DoneHubMonitor extends WidgetBase {
         if (!baseUrl) throw new Error('请配置 Done Hub 地址')
         if (!apiKey) throw new Error('请配置 Done Hub Key')
 
-        const url = `${baseUrl}${DONE_HUB_USAGE_PATH}?provider=all&limit=${encodeURIComponent(String(this.getLimit()))}`
+        const queryMode = this.getQueryMode()
+        const queryValue = this.getQueryValue()
+        if (!queryValue) throw new Error(queryMode === 'channel-id' ? '请配置 Channel ID' : '请配置 Provider')
+        const url = `${baseUrl}${DONE_HUB_USAGE_PATH}?${queryMode}=${encodeURIComponent(queryValue)}&limit=${encodeURIComponent(String(this.getLimit()))}`
         this.logRequestStart('Done Hub 聚合', url)
         const request = new Request(url)
         request.method = 'GET'
@@ -396,12 +465,14 @@ class DoneHubMonitor extends WidgetBase {
 
     getProvider(item: DoneHubUsageItem): UsageProvider | null {
         const usage = item.data?.usage
+        if (usage && 'quota_snapshots' in usage) return 'copilot'
         if (usage && 'rate_limit' in usage) return 'codex'
         if (usage && ('five_hour' in usage || 'seven_day' in usage)) return 'claude'
 
         const text = `${item.channel?.name || ''} ${item.channel?.tag || ''}`.toLowerCase()
         if (text.includes('codex') || text.includes('openai')) return 'codex'
         if (text.includes('claude') || text.includes('anthropic')) return 'claude'
+        if (text.includes('copilot') || item.channel?.type === 64) return 'copilot'
         return null
     }
 
@@ -524,8 +595,62 @@ class DoneHubMonitor extends WidgetBase {
         return this.getClaudeCoreRows()
     }
 
+    normalizeCopilotSnapshot(
+        item: DoneHubUsageItem,
+        snapshot: CopilotQuotaSnapshot | undefined,
+        title: string,
+        suffix: string,
+        index: number,
+        fallbackResetAt?: string,
+    ): UsageRow | null {
+        if (!snapshot) return null
+        const unlimited = snapshot.unlimited === true
+        const remainingPercent = unlimited ? 100 : this.clampPercent(Number(snapshot.percent_remaining ?? 0))
+        const resetAt = snapshot.quota_reset_at ? snapshot.quota_reset_at * 1000 : this.parseDateMs(fallbackResetAt)
+        return {
+            key: `copilot-${item.channel?.id ?? index}-${suffix}`,
+            provider: 'copilot',
+            title,
+            channelName: this.getChannelName(item),
+            usedPercent: unlimited ? 0 : this.clampPercent(100 - remainingPercent),
+            remainingPercent,
+            resetAt,
+            windowKind: 'long',
+            stale: Boolean(item.data?.stale),
+            unlimited,
+        }
+    }
+
+    getCopilotRows() {
+        const rows: UsageRow[] = []
+        this.items.forEach((item, index) => {
+            if (this.getProvider(item) !== 'copilot') return
+            const usage = item.data?.usage as CopilotUsage | undefined
+            const snapshots = usage?.quota_snapshots
+            const premium = this.normalizeCopilotSnapshot(
+                item,
+                snapshots?.premium_interactions,
+                '每月高级请求额度',
+                'premium',
+                index,
+                usage?.quota_reset_date_utc,
+            )
+            const completions = this.normalizeCopilotSnapshot(
+                item,
+                snapshots?.completions,
+                '每月代码补全额度',
+                'completions',
+                index,
+                usage?.quota_reset_date_utc,
+            )
+            if (premium) rows.push(premium)
+            if (completions) rows.push(completions)
+        })
+        return rows
+    }
+
     getMediumRows() {
-        return [...this.getCodexCoreRows().slice(0, 2), ...this.getClaudeCoreRows().slice(0, 2)]
+        return [...this.getCodexCoreRows().slice(0, 2), ...this.getClaudeCoreRows().slice(0, 2), ...this.getCopilotRows().slice(0, 2)].slice(0, 4)
     }
 
     getLargeCodexRows() {
@@ -534,6 +659,10 @@ class DoneHubMonitor extends WidgetBase {
 
     getLargeClaudeRows() {
         return this.getClaudeCoreRows().slice(0, 2)
+    }
+
+    getLargeCopilotRows() {
+        return this.getCopilotRows().slice(0, 2)
     }
 
     getCodexPlanLabel() {
@@ -548,6 +677,15 @@ class DoneHubMonitor extends WidgetBase {
 
     getClaudePlanLabel() {
         return this.getLargeClaudeRows().length > 0 ? 'PRO' : '未连接'
+    }
+
+    getCopilotPlanLabel() {
+        for (const item of this.items) {
+            if (this.getProvider(item) !== 'copilot') continue
+            const usage = item.data?.usage as CopilotUsage | undefined
+            if (usage?.copilot_plan) return String(usage.copilot_plan).toUpperCase()
+        }
+        return this.getLargeCopilotRows().length > 0 ? '已连接' : '未连接'
     }
 
     clampPercent(value: number) {
@@ -627,30 +765,41 @@ class DoneHubMonitor extends WidgetBase {
         bar.addSpacer()
     }
 
+    getProviderDisplayName(provider: UsageProvider) {
+        if (provider === 'codex') return 'Codex'
+        if (provider === 'claude') return 'Claude'
+        return 'GitHub Copilot'
+    }
+
     renderProviderMark(parent: WidgetStack, provider: UsageProvider) {
-        const mark = parent.addText(provider === 'codex' ? 'C' : 'A')
-        mark.textColor = provider === 'codex' ? new Color('#0F9F58') : new Color('#D97706')
+        const mark = parent.addText(provider === 'codex' ? 'C' : provider === 'claude' ? 'A' : 'G')
+        mark.textColor = provider === 'codex' ? new Color('#0F9F58') : provider === 'claude' ? new Color('#D97706') : new Color('#24292F')
         mark.font = Font.boldSystemFont(10)
         mark.lineLimit = 1
         mark.minimumScaleFactor = 0.8
     }
 
     async addProviderIcon(parent: WidgetStack, provider: UsageProvider, size = 16) {
-        const iconUrl = provider === 'codex' ? CODEX_ICON_URL : CLAUDE_ICON_URL
+        const iconUrl = provider === 'codex' ? CODEX_ICON_URL : provider === 'claude' ? CLAUDE_ICON_URL : GITHUB_ICON_URL
         try {
             const iconImage = await this.getImageByUrl(iconUrl)
             if (iconImage) {
                 const icon = parent.addImage(iconImage)
                 icon.imageSize = new Size(size, size)
                 icon.cornerRadius = Math.max(3, Math.floor(size / 5))
+                if (provider === 'copilot') {
+                    icon.tintColor = Color.dynamic(new Color('#24292F'), new Color('#F0F6FC'))
+                }
                 return
             }
         } catch (error) {
-            console.log(`加载${provider === 'codex' ? 'Codex' : 'Claude'}图标失败: ${error}`)
+            console.log(`加载${provider === 'codex' ? 'Codex' : provider === 'claude' ? 'Claude' : 'GitHub'}图标失败: ${error}`)
         }
-        const fallback = parent.addImage(SFSymbol.named(provider === 'codex' ? 'terminal.fill' : 'bolt.horizontal.circle.fill').image)
+        const fallback = parent.addImage(
+            SFSymbol.named(provider === 'codex' ? 'terminal.fill' : provider === 'claude' ? 'bolt.horizontal.circle.fill' : 'chevron.left.forwardslash.chevron.right').image,
+        )
         fallback.imageSize = new Size(size, size)
-        fallback.tintColor = provider === 'codex' ? new Color('#0F9F58') : new Color('#D97706')
+        fallback.tintColor = provider === 'codex' ? new Color('#0F9F58') : provider === 'claude' ? new Color('#D97706') : new Color('#24292F')
     }
 
     renderRowCard(parent: WidgetStack, row: UsageRow, cardWidth: number, cardHeight: number, progressWidth: number, compact = false) {
@@ -661,7 +810,7 @@ class DoneHubMonitor extends WidgetBase {
         card.cornerRadius = 8
         card.size = new Size(cardWidth, cardHeight)
 
-        const title = card.addText(row.title)
+        const title = card.addText(compact ? `${this.getProviderDisplayName(row.provider)} · ${row.title}` : row.title)
         title.textColor = this.widgetColor
         title.font = Font.mediumSystemFont(compact ? 8 : 9)
         title.textOpacity = 0.68
@@ -672,20 +821,20 @@ class DoneHubMonitor extends WidgetBase {
         const valueRow = card.addStack()
         valueRow.layoutHorizontally()
         valueRow.centerAlignContent()
-        const value = valueRow.addText(`${Math.round(row.remainingPercent)}%`)
+        const value = valueRow.addText(row.unlimited ? '∞' : `${Math.round(row.remainingPercent)}%`)
         value.textColor = row.remainingPercent < 20 ? Color.red() : this.widgetColor
         value.font = Font.boldSystemFont(compact ? 16 : 19)
         value.minimumScaleFactor = 0.65
         value.lineLimit = 1
         valueRow.addSpacer(4)
-        const label = valueRow.addText('剩余')
+        const label = valueRow.addText(row.unlimited ? '不限' : '剩余')
         label.textColor = this.widgetColor
         label.font = Font.boldSystemFont(compact ? 11 : 13)
         label.minimumScaleFactor = 0.8
         label.lineLimit = 1
 
         card.addSpacer(compact ? 3 : 4)
-        this.renderProgressBar(card, row.remainingPercent, progressWidth, compact ? 5 : 7)
+        this.renderProgressBar(card, row.unlimited ? 100 : row.remainingPercent, progressWidth, compact ? 5 : 7)
 
         if (!compact) {
             card.addSpacer(5)
@@ -738,7 +887,16 @@ class DoneHubMonitor extends WidgetBase {
         const header = this.addAlignedRow(widget, this.getLayoutMetrics().contentWidth)
         await this.addProviderIcon(header, provider, 16)
         header.addSpacer(6)
-        const titleText = provider === 'codex' ? `Codex | ${this.getCodexPlanLabel()}` : `Claude | ${this.getClaudePlanLabel()}`
+        const copilotChannels = this.items.filter((item) => this.getProvider(item) === 'copilot').map((item) => item.channel)
+        const copilotChannel = copilotChannels[0]
+        const titleText =
+            provider === 'codex'
+                ? `Codex | ${this.getCodexPlanLabel()}`
+                : provider === 'claude'
+                  ? `Claude | ${this.getClaudePlanLabel()}`
+                  : `GitHub Copilot | ${this.getCopilotPlanLabel()}${
+                        copilotChannels.length > 1 ? ` · #${copilotChannel?.id ?? '-'}` : ''
+                    }`
         const title = header.addText(titleText)
         title.textColor = this.widgetColor
         title.font = Font.boldSystemFont(15)
@@ -789,13 +947,22 @@ class DoneHubMonitor extends WidgetBase {
         GenrateView.setListWidget(widget)
         const {padding} = this.getLayoutMetrics()
         widget.setPadding(padding.top, padding.left, padding.bottom, padding.right)
-        await this.renderProviderHeader(widget, 'codex')
-        widget.addSpacer(10)
-        this.renderRows(widget, this.getLargeCodexRows())
-        widget.addSpacer(8)
-        await this.renderProviderHeader(widget, 'claude')
-        widget.addSpacer(10)
-        this.renderRows(widget, this.getLargeClaudeRows())
+        const sections: Array<{provider: UsageProvider; rows: UsageRow[]}> = [
+            {provider: 'codex', rows: this.getLargeCodexRows()},
+            {provider: 'claude', rows: this.getLargeClaudeRows()},
+            {provider: 'copilot', rows: this.getLargeCopilotRows()},
+        ].filter((section) => section.rows.length > 0)
+        if (sections.length === 0) {
+            this.renderRows(widget, [])
+        } else {
+            for (let index = 0; index < sections.length; index += 1) {
+                const section = sections[index]
+                await this.renderProviderHeader(widget, section.provider)
+                widget.addSpacer(10)
+                this.renderRows(widget, section.rows)
+                if (index + 1 < sections.length) widget.addSpacer(8)
+            }
+        }
         widget.addSpacer(8)
         this.renderFooter(widget)
         return widget
