@@ -5,9 +5,9 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * build    :  2026-07-13 04:00:40
- * desc     :  Done Hub 聚合额度监控，汇总 Codex、Claude 与 GitHub Copilot 渠道用量
- * version  :  1.1.0
+ * build    :  2026-07-14 00:00:57
+ * desc     :  Done Hub 聚合额度监控，汇总 Codex、Claude、GitHub Copilot 与 OpenCode 渠道用量
+ * version  :  1.2.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -31,6 +31,8 @@ var CLAUDE_ICON_URL =
   "https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/claude.png";
 var GITHUB_ICON_URL =
   "https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/github.png";
+var OPENCODE_ICON_URL =
+  "https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/opencode.png";
 var DoneHubMonitor = class extends WidgetBase {
   constructor(scriptName) {
     super(scriptName);
@@ -100,7 +102,7 @@ var DoneHubMonitor = class extends WidgetBase {
         type: "text",
         option: { providers: "github-copilot" },
         config: {
-          placeholder: "github-copilot,codex,claude",
+          placeholder: "github-copilot,codex,claude,opencode",
           style: "compact",
         },
       },
@@ -340,12 +342,19 @@ var DoneHubMonitor = class extends WidgetBase {
   }
   getProvider(item) {
     const usage = item.data?.usage;
+    if (usage && "windows" in usage) return "opencode";
     if (usage && "quota_snapshots" in usage) return "copilot";
     if (usage && "rate_limit" in usage) return "codex";
     if (usage && ("five_hour" in usage || "seven_day" in usage))
       return "claude";
     const text =
       `${item.channel?.name || ""} ${item.channel?.tag || ""}`.toLowerCase();
+    if (
+      text.includes("opencode") ||
+      text.includes("open code") ||
+      item.channel?.type === 65
+    )
+      return "opencode";
     if (text.includes("codex") || text.includes("openai")) return "codex";
     if (text.includes("claude") || text.includes("anthropic")) return "claude";
     if (text.includes("copilot") || item.channel?.type === 64) return "copilot";
@@ -559,11 +568,59 @@ var DoneHubMonitor = class extends WidgetBase {
     });
     return rows;
   }
+  normalizeOpenCodeWindow(item, windowInfo, index) {
+    const key = String(windowInfo.key || "").toLowerCase();
+    if (key !== "rolling" && key !== "weekly") return null;
+    const hasUsedPercent = typeof windowInfo.used_percent === "number";
+    const hasRemainingPercent =
+      typeof windowInfo.remaining_percent === "number";
+    if (!hasUsedPercent && !hasRemainingPercent) return null;
+    const remainingPercent = this.clampPercent(
+      hasRemainingPercent
+        ? Number(windowInfo.remaining_percent)
+        : 100 - Number(windowInfo.used_percent),
+    );
+    const usedPercent = this.clampPercent(
+      hasUsedPercent ? Number(windowInfo.used_percent) : 100 - remainingPercent,
+    );
+    return {
+      key: `opencode-${item.channel?.id ?? index}-${key}`,
+      provider: "opencode",
+      title: key === "rolling" ? "5 小时使用限额" : "7 天使用限额",
+      channelName: this.getChannelName(item),
+      usedPercent,
+      remainingPercent,
+      resetAt:
+        typeof windowInfo.reset_at === "number"
+          ? windowInfo.reset_at * 1e3
+          : null,
+      windowKind: key === "rolling" ? "five-hour" : "long",
+      stale: Boolean(item.data?.stale),
+    };
+  }
+  getOpenCodeRows() {
+    const rows = [];
+    this.items.forEach((item, index) => {
+      if (this.getProvider(item) !== "opencode") return;
+      const usage = item.data?.usage;
+      const windows = usage?.windows ?? [];
+      for (const key of ["rolling", "weekly"]) {
+        const windowInfo = windows.find(
+          (window) => String(window.key || "").toLowerCase() === key,
+        );
+        if (!windowInfo) continue;
+        const row = this.normalizeOpenCodeWindow(item, windowInfo, index);
+        if (row) rows.push(row);
+      }
+    });
+    return rows;
+  }
   getMediumRows() {
     return [
       ...this.getCodexCoreRows().slice(0, 2),
       ...this.getClaudeCoreRows().slice(0, 2),
       ...this.getCopilotRows().slice(0, 2),
+      ...this.getOpenCodeRows().slice(0, 2),
     ].slice(0, 4);
   }
   getMediumRowPairs() {
@@ -571,6 +628,7 @@ var DoneHubMonitor = class extends WidgetBase {
       this.getCodexCoreRows().slice(0, 2),
       this.getClaudeCoreRows().slice(0, 2),
       this.getCopilotRows().slice(0, 2),
+      this.getOpenCodeRows().slice(0, 2),
     ];
     const pairs = [];
     let usedSlots = 0;
@@ -593,6 +651,9 @@ var DoneHubMonitor = class extends WidgetBase {
   }
   getLargeCopilotRows() {
     return this.getCopilotRows().slice(0, 2);
+  }
+  getLargeOpenCodeRows() {
+    return this.getOpenCodeRows().slice(0, 2);
   }
   getCodexPlanLabel() {
     for (const item of this.items) {
@@ -707,18 +768,27 @@ var DoneHubMonitor = class extends WidgetBase {
   getProviderDisplayName(provider) {
     if (provider === "codex") return "Codex";
     if (provider === "claude") return "Claude";
-    return "GitHub Copilot";
+    if (provider === "copilot") return "GitHub Copilot";
+    return "OpenCode";
   }
   renderProviderMark(parent, provider) {
     const mark = parent.addText(
-      provider === "codex" ? "C" : provider === "claude" ? "A" : "G",
+      provider === "codex"
+        ? "C"
+        : provider === "claude"
+          ? "A"
+          : provider === "copilot"
+            ? "G"
+            : "O",
     );
     mark.textColor =
       provider === "codex"
         ? new Color("#0F9F58")
         : provider === "claude"
           ? new Color("#D97706")
-          : new Color("#24292F");
+          : provider === "copilot"
+            ? new Color("#24292F")
+            : new Color("#4F46E5");
     mark.font = Font.boldSystemFont(10);
     mark.lineLimit = 1;
     mark.minimumScaleFactor = 0.8;
@@ -729,7 +799,9 @@ var DoneHubMonitor = class extends WidgetBase {
         ? CODEX_ICON_URL
         : provider === "claude"
           ? CLAUDE_ICON_URL
-          : GITHUB_ICON_URL;
+          : provider === "copilot"
+            ? GITHUB_ICON_URL
+            : OPENCODE_ICON_URL;
     try {
       const iconImage = await this.getImageByUrl(iconUrl);
       if (iconImage) {
@@ -746,7 +818,7 @@ var DoneHubMonitor = class extends WidgetBase {
       }
     } catch (error) {
       console.log(
-        `加载${provider === "codex" ? "Codex" : provider === "claude" ? "Claude" : "GitHub"}图标失败: ${error}`,
+        `加载${this.getProviderDisplayName(provider)}图标失败: ${error}`,
       );
     }
     const fallback = parent.addImage(
@@ -764,7 +836,9 @@ var DoneHubMonitor = class extends WidgetBase {
         ? new Color("#0F9F58")
         : provider === "claude"
           ? new Color("#D97706")
-          : new Color("#24292F");
+          : provider === "copilot"
+            ? new Color("#24292F")
+            : new Color("#4F46E5");
   }
   renderRowCard(
     parent,
@@ -914,7 +988,9 @@ var DoneHubMonitor = class extends WidgetBase {
         ? `Codex | ${this.getCodexPlanLabel()}`
         : provider === "claude"
           ? `Claude | ${this.getClaudePlanLabel()}`
-          : `GitHub Copilot | ${this.getCopilotPlanLabel()}${copilotChannels.length > 1 ? ` · #${copilotChannel?.id ?? "-"}` : ""}`;
+          : provider === "copilot"
+            ? `GitHub Copilot | ${this.getCopilotPlanLabel()}${copilotChannels.length > 1 ? ` · #${copilotChannel?.id ?? "-"}` : ""}`
+            : "OpenCode | GO";
     const title = header.addText(titleText);
     title.textColor = this.widgetColor;
     title.font = Font.boldSystemFont(15);
@@ -969,6 +1045,7 @@ var DoneHubMonitor = class extends WidgetBase {
       { provider: "codex", rows: this.getLargeCodexRows() },
       { provider: "claude", rows: this.getLargeClaudeRows() },
       { provider: "copilot", rows: this.getLargeCopilotRows() },
+      { provider: "opencode", rows: this.getLargeOpenCodeRows() },
     ].filter((section) => section.rows.length > 0);
     if (sections.length === 0) {
       this.renderRows(widget, []);
