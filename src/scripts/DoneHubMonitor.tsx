@@ -709,7 +709,7 @@ class DoneHubMonitor extends WidgetBase {
             ...this.getCodexCoreRows().slice(0, 2),
             ...this.getClaudeCoreRows().slice(0, 2),
             ...this.getCopilotRows().slice(0, 2),
-            ...this.getOpenCodeRows().slice(0, 2),
+            ...this.getOpenCodeRows().slice(0, 1),
         ].slice(0, 4)
     }
 
@@ -718,22 +718,32 @@ class DoneHubMonitor extends WidgetBase {
             this.getCodexCoreRows().slice(0, 2),
             this.getClaudeCoreRows().slice(0, 2),
             this.getCopilotRows().slice(0, 2),
-            this.getOpenCodeRows().slice(0, 2),
+            this.getOpenCodeRows().slice(0, 1),
         ]
-        const pairs: Array<[UsageRow | null, UsageRow | null]> = []
-        let usedSlots = 0
+        const orderedPairs: Array<{order: number; rows: [UsageRow | null, UsageRow | null]}> = []
+        let pendingSingle: {order: number; row: UsageRow} | null = null
 
-        for (const rows of providerRows) {
-            if (usedSlots >= 4) break
-            for (let i = 0; i < rows.length && usedSlots < 4; i += 2) {
-                const first = rows[i]
-                if (!first) continue
-                pairs.push([first, rows[i + 1] || null])
-                usedSlots += 2
+        providerRows.forEach((rows, order) => {
+            if (rows.length >= 2) {
+                orderedPairs.push({order, rows: [rows[0], rows[1]]})
+                return
             }
-        }
+            const row = rows[0]
+            if (!row) return
+            if (pendingSingle) {
+                orderedPairs.push({order: pendingSingle.order, rows: [pendingSingle.row, row]})
+                pendingSingle = null
+                return
+            }
+            pendingSingle = {order, row}
+        })
 
-        return pairs
+        if (pendingSingle) orderedPairs.push({order: pendingSingle.order, rows: [pendingSingle.row, null]})
+
+        return orderedPairs
+            .sort((left, right) => left.order - right.order)
+            .slice(0, 2)
+            .map((item) => item.rows)
     }
 
     getLargeCodexRows() {
@@ -889,7 +899,7 @@ class DoneHubMonitor extends WidgetBase {
                 const icon = parent.addImage(iconImage)
                 icon.imageSize = new Size(size, size)
                 icon.cornerRadius = Math.max(3, Math.floor(size / 5))
-                if (provider === 'copilot') {
+                if (provider === 'copilot' || provider === 'opencode') {
                     icon.tintColor = Color.dynamic(new Color('#24292F'), new Color('#F0F6FC'))
                 }
                 return

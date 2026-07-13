@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * build    :  2026-07-14 00:00:57
+ * build    :  2026-07-14 00:51:05
  * desc     :  Done Hub 聚合额度监控，汇总 Codex、Claude、GitHub Copilot 与 OpenCode 渠道用量
  * version  :  1.2.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -620,7 +620,7 @@ var DoneHubMonitor = class extends WidgetBase {
       ...this.getCodexCoreRows().slice(0, 2),
       ...this.getClaudeCoreRows().slice(0, 2),
       ...this.getCopilotRows().slice(0, 2),
-      ...this.getOpenCodeRows().slice(0, 2),
+      ...this.getOpenCodeRows().slice(0, 1),
     ].slice(0, 4);
   }
   getMediumRowPairs() {
@@ -628,20 +628,36 @@ var DoneHubMonitor = class extends WidgetBase {
       this.getCodexCoreRows().slice(0, 2),
       this.getClaudeCoreRows().slice(0, 2),
       this.getCopilotRows().slice(0, 2),
-      this.getOpenCodeRows().slice(0, 2),
+      this.getOpenCodeRows().slice(0, 1),
     ];
-    const pairs = [];
-    let usedSlots = 0;
-    for (const rows of providerRows) {
-      if (usedSlots >= 4) break;
-      for (let i = 0; i < rows.length && usedSlots < 4; i += 2) {
-        const first = rows[i];
-        if (!first) continue;
-        pairs.push([first, rows[i + 1] || null]);
-        usedSlots += 2;
+    const orderedPairs = [];
+    let pendingSingle = null;
+    providerRows.forEach((rows, order) => {
+      if (rows.length >= 2) {
+        orderedPairs.push({ order, rows: [rows[0], rows[1]] });
+        return;
       }
-    }
-    return pairs;
+      const row = rows[0];
+      if (!row) return;
+      if (pendingSingle) {
+        orderedPairs.push({
+          order: pendingSingle.order,
+          rows: [pendingSingle.row, row],
+        });
+        pendingSingle = null;
+        return;
+      }
+      pendingSingle = { order, row };
+    });
+    if (pendingSingle)
+      orderedPairs.push({
+        order: pendingSingle.order,
+        rows: [pendingSingle.row, null],
+      });
+    return orderedPairs
+      .sort((left, right) => left.order - right.order)
+      .slice(0, 2)
+      .map((item) => item.rows);
   }
   getLargeCodexRows() {
     return this.getCodexRows().slice(0, 4);
@@ -808,7 +824,7 @@ var DoneHubMonitor = class extends WidgetBase {
         const icon = parent.addImage(iconImage);
         icon.imageSize = new Size(size, size);
         icon.cornerRadius = Math.max(3, Math.floor(size / 5));
-        if (provider === "copilot") {
+        if (provider === "copilot" || provider === "opencode") {
           icon.tintColor = Color.dynamic(
             new Color("#24292F"),
             new Color("#F0F6FC"),
