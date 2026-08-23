@@ -573,6 +573,7 @@ class DoneHubMonitor extends WidgetBase {
             const additional = usage?.additional_rate_limits ?? []
             additional.forEach((limit, limitIndex) => {
                 const rawName = String(limit.limit_name || '模型').trim()
+                if (this.isCodexSparkLimitName(rawName)) return
                 const name = this.formatCodexLimitName(rawName)
                 const primary = this.normalizeCodexWindow(item, limit.rate_limit?.primary_window, name, `${name}-${limitIndex}-primary`, index)
                 const secondary = this.normalizeCodexWindow(item, limit.rate_limit?.secondary_window, name, `${name}-${limitIndex}-secondary`, index)
@@ -585,6 +586,10 @@ class DoneHubMonitor extends WidgetBase {
 
     getCodexRows() {
         return [...this.getCodexCoreRows(), ...this.getCodexAdditionalRows()]
+    }
+
+    isCodexSparkLimitName(name: string) {
+        return /spark/i.test(name)
     }
 
     formatCodexLimitName(name: string) {

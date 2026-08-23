@@ -5,7 +5,7 @@
 /*
  * author   :  seiun
  * date     :  2026/06/11
- * build    :  2026-07-14 00:51:05
+ * build    :  2026-08-24 01:54:53
  * desc     :  Done Hub 聚合额度监控，汇总 Codex、Claude、GitHub Copilot 与 OpenCode 渠道用量
  * version  :  1.2.0
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -454,6 +454,7 @@ var DoneHubMonitor = class extends WidgetBase {
       const additional = usage?.additional_rate_limits ?? [];
       additional.forEach((limit, limitIndex) => {
         const rawName = String(limit.limit_name || "模型").trim();
+        if (this.isCodexSparkLimitName(rawName)) return;
         const name = this.formatCodexLimitName(rawName);
         const primary = this.normalizeCodexWindow(
           item,
@@ -477,6 +478,9 @@ var DoneHubMonitor = class extends WidgetBase {
   }
   getCodexRows() {
     return [...this.getCodexCoreRows(), ...this.getCodexAdditionalRows()];
+  }
+  isCodexSparkLimitName(name) {
+    return /spark/i.test(name);
   }
   formatCodexLimitName(name) {
     const normalized = name.replace(/[-_\s]+/g, " ").trim();
