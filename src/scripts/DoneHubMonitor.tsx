@@ -565,7 +565,7 @@ class DoneHubMonitor extends WidgetBase {
         return rows
     }
 
-    getCodexAdditionalRows() {
+    getCodexAdditionalRows(includeSpark = false) {
         const rows: UsageRow[] = []
         this.items.forEach((item, index) => {
             if (this.getProvider(item) !== 'codex') return
@@ -573,7 +573,7 @@ class DoneHubMonitor extends WidgetBase {
             const additional = usage?.additional_rate_limits ?? []
             additional.forEach((limit, limitIndex) => {
                 const rawName = String(limit.limit_name || '模型').trim()
-                if (this.isCodexSparkLimitName(rawName)) return
+                if (!includeSpark && this.isCodexSparkLimitName(rawName)) return
                 const name = this.formatCodexLimitName(rawName)
                 const primary = this.normalizeCodexWindow(item, limit.rate_limit?.primary_window, name, `${name}-${limitIndex}-primary`, index)
                 const secondary = this.normalizeCodexWindow(item, limit.rate_limit?.secondary_window, name, `${name}-${limitIndex}-secondary`, index)
@@ -586,6 +586,15 @@ class DoneHubMonitor extends WidgetBase {
 
     getCodexRows() {
         return [...this.getCodexCoreRows(), ...this.getCodexAdditionalRows()]
+    }
+
+    getCodexSparkRows() {
+        return this.getCodexAdditionalRows(true).filter((row) => this.isCodexSparkLimitName(row.title))
+    }
+
+    getCodexSparkFallbackRow() {
+        const sparkRows = this.getCodexSparkRows()
+        return sparkRows.find((row) => row.windowKind === 'five-hour') || sparkRows.find((row) => /每周/.test(row.title)) || null
     }
 
     isCodexSparkLimitName(name: string) {
@@ -752,7 +761,10 @@ class DoneHubMonitor extends WidgetBase {
     }
 
     getLargeCodexRows() {
-        return this.getCodexRows().slice(0, 4)
+        const rows = this.getCodexRows().slice(0, 4)
+        if (rows.length !== 1) return rows
+        const sparkRow = this.getCodexSparkFallbackRow()
+        return sparkRow ? [...rows, sparkRow] : rows
     }
 
     getLargeClaudeRows() {
