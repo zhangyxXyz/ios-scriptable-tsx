@@ -6,7 +6,7 @@
  * author   :  seiunzhang
  * date     :  2026/11/15
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、中号四项与大号六项自由排列
- * version  :  1.1.1
+ * version  :  1.1.2
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -381,8 +381,9 @@ class CPAMonitor extends WidgetBase {
   }
   planLabel(tile: Tile) {
     const plan = tile.plan;
-    if (!plan) return "套餐未知";
-    return plan === "Pay-as-you-go" ? "按量付费" : plan.toUpperCase();
+    if (plan === "Pay-as-you-go" || plan === "按量付费") return "";
+    if (!plan) return tile.provider === "opencode" ? "GO" : "套餐未知";
+    return plan.toUpperCase();
   }
   layout(compact: boolean) {
     const size = this.getWidgetSize(compact ? "medium" : "large");
@@ -414,8 +415,7 @@ class CPAMonitor extends WidgetBase {
       claude: base + "claude.png",
       copilot: base + "github.png",
       opencode: base + "opencode.png",
-      deepseek:
-        "https://raw.githubusercontent.com/dillonzq/cpa-deepseek/main/assets/logo.png",
+      deepseek: base + "deepseek.png",
     };
     if (!(provider in this.providerIcons)) {
       this.providerIcons[provider] = null;
@@ -466,7 +466,9 @@ class CPAMonitor extends WidgetBase {
     await this.addProviderIcon(header, tile.provider, 16);
     header.addSpacer(6);
     const title = header.addText(
-      this.providerName(tile.provider) + " | " + this.planLabel(tile),
+      [this.providerName(tile.provider), this.planLabel(tile)]
+        .filter(Boolean)
+        .join(" | "),
     );
     title.textColor = this.widgetColor;
     title.font = Font.boldSystemFont(15);
@@ -500,7 +502,14 @@ class CPAMonitor extends WidgetBase {
     const shortTitle = tile.title.replace(/^[^·]+ · /, "");
     const title = heading.addText(
       compact
-        ? `${tile.provider === "subscription" ? "CLIProxy-Api · 订阅额度" : tile.title} | ${this.planLabel(tile)}`
+        ? [
+            tile.provider === "subscription"
+              ? "CLIProxy-Api · 订阅额度"
+              : tile.title,
+            this.planLabel(tile),
+          ]
+            .filter(Boolean)
+            .join(" | ")
         : shortTitle,
     );
     title.font = Font.mediumSystemFont(compact ? 8 : 9);

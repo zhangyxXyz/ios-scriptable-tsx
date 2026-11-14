@@ -28,6 +28,6 @@
 
 **远端服务保持不变。** 插件仍使用自己的 5 分钟共享缓存、失败后 30 秒重试间隔和最长 1 小时旧快照策略。本地缓存不会改变服务器的刷新或过期行为。
 
-卡片沿用 DoneHub 的图标、浅色／深色面板、额度条和底部状态样式。套餐来自接口返回；通过现有认证文件只读接口补充时，仅匹配唯一的同类可查询账号，不猜测多账号归属或未报告的套餐。未返回套餐时显示“套餐未知”。
+卡片沿用 DoneHub 的图标、浅色／深色面板、额度条和底部状态样式。套餐来自接口返回；通过现有认证文件只读接口补充时，仅匹配唯一的同类可查询账号，不猜测多账号归属或未报告的套餐。OpenCode 未返回套餐名时按约定显示“GO”，这是缺省展示标签，不代表接口识别出的具体套餐档位；其他服务未返回套餐时显示“套餐未知”。省略“按量付费”标签及其分隔符。DeepSeek 图标与其他服务一样使用 PicGallery 的 GitHub raw 资源。
 
 源码：[`src/scripts/CPAMonitor.tsx`](../../src/scripts/CPAMonitor.tsx)。接口：[Key Billing monitor](https://github.com/zhangyxXyz/CLIProxyAPI-Plugins/blob/dev/plugins/key-billing/docs/monitor.md)。
