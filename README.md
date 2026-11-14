@@ -68,7 +68,7 @@ npm run dev
 
 ## 脚本更新器
 
-`CPAMonitor` 提供 CPA Key Billing 的订阅和上游额度监控，支持 Provider 筛选、Keychain 凭据及服务端缓存状态。见 [配置与使用](./docs/zh-CN/cpa-monitor.md)。
+`CPAMonitor` 提供 CLIProxy-Api 额度卡片：中号四格、大号六格，支持查询发现、指标排序和 Keychain 凭据，显示服务器数据更新时间及缓存状态。原 DoneHubMonitor 已移除。见 [配置与使用](./docs/zh-CN/cpa-monitor.md)。
 
 `dist/ScriptUpdater.js` 可在 Scriptable 内管理脚本订阅。默认使用本仓库的 `dist/subscription.json`，也可以添加多个订阅源。
 

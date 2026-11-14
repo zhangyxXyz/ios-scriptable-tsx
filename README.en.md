@@ -1,6 +1,6 @@
 # ios-scriptable-tsx
 
-`CPAMonitor` displays CPA Key Billing subscription and upstream quotas, with provider filtering, Keychain credentials, and explicit cache/stale states. Install it through ScriptUpdater with `Seiun.Env.js`, then set the HTTPS CPA origin and a downstream API key in the app. Enable the key's quota permissions in CPA first. See the [setup guide](./docs/zh-CN/cpa-monitor.md).
+`CPAMonitor` displays CLIProxy-Api quotas in four medium or six large tiles, with query discovery, ordered metrics and Keychain credentials. It displays server observation/cache states without a device-side quota cache. It replaces DoneHubMonitor. See the [setup guide](./docs/zh-CN/cpa-monitor.md).
 
 [中文](./README.md) | [English](./README.en.md)
 

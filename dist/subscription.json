@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-14 19:53:47",
+  "generatedAt": "2026-11-15 04:06:12",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -80,12 +80,12 @@
       "fileName": "CPAMonitor.js",
       "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/CPAMonitor.js",
       "name": {
-        "zh": "CPA额度监控",
+        "zh": "CLIProxy-Api额度监控",
         "en": "CPAMonitor"
       },
-      "desc": "CPA 订阅与上游凭证额度监控，支持 provider 筛选和服务端缓存状态",
-      "version": "1.0.0",
-      "build": "2026-11-14 19:53:46"
+      "desc": "CLIProxy-Api 额度卡片，支持 Keychain、查询发现、中号四项与大号六项自由排列",
+      "version": "1.1.0",
+      "build": "2026-11-15 04:06:12"
     },
     {
       "id": "CryptoCurrency",
@@ -110,18 +110,6 @@
       "desc": "Cursor 用量监控，支持每日用量、总用量与套餐概览",
       "version": "1.0.0",
       "build": "2026-07-12 23:33:59"
-    },
-    {
-      "id": "DoneHubMonitor",
-      "fileName": "DoneHubMonitor.js",
-      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/DoneHubMonitor.js",
-      "name": {
-        "zh": "DoneHub聚合监控",
-        "en": "DoneHubMonitor"
-      },
-      "desc": "Done Hub 聚合额度监控，汇总 Codex、Claude、GitHub Copilot 与 OpenCode 渠道用量",
-      "version": "1.2.0",
-      "build": "2026-08-24 02:02:46"
     },
     {
       "id": "DoubanMonitor",
