@@ -5,9 +5,9 @@
 /*
  * author   :  seiunzhang
  * date     :  2026/11/15
- * build    :  2026-11-15 04:41:12
+ * build    :  2026-11-15 04:44:27
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、中号四项与大号六项自由排列
- * version  :  1.1.4
+ * version  :  1.1.5
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -706,7 +706,7 @@ var CPAMonitor = class extends WidgetBase {
       cardWidth,
       contentWidth: cardWidth * 2 + 10,
       cardHeight: compact
-        ? 64
+        ? 68
         : Math.min(70, Math.floor((size.height - 140) / 3)),
     };
   }
@@ -792,7 +792,7 @@ var CPAMonitor = class extends WidgetBase {
   async renderCard(parent, tile, width, height, compact) {
     const card = parent.addStack();
     card.layoutVertically();
-    card.setPadding(5, 10, 5, 10);
+    card.setPadding(compact ? 3 : 5, 10, compact ? 3 : 5, 10);
     card.backgroundColor = Color.dynamic(
       new Color("#FFFFFF", 0.78),
       new Color("#20232A", 0.92),
@@ -827,7 +827,7 @@ var CPAMonitor = class extends WidgetBase {
       metric.lineLimit = 1;
       metric.minimumScaleFactor = 0.65;
     }
-    card.addSpacer(compact ? 2 : 3);
+    card.addSpacer(compact ? 1 : 3);
     const valueRow = card.addStack();
     valueRow.layoutHorizontally();
     valueRow.centerAlignContent();
@@ -845,8 +845,8 @@ var CPAMonitor = class extends WidgetBase {
     suffix.font = Font.boldSystemFont(compact ? 11 : 13);
     suffix.lineLimit = 1;
     suffix.minimumScaleFactor = 0.65;
-    card.addSpacer(compact ? 3 : 4);
-    const barHeight = compact ? 5 : 7;
+    card.addSpacer(compact ? 2 : 4);
+    const barHeight = compact ? 4 : 7;
     const bar = card.addStack();
     bar.layoutHorizontally();
     bar.size = new Size(width - 20, barHeight);
@@ -865,26 +865,24 @@ var CPAMonitor = class extends WidgetBase {
       );
     }
     bar.addSpacer();
-    if (!compact) {
-      card.addSpacer(3);
-      const reset = Date.parse(tile.resetAt || "");
-      const detail = card.addText(
-        Number.isFinite(reset)
-          ? "重置 " + Utils.time("yyyy年M月d日 HH:mm", new Date(reset))
-          : tile.warning
-            ? tile.detail
-            : tile.amount === "∞"
-              ? "不限量"
-              : tile.percent === void 0
-                ? "余额快照"
-                : "未提供重置时间",
-      );
-      detail.font = Font.systemFont(9);
-      detail.textColor = this.widgetColor;
-      detail.textOpacity = 0.55;
-      detail.lineLimit = 1;
-      detail.minimumScaleFactor = 0.7;
-    }
+    card.addSpacer(compact ? 2 : 3);
+    const reset = Date.parse(tile.resetAt || "");
+    const detail = card.addText(
+      Number.isFinite(reset)
+        ? "重置 " + Utils.time("yyyy年M月d日 HH:mm", new Date(reset))
+        : tile.warning
+          ? tile.detail
+          : tile.amount === "∞"
+            ? "不限量"
+            : tile.percent === void 0
+              ? "余额快照"
+              : "未提供重置时间",
+    );
+    detail.font = Font.systemFont(compact ? 8 : 9);
+    detail.textColor = this.widgetColor;
+    detail.textOpacity = 0.55;
+    detail.lineLimit = 1;
+    detail.minimumScaleFactor = 0.7;
   }
   renderFooter(widget, width) {
     const footer = this.alignedRow(widget, width);
@@ -925,7 +923,7 @@ var CPAMonitor = class extends WidgetBase {
     }
     const compact = this.widgetFamily === "medium";
     const { cardWidth, contentWidth, cardHeight } = this.layout(compact);
-    widget.setPadding(10, 10, 10, 10);
+    widget.setPadding(compact ? 8 : 10, 10, compact ? 8 : 10, 10);
     try {
       const response = await this.loadQuota();
       const defaults = compact ? mediumDefaults : largeDefaults;
@@ -960,7 +958,7 @@ var CPAMonitor = class extends WidgetBase {
           cardHeight,
           compact,
         );
-        if (i + 2 < tiles.length) widget.addSpacer(compact ? 6 : 8);
+        if (i + 2 < tiles.length) widget.addSpacer(compact ? 4 : 8);
       }
     } catch (error) {
       this.statusWarning = true;
@@ -975,7 +973,7 @@ var CPAMonitor = class extends WidgetBase {
       message.lineLimit = 3;
       widget.addSpacer();
     }
-    widget.addSpacer(8);
+    widget.addSpacer(compact ? 4 : 8);
     this.renderFooter(widget, contentWidth);
     return widget;
   }

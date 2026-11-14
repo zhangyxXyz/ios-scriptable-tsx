@@ -32,4 +32,4 @@
 
 源码：[`src/scripts/CPAMonitor.tsx`](../../src/scripts/CPAMonitor.tsx)。接口：[Key Billing monitor](https://github.com/zhangyxXyz/CLIProxyAPI-Plugins/blob/dev/plugins/key-billing/docs/monitor.md)。
 
-大卡片显示各额度窗口的 `reset_at` 重置时间，并转换为设备本地时区，格式为“重置 2026年11月16日 14:01”；Codex 周限额、OpenCode 各周期以及 Copilot 月度请求／补全均直接使用接口时间。余额不虚构重置周期。
+中卡片和大卡片均显示各额度窗口的 `reset_at` 重置时间，并转换为设备本地时区，格式为“重置 2026年11月16日 14:01”；Codex 周限额、OpenCode 各周期以及 Copilot 月度请求／补全均直接使用接口时间。余额不虚构重置周期。
