@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-15 04:33:15",
+  "generatedAt": "2026-11-15 04:36:42",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -84,8 +84,8 @@
         "en": "CPAMonitor"
       },
       "desc": "CLIProxy-Api 额度卡片，支持 Keychain、查询发现、中号四项与大号六项自由排列",
-      "version": "1.1.2",
-      "build": "2026-11-15 04:33:15"
+      "version": "1.1.3",
+      "build": "2026-11-15 04:36:41"
     },
     {
       "id": "CryptoCurrency",

@@ -11,12 +11,12 @@
 
 | 位置 | 中号默认 | 大号默认 |
 | --- | --- | --- |
-| 左上 | Codex 周额度 | Codex 周额度 |
+| 左上 | Codex 每周使用限额 | Codex 每周使用限额 |
 | 右上 | DeepSeek 余额 | DeepSeek 余额 |
-| 第二行左 | Copilot credits | Copilot credits |
-| 第二行右 | OpenCode 5 小时 | Copilot 补全 |
+| 第二行左 | Copilot 每月高级请求额度 | Copilot 每月高级请求额度 |
+| 第二行右 | OpenCode 5 小时 | Copilot 每月代码补全额度 |
 | 第三行左 | — | OpenCode 5 小时 |
-| 第三行右 | — | OpenCode 周额度 |
+| 第三行右 | — | OpenCode 每周使用限额 |
 
 另外可选择 Claude 五小时／周额度、Copilot 聊天、OpenCode 月额度和订阅额度。预设匹配多个账号或币种时提示“请选择”，请指定查询发现的窗口，不会相加或随意选取一个。
 
@@ -31,3 +31,5 @@
 卡片沿用 DoneHub 的图标、浅色／深色面板、额度条和底部状态样式。套餐来自接口返回；通过现有认证文件只读接口补充时，仅匹配唯一的同类可查询账号，不猜测多账号归属或未报告的套餐。OpenCode 未返回套餐名时按约定显示“GO”，这是缺省展示标签，不代表接口识别出的具体套餐档位；其他服务未返回套餐时显示“套餐未知”。省略“按量付费”标签及其分隔符。DeepSeek 图标与其他服务一样使用 PicGallery 的 GitHub raw 资源。
 
 源码：[`src/scripts/CPAMonitor.tsx`](../../src/scripts/CPAMonitor.tsx)。接口：[Key Billing monitor](https://github.com/zhangyxXyz/CLIProxyAPI-Plugins/blob/dev/plugins/key-billing/docs/monitor.md)。
+
+大卡片显示各额度窗口的 `reset_at` 重置时间，并转换为设备本地时区；Codex 周限额、OpenCode 各周期以及 Copilot 月度请求／补全均直接使用接口时间。余额不虚构重置周期。

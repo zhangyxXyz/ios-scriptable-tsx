@@ -5,9 +5,9 @@
 /*
  * author   :  seiunzhang
  * date     :  2026/11/15
- * build    :  2026-11-15 04:33:15
+ * build    :  2026-11-15 04:36:41
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、中号四项与大号六项自由排列
- * version  :  1.1.2
+ * version  :  1.1.3
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -46,7 +46,7 @@ var presets = [
   {
     id: "codex-weekly",
     provider: "codex",
-    label: "Codex · 周额度",
+    label: "Codex · 每周使用限额",
     match: /weekly|week|7.day|周|七天/i,
   },
   {
@@ -58,13 +58,13 @@ var presets = [
   {
     id: "copilot-premium",
     provider: "copilot",
-    label: "Copilot · credits",
+    label: "Copilot · 每月高级请求额度",
     match: /premium|高级|credit/i,
   },
   {
     id: "copilot-completions",
     provider: "copilot",
-    label: "Copilot · 补全",
+    label: "Copilot · 每月代码补全额度",
     match: /complet|补全/i,
   },
   {
@@ -82,7 +82,7 @@ var presets = [
   {
     id: "opencode-weekly",
     provider: "opencode",
-    label: "OpenCode · 周额度",
+    label: "OpenCode · 每周使用限额",
     match: /weekly|week|7.day|周|七天/i,
   },
   {
@@ -100,7 +100,7 @@ var presets = [
   {
     id: "claude-weekly",
     provider: "claude",
-    label: "Claude · 周额度",
+    label: "Claude · 每周使用限额",
     match: /weekly|week|7.day|周|七天/i,
   },
   {
@@ -242,10 +242,18 @@ function attachPlans(response, files) {
       item.plan_name = matchingFiles[0].quota.plan;
   }
 }
+function displayTitle(row) {
+  return (
+    presets.find(
+      (preset) =>
+        preset.provider === row.provider && preset.match.test(row.title),
+    )?.label || `${row.provider} · ${row.title}`
+  );
+}
 function tileChoices(response) {
   return flattenQuota(response).map((row) => ({
     value: "window:" + row.id,
-    label: `${row.provider} · ${row.title} · ${row.account}${row.suffix === "CNY" || row.suffix === "USD" ? " · " + row.suffix : ""}`,
+    label: `${displayTitle(row)} · ${row.account}${row.suffix === "CNY" || row.suffix === "USD" ? " · " + row.suffix : ""}`,
   }));
 }
 function selectTiles(response, selections, now = Date.now()) {
@@ -261,7 +269,7 @@ function selectTiles(response, selections, now = Date.now()) {
     if (matches.length === 1)
       return {
         ...matches[0],
-        title: preset?.label || `${matches[0].provider} · ${matches[0].title}`,
+        title: preset?.label || displayTitle(matches[0]),
       };
     const part =
       preset?.provider === "subscription"
@@ -698,7 +706,7 @@ var CPAMonitor = class extends WidgetBase {
       cardWidth,
       contentWidth: cardWidth * 2 + 10,
       cardHeight: compact
-        ? 52
+        ? 64
         : Math.min(70, Math.floor((size.height - 140) / 3)),
     };
   }
@@ -784,7 +792,7 @@ var CPAMonitor = class extends WidgetBase {
   async renderCard(parent, tile, width, height, compact) {
     const card = parent.addStack();
     card.layoutVertically();
-    card.setPadding(compact ? 7 : 5, 10, compact ? 7 : 5, 10);
+    card.setPadding(5, 10, 5, 10);
     card.backgroundColor = Color.dynamic(
       new Color("#FFFFFF", 0.78),
       new Color("#20232A", 0.92),
@@ -800,12 +808,7 @@ var CPAMonitor = class extends WidgetBase {
     const shortTitle = tile.title.replace(/^[^·]+ · /, "");
     const title = heading.addText(
       compact
-        ? [
-            tile.provider === "subscription"
-              ? "CLIProxy-Api · 订阅额度"
-              : tile.title,
-            this.planLabel(tile),
-          ]
+        ? [this.providerName(tile.provider), this.planLabel(tile)]
             .filter(Boolean)
             .join(" | ")
         : shortTitle,
@@ -815,6 +818,15 @@ var CPAMonitor = class extends WidgetBase {
     title.textOpacity = 0.68;
     title.lineLimit = 1;
     title.minimumScaleFactor = 0.65;
+    if (compact) {
+      card.addSpacer(1);
+      const metric = card.addText(shortTitle);
+      metric.font = Font.mediumSystemFont(8);
+      metric.textColor = this.widgetColor;
+      metric.textOpacity = 0.68;
+      metric.lineLimit = 1;
+      metric.minimumScaleFactor = 0.65;
+    }
     card.addSpacer(compact ? 2 : 3);
     const valueRow = card.addStack();
     valueRow.layoutHorizontally();

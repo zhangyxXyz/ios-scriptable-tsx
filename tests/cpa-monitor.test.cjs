@@ -40,6 +40,7 @@ test('a revoked part does not recover old items and reset never refills', () => 
   const reset = response(); reset.data.upstream.items[0].windows[0].reset_at = new Date(now - 1).toISOString();
   const row = selectTiles(reset, ['copilot-premium'], now)[0];
   assert.equal(row.amount, '1,493.4'); assert.equal(row.stale, true);
+  assert.equal(row.resetAt, reset.data.upstream.items[0].windows[0].reset_at);
 });
 
 const { loadCachedQuota, QuotaRequestError } = load('src/widgets/cpa-cache.ts');

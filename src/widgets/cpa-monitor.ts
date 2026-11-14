@@ -74,7 +74,7 @@ export const presets = [
   {
     id: "codex-weekly",
     provider: "codex",
-    label: "Codex · 周额度",
+    label: "Codex · 每周使用限额",
     match: /weekly|week|7.day|周|七天/i,
   },
   {
@@ -86,13 +86,13 @@ export const presets = [
   {
     id: "copilot-premium",
     provider: "copilot",
-    label: "Copilot · credits",
+    label: "Copilot · 每月高级请求额度",
     match: /premium|高级|credit/i,
   },
   {
     id: "copilot-completions",
     provider: "copilot",
-    label: "Copilot · 补全",
+    label: "Copilot · 每月代码补全额度",
     match: /complet|补全/i,
   },
   {
@@ -110,7 +110,7 @@ export const presets = [
   {
     id: "opencode-weekly",
     provider: "opencode",
-    label: "OpenCode · 周额度",
+    label: "OpenCode · 每周使用限额",
     match: /weekly|week|7.day|周|七天/i,
   },
   {
@@ -128,7 +128,7 @@ export const presets = [
   {
     id: "claude-weekly",
     provider: "claude",
-    label: "Claude · 周额度",
+    label: "Claude · 每周使用限额",
     match: /weekly|week|7.day|周|七天/i,
   },
   {
@@ -284,10 +284,18 @@ export function attachPlans(
       item.plan_name = matchingFiles[0].quota.plan;
   }
 }
+function displayTitle(row: Tile): string {
+  return (
+    presets.find(
+      (preset) =>
+        preset.provider === row.provider && preset.match.test(row.title),
+    )?.label || `${row.provider} · ${row.title}`
+  );
+}
 export function tileChoices(response: MonitorResponse): Choice[] {
   return flattenQuota(response).map((row) => ({
     value: "window:" + row.id,
-    label: `${row.provider} · ${row.title} · ${row.account}${row.suffix === "CNY" || row.suffix === "USD" ? " · " + row.suffix : ""}`,
+    label: `${displayTitle(row)} · ${row.account}${row.suffix === "CNY" || row.suffix === "USD" ? " · " + row.suffix : ""}`,
   }));
 }
 export function selectTiles(
@@ -307,7 +315,7 @@ export function selectTiles(
     if (matches.length === 1)
       return {
         ...matches[0],
-        title: preset?.label || `${matches[0].provider} · ${matches[0].title}`,
+        title: preset?.label || displayTitle(matches[0]),
       };
     const part =
       preset?.provider === "subscription"
