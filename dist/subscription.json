@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-24 02:02:46",
+  "generatedAt": "2026-11-14 19:53:47",
   "rawBaseUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist",
   "scripts": [
     {
@@ -74,6 +74,18 @@
       "desc": "Codex 额度监控，支持官方直连与 Done Hub 代理",
       "version": "1.0.1",
       "build": "2026-06-11 22:52:17"
+    },
+    {
+      "id": "CPAMonitor",
+      "fileName": "CPAMonitor.js",
+      "rawUrl": "https://raw.githubusercontent.com/zhangyxXyz/ios-scriptable-tsx/main/dist/CPAMonitor.js",
+      "name": {
+        "zh": "CPA额度监控",
+        "en": "CPAMonitor"
+      },
+      "desc": "CPA 订阅与上游凭证额度监控，支持 provider 筛选和服务端缓存状态",
+      "version": "1.0.0",
+      "build": "2026-11-14 19:53:46"
     },
     {
       "id": "CryptoCurrency",
