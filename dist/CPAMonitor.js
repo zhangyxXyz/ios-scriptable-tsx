@@ -5,9 +5,9 @@
 /*
  * author   :  seiunzhang
  * date     :  2026/11/15
- * build    :  2026-11-15 04:06:12
+ * build    :  2026-11-15 04:25:47
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、中号四项与大号六项自由排列
- * version  :  1.1.0
+ * version  :  1.1.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -176,6 +176,9 @@ function flattenQuota(response, now = Date.now()) {
             ? "缓存"
             : "";
       rows.push({
+        plan: part.plan_name,
+        resetAt: window.reset_at,
+        observedAt: window.observed_at || part.fetched_at,
         cached: !!part.cached,
         id: JSON.stringify([identity, window.label, unit]),
         provider,
@@ -198,6 +201,8 @@ function flattenQuota(response, now = Date.now()) {
     }
     if (part.unlimited && !part.windows?.length)
       rows.push({
+        plan: part.plan_name,
+        observedAt: part.fetched_at,
         cached: !!part.cached,
         id: JSON.stringify([identity, "unlimited", ""]),
         provider,
@@ -217,6 +222,25 @@ function flattenQuota(response, now = Date.now()) {
       append(item, normalizeProvider(item.provider), item.credential_id);
   }
   return rows;
+}
+function attachPlans(response, files) {
+  const items = response.data.upstream?.items || [];
+  for (const item of items) {
+    if (item.plan_name || !item.refresh_supported) continue;
+    const provider = normalizeProvider(item.provider);
+    const matchingItems = items.filter(
+      (other) => normalizeProvider(other.provider) === provider,
+    );
+    const matchingFiles = files.filter(
+      (file) => !file.disabled && normalizeProvider(file.category) === provider,
+    );
+    if (
+      matchingItems.length === 1 &&
+      matchingFiles.length === 1 &&
+      matchingFiles[0].quota?.plan
+    )
+      item.plan_name = matchingFiles[0].quota.plan;
+  }
 }
 function tileChoices(response) {
   return flattenQuota(response).map((row) => ({
@@ -274,11 +298,60 @@ function selectTiles(response, selections, now = Date.now()) {
   });
 }
 
+// src/widgets/cpa-cache.ts
+var QuotaRequestError = class extends Error {
+  constructor(message, discardCache = false) {
+    super(message);
+    this.discardCache = discardCache;
+  }
+};
+async function loadCachedQuota(options) {
+  const { scope, now } = options;
+  const cache =
+    options.cache?.scope === scope && options.cache.fetchedAt <= now
+      ? options.cache
+      : null;
+  if (!cache && options.cache) options.clear();
+  if (!options.force && cache && now - cache.fetchedAt < 3e5)
+    return { ...cache, status: "使用缓存", warning: true };
+  try {
+    const response = await options.request();
+    const snapshot = { scope, response, fetchedAt: now };
+    options.save(snapshot);
+    const items = response.data.upstream?.items || [];
+    const stale = items.some((item) => item.stale || item.status === "stale");
+    const failed = items.some(
+      (item) => item.status === "error" || item.refresh_status === "error",
+    );
+    const partial =
+      response.partial || items.some((item) => item.status !== "ok");
+    return {
+      ...snapshot,
+      status: stale
+        ? failed
+          ? "请求失败/使用缓存"
+          : "使用缓存"
+        : partial
+          ? "部分查询失败"
+          : "在线",
+      warning: !!(stale || partial),
+    };
+  } catch (error) {
+    if (error instanceof QuotaRequestError && error.discardCache) {
+      options.clear();
+      throw error;
+    }
+    if (cache) return { ...cache, status: "请求失败/使用缓存", warning: true };
+    throw error;
+  }
+}
+
 // src/scripts/CPAMonitor.tsx
 var runtimeRequire = typeof require === "undefined" ? importModule : require;
 var { WidgetBase, Runing, GenrateView, Utils } = runtimeRequire("Seiun.Env.js");
 var keychainSlot = "CPAMonitor:downstream-key";
 var refreshInterval = 5 * 60 * 1e3;
+var quotaCacheKey = "cpa-quota-snapshot-v1";
 var CPAMonitor = class extends WidgetBase {
   constructor(scriptName) {
     super(scriptName);
@@ -307,6 +380,10 @@ var CPAMonitor = class extends WidgetBase {
         ]),
       ),
     };
+    this.statusMessage = "等待刷新";
+    this.statusWarning = false;
+    this.dataFetchTime = null;
+    this.providerIcons = {};
     this.choiceConfigs = [];
     if (!config.runsInApp) return;
     this.registerSettingCategory("requestSettings", "CLIProxy-Api 设置", [
@@ -367,6 +444,16 @@ var CPAMonitor = class extends WidgetBase {
       );
     }
     this.registerSetting([
+      {
+        title: "清除缓存",
+        desc: "只清除本地额度缓存",
+        icon: { name: "trash", color: "#EB5757" },
+        onAction: async () => {
+          this.storage.removeStorage(quotaCacheKey);
+          await this.notify("已清除缓存", "下次刷新会重新请求额度");
+          return true;
+        },
+      },
       {
         title: "CLIProxy-Api 设置",
         icon: { name: "server.rack", color: "#2563EB" },
@@ -443,6 +530,7 @@ var CPAMonitor = class extends WidgetBase {
       await this.notify("未保存", "API Key 不能包含空白字符");
       return;
     }
+    this.storage.removeStorage(quotaCacheKey);
     if (value) Keychain.set(keychainSlot, value);
     else if (Keychain.contains(keychainSlot)) Keychain.remove(keychainSlot);
     this.saveCatalog([]);
@@ -451,15 +539,46 @@ var CPAMonitor = class extends WidgetBase {
       value ? "请点击“查询并发现额度项”，再调整卡片排列" : "API Key 已清除",
     );
   }
-  async loadQuota() {
+  async loadQuota(force = false) {
+    const settings = this.currentSettings.requestSettings;
+    const scope = this.md5(
+      JSON.stringify([
+        settings.origin.val.trim().replace(/\/+$/, ""),
+        settings.include.val.trim(),
+        settings.provider.val.trim(),
+        Keychain.contains(keychainSlot) ? Keychain.get(keychainSlot) : "",
+      ]),
+    );
+    const loaded = await loadCachedQuota({
+      scope,
+      now: Date.now(),
+      force,
+      cache: this.storage.getStorage(quotaCacheKey),
+      request: () => this.fetchQuota(),
+      save: (value) => this.storage.setStorage(quotaCacheKey, value),
+      clear: () => this.storage.removeStorage(quotaCacheKey),
+    });
+    this.statusMessage = loaded.status;
+    this.statusWarning = loaded.warning;
+    const times = (loaded.response.data.upstream?.items || [])
+      .flatMap((item) =>
+        (item.windows || []).map((window) =>
+          Date.parse(window.observed_at || item.fetched_at || ""),
+        ),
+      )
+      .filter(Number.isFinite);
+    this.dataFetchTime = times.length ? Math.min(...times) : loaded.fetchedAt;
+    return loaded.response;
+  }
+  async fetchQuota() {
     const settings = this.currentSettings.requestSettings;
     const origin = String(settings.origin.val || "")
       .trim()
       .replace(/\/+$/, "");
     if (!/^https:\/\/[^/?#@\s]+$/.test(origin))
-      throw new Error("请先设置 CLIProxy-Api 的 HTTPS 地址");
+      throw new QuotaRequestError("请先设置 CLIProxy-Api 的 HTTPS 地址", true);
     if (!Keychain.contains(keychainSlot))
-      throw new Error("请先在设置中保存 API Key");
+      throw new QuotaRequestError("请先在设置中保存 API Key", true);
     const params = ["include", "provider"]
       .map((name) =>
         settings[name].val
@@ -479,21 +598,21 @@ var CPAMonitor = class extends WidgetBase {
       body = await request.loadJSON();
     } catch {
       if (request.response?.statusCode === 401)
-        throw new Error("Key 无效或已换钥，请重新设置");
+        throw new QuotaRequestError("Key 无效或已换钥，请重新设置", true);
       if (request.response?.statusCode === 403)
-        throw new Error("此 Key 未开启所需的额度查询权限");
+        throw new QuotaRequestError("此 Key 未开启所需的额度查询权限", true);
       throw new Error("无法读取额度响应，请检查地址与网络");
     }
     if (request.response.statusCode === 401)
-      throw new Error("Key 无效或已换钥，请重新设置");
+      throw new QuotaRequestError("Key 无效或已换钥，请重新设置", true);
     if (request.response.statusCode === 403)
-      throw new Error("此 Key 未开启所需的额度查询权限");
+      throw new QuotaRequestError("此 Key 未开启所需的额度查询权限", true);
     if (
       request.response.statusCode >= 400 &&
       request.response.statusCode < 500 &&
       request.response.statusCode !== 429
     )
-      throw new Error("查询配置无效，请检查地址与筛选条件");
+      throw new QuotaRequestError("查询配置无效，请检查地址与筛选条件", true);
     if (
       request.response.statusCode !== 200 ||
       body.schema_version !== 1 ||
@@ -501,13 +620,34 @@ var CPAMonitor = class extends WidgetBase {
       !body.data
     )
       throw new Error("额度查询失败，请检查权限或筛选条件");
+    if (
+      body.data.upstream?.items?.some(
+        (item) => item.refresh_supported && !item.plan_name,
+      )
+    ) {
+      const plans = new Request(
+        origin + "/v0/resource/plugins/cpa-key-billing/auth-files",
+      );
+      plans.headers = request.headers;
+      plans.timeoutInterval = 10;
+      try {
+        const details = await plans.loadJSON();
+        if (plans.response?.statusCode === 200 && Array.isArray(details.files))
+          attachPlans(body, details.files);
+      } catch {}
+      if (
+        plans.response?.statusCode === 401 ||
+        plans.response?.statusCode === 403
+      )
+        throw new QuotaRequestError("额度查询权限已失效，请重新检查 Key", true);
+    }
     return body;
   }
   async discover() {
     const alert = new Alert();
     alert.title = "额度查询";
     try {
-      const response = await this.loadQuota();
+      const response = await this.loadQuota(true);
       const choices = tileChoices(response);
       this.saveCatalog(choices);
       const items = response.data.upstream?.items || [];
@@ -531,103 +671,226 @@ var CPAMonitor = class extends WidgetBase {
     alert.addAction("完成");
     await alert.presentAlert();
   }
-  updatedLabel(response) {
-    const timestamps = (response.data.upstream?.items || [])
-      .flatMap((item) =>
-        (item.windows || []).map((window) =>
-          Date.parse(window.observed_at || item.fetched_at || ""),
-        ),
-      )
-      .filter(Number.isFinite);
-    if (!timestamps.length) {
-      const subscriptionTime =
-        response.data.subscription?.windows?.[0]?.observed_at;
-      if (subscriptionTime) timestamps.push(Date.parse(subscriptionTime));
-    }
-    return timestamps.length
-      ? "数据 " + Utils.time("HH:mm", new Date(Math.min(...timestamps)))
-      : "无有效更新时间";
+  providerName(provider) {
+    return (
+      {
+        codex: "Codex",
+        claude: "Claude",
+        copilot: "GitHub Copilot",
+        opencode: "OpenCode",
+        deepseek: "DeepSeek",
+        subscription: "CLIProxy-Api",
+      }[provider] ||
+      provider ||
+      "额度"
+    );
   }
-  renderCard(parent, tile, width, height, compact) {
+  planLabel(tile) {
+    const plan = tile.plan;
+    if (!plan) return "套餐未知";
+    return plan === "Pay-as-you-go" ? "按量付费" : plan.toUpperCase();
+  }
+  layout(compact) {
+    const size = this.getWidgetSize(compact ? "medium" : "large");
+    const cardWidth = Math.floor((size.width - 20 - 16 - 10) / 2);
+    return {
+      cardWidth,
+      contentWidth: cardWidth * 2 + 10,
+      cardHeight: compact
+        ? 52
+        : Math.min(70, Math.floor((size.height - 140) / 3)),
+    };
+  }
+  alignedRow(widget, width) {
+    const outer = widget.addStack();
+    outer.layoutHorizontally();
+    outer.addSpacer();
+    const inner = outer.addStack();
+    inner.layoutHorizontally();
+    inner.centerAlignContent();
+    inner.size = new Size(width, 0);
+    outer.addSpacer();
+    return inner;
+  }
+  async addProviderIcon(parent, provider, size = 16) {
+    const base =
+      "https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/";
+    const urls = {
+      codex: base + "codex.png",
+      claude: base + "claude.png",
+      copilot: base + "github.png",
+      opencode: base + "opencode.png",
+      deepseek:
+        "https://raw.githubusercontent.com/dillonzq/cpa-deepseek/main/assets/logo.png",
+    };
+    if (!(provider in this.providerIcons)) {
+      this.providerIcons[provider] = null;
+      if (urls[provider]) {
+        try {
+          this.providerIcons[provider] = await this.getImageByUrl(
+            urls[provider],
+          );
+        } catch {}
+      }
+    }
+    const picture = this.providerIcons[provider];
+    const icon = parent.addImage(
+      picture ||
+        SFSymbol.named(
+          provider === "codex"
+            ? "terminal.fill"
+            : provider === "claude"
+              ? "bolt.horizontal.circle.fill"
+              : provider === "deepseek"
+                ? "drop.fill"
+                : "chevron.left.forwardslash.chevron.right",
+        ).image,
+    );
+    icon.imageSize = new Size(size, size);
+    icon.cornerRadius = Math.max(3, Math.floor(size / 5));
+    if (picture && (provider === "copilot" || provider === "opencode"))
+      icon.tintColor = Color.dynamic(
+        new Color("#24292F"),
+        new Color("#F0F6FC"),
+      );
+    else if (!picture)
+      icon.tintColor = new Color(
+        provider === "codex"
+          ? "#0F9F58"
+          : provider === "claude"
+            ? "#D97706"
+            : "#4F46E5",
+      );
+  }
+  async providerHeader(parent, tile, width) {
+    const header = parent.addStack();
+    header.layoutHorizontally();
+    header.centerAlignContent();
+    header.size = new Size(width, 18);
+    await this.addProviderIcon(header, tile.provider, 16);
+    header.addSpacer(6);
+    const title = header.addText(
+      this.providerName(tile.provider) + " | " + this.planLabel(tile),
+    );
+    title.textColor = this.widgetColor;
+    title.font = Font.boldSystemFont(15);
+    title.textOpacity = 0.86;
+    title.lineLimit = 1;
+    title.minimumScaleFactor = 0.65;
+    header.addSpacer();
+  }
+  async renderCard(parent, tile, width, height, compact) {
     const card = parent.addStack();
     card.layoutVertically();
-    card.setPadding(compact ? 5 : 9, 9, compact ? 5 : 9, 9);
+    card.setPadding(compact ? 7 : 5, 10, compact ? 7 : 5, 10);
     card.backgroundColor = Color.dynamic(
-      new Color("#F1F3F6", 0.85),
+      new Color("#FFFFFF", 0.78),
       new Color("#20232A", 0.92),
     );
     card.cornerRadius = 8;
     card.size = new Size(width, height);
-    const title = card.addText(tile.title);
-    title.font = Font.mediumSystemFont(compact ? 9 : 11);
+    const heading = card.addStack();
+    heading.centerAlignContent();
+    if (compact) {
+      await this.addProviderIcon(heading, tile.provider, 10);
+      heading.addSpacer(3);
+    }
+    const shortTitle = tile.title.replace(/^[^·]+ · /, "");
+    const title = heading.addText(
+      compact
+        ? `${tile.provider === "subscription" ? "CLIProxy-Api · 订阅额度" : tile.title} | ${this.planLabel(tile)}`
+        : shortTitle,
+    );
+    title.font = Font.mediumSystemFont(compact ? 8 : 9);
     title.textColor = this.widgetColor;
-    title.textOpacity = 0.7;
+    title.textOpacity = 0.68;
     title.lineLimit = 1;
     title.minimumScaleFactor = 0.65;
-    card.addSpacer(compact ? 1 : 5);
+    card.addSpacer(compact ? 2 : 3);
     const valueRow = card.addStack();
+    valueRow.layoutHorizontally();
     valueRow.centerAlignContent();
     const value = valueRow.addText(tile.amount);
-    value.font = Font.boldSystemFont(compact ? 17 : 22);
-    value.lineLimit = 1;
-    value.minimumScaleFactor = 0.6;
-    value.textColor = tile.warning
-      ? new Color("#D97706")
-      : tile.percent !== void 0 && tile.percent < 20
-        ? new Color("#EB5757")
+    value.font = Font.boldSystemFont(compact ? 16 : 19);
+    value.textColor =
+      tile.percent !== void 0 && tile.percent < 20
+        ? Color.red()
         : this.widgetColor;
-    valueRow.addSpacer(3);
-    const suffix = valueRow.addText(tile.suffix);
-    suffix.font = Font.systemFont(compact ? 8 : 10);
+    value.lineLimit = 1;
+    value.minimumScaleFactor = 0.65;
+    valueRow.addSpacer(4);
+    const suffix = valueRow.addText(tile.amount === "∞" ? "不限" : tile.suffix);
     suffix.textColor = this.widgetColor;
-    suffix.textOpacity = 0.6;
+    suffix.font = Font.boldSystemFont(compact ? 11 : 13);
     suffix.lineLimit = 1;
-    card.addSpacer(compact ? 3 : 6);
-    if (tile.percent !== void 0) {
-      const bar = card.addStack();
-      bar.size = new Size(width - 18, compact ? 4 : 5);
-      bar.backgroundColor = new Color("#DADDE3", 0.35);
-      bar.cornerRadius = 2;
-      if (tile.percent > 0) {
-        const fill = bar.addStack();
-        fill.size = new Size(
-          ((width - 18) * tile.percent) / 100,
-          compact ? 4 : 5,
-        );
-        fill.backgroundColor = new Color(
-          tile.warning
-            ? "#D97706"
-            : tile.percent < 20
-              ? "#EB5757"
-              : tile.percent < 50
-                ? "#F2C94C"
-                : "#27C46A",
-        );
-        fill.cornerRadius = 2;
-      }
-      bar.addSpacer();
-    } else {
-      const note = card.addText(
-        tile.warning
-          ? tile.amount
-          : tile.amount === "∞"
-            ? "服务商报告不限量"
-            : "可用余额",
+    suffix.minimumScaleFactor = 0.65;
+    card.addSpacer(compact ? 3 : 4);
+    const barHeight = compact ? 5 : 7;
+    const bar = card.addStack();
+    bar.layoutHorizontally();
+    bar.size = new Size(width - 20, barHeight);
+    bar.cornerRadius = Math.floor(barHeight / 2);
+    bar.backgroundColor = new Color("#DADDE3", 0.35);
+    const percent = tile.amount === "∞" ? 100 : tile.percent;
+    if (percent !== void 0 && percent > 0) {
+      const fill = bar.addStack();
+      fill.size = new Size(
+        Math.round(((width - 20) * percent) / 100),
+        barHeight,
       );
-      note.font = Font.systemFont(compact ? 7 : 9);
-      note.textColor = this.widgetColor;
-      note.textOpacity = 0.5;
-      note.lineLimit = 1;
+      fill.cornerRadius = Math.floor(barHeight / 2);
+      fill.backgroundColor = new Color(
+        percent < 20 ? "#EB5757" : percent < 50 ? "#F2C94C" : "#27C46A",
+      );
     }
+    bar.addSpacer();
     if (!compact) {
-      card.addSpacer(5);
-      const detail = card.addText(tile.detail);
-      detail.font = Font.systemFont(8);
+      card.addSpacer(3);
+      const reset = Date.parse(tile.resetAt || "");
+      const detail = card.addText(
+        Number.isFinite(reset)
+          ? "重置 " + Utils.time("MM/dd HH:mm", new Date(reset))
+          : tile.warning
+            ? tile.detail
+            : tile.amount === "∞"
+              ? "不限量"
+              : tile.percent === void 0
+                ? "余额快照"
+                : "未提供重置时间",
+      );
+      detail.font = Font.systemFont(9);
       detail.textColor = this.widgetColor;
       detail.textOpacity = 0.55;
       detail.lineLimit = 1;
-      detail.minimumScaleFactor = 0.65;
+      detail.minimumScaleFactor = 0.7;
     }
+  }
+  renderFooter(widget, width) {
+    const footer = this.alignedRow(widget, width);
+    footer.addSpacer();
+    const color = this.statusWarning ? Color.red() : new Color("#27C46A");
+    const status = footer.addText(this.statusMessage);
+    status.font = new Font("SF Mono", 10);
+    status.textColor = color;
+    status.textOpacity = 0.5;
+    status.lineLimit = 1;
+    status.minimumScaleFactor = 0.7;
+    footer.addSpacer(5);
+    const icon = footer.addImage(SFSymbol.named("arrow.clockwise").image);
+    icon.imageSize = new Size(10, 10);
+    icon.tintColor = color;
+    icon.imageOpacity = 0.5;
+    footer.addSpacer(5);
+    const time = footer.addText(
+      this.dataFetchTime
+        ? Utils.time("HH:mm:ss", new Date(this.dataFetchTime))
+        : "暂无缓存",
+    );
+    time.font = new Font("SF Mono", 10);
+    time.textColor = color;
+    time.textOpacity = 0.5;
+    time.lineLimit = 1;
+    time.minimumScaleFactor = 0.7;
   }
   async render() {
     const widget = new ListWidget();
@@ -639,22 +902,9 @@ var CPAMonitor = class extends WidgetBase {
       await Utils.renderUnsupport(widget);
       return widget;
     }
-    widget.setPadding(10, 10, 10, 10);
     const compact = this.widgetFamily === "medium";
-    const size = this.getWidgetSize(this.widgetFamily);
-    const width = Math.floor((size.width - 36 - 8) / 2);
-    const height = compact ? 50 : 84;
-    const header = widget.addStack();
-    header.centerAlignContent();
-    const icon = header.addImage(SFSymbol.named("gauge.high").image);
-    icon.imageSize = new Size(13, 13);
-    icon.tintColor = new Color("#2563EB");
-    header.addSpacer(5);
-    const heading = header.addText("CLIProxy-Api");
-    heading.font = Font.boldSystemFont(13);
-    heading.textColor = this.widgetColor;
-    header.addSpacer();
-    widget.addSpacer(compact ? 5 : 9);
+    const { cardWidth, contentWidth, cardHeight } = this.layout(compact);
+    widget.setPadding(10, 10, 10, 10);
     try {
       const response = await this.loadQuota();
       const defaults = compact ? mediumDefaults : largeDefaults;
@@ -665,45 +915,47 @@ var CPAMonitor = class extends WidgetBase {
         defaults.map((id, index) => settings["slot" + index].val || id),
       );
       for (let i = 0; i < tiles.length; i += 2) {
-        const outer = widget.addStack();
-        outer.layoutHorizontally();
-        outer.addSpacer();
-        this.renderCard(outer, tiles[i], width, height, compact);
-        outer.addSpacer(8);
-        this.renderCard(outer, tiles[i + 1], width, height, compact);
-        outer.addSpacer();
-        if (i + 2 < tiles.length) widget.addSpacer(compact ? 5 : 8);
+        if (!compact) {
+          const header = this.alignedRow(widget, contentWidth);
+          if (
+            tiles[i].provider === tiles[i + 1].provider &&
+            tiles[i].plan === tiles[i + 1].plan
+          )
+            await this.providerHeader(header, tiles[i], contentWidth);
+          else {
+            await this.providerHeader(header, tiles[i], cardWidth);
+            header.addSpacer(10);
+            await this.providerHeader(header, tiles[i + 1], cardWidth);
+          }
+          widget.addSpacer(10);
+        }
+        const row = this.alignedRow(widget, contentWidth);
+        row.spacing = 10;
+        await this.renderCard(row, tiles[i], cardWidth, cardHeight, compact);
+        await this.renderCard(
+          row,
+          tiles[i + 1],
+          cardWidth,
+          cardHeight,
+          compact,
+        );
+        if (i + 2 < tiles.length) widget.addSpacer(compact ? 6 : 8);
       }
-      widget.addSpacer();
-      const footer = widget.addText(
-        [
-          tiles.some((tile) => tile.stale)
-            ? "旧快照"
-            : tiles.some((tile) => tile.warning)
-              ? "部分额度待确认"
-              : tiles.some((tile) => tile.cached)
-                ? "缓存"
-                : "剩余额度",
-          this.updatedLabel(response),
-        ]
-          .filter(Boolean)
-          .join(" · "),
-      );
-      footer.font = Font.systemFont(8);
-      footer.textColor = this.widgetColor;
-      footer.textOpacity = 0.55;
-      footer.lineLimit = 1;
-      footer.rightAlignText();
     } catch (error) {
+      this.statusWarning = true;
+      this.statusMessage = "请求失败";
       widget.addSpacer();
       const message = widget.addText(
         error instanceof Error ? error.message : "额度暂不可用",
       );
-      message.font = Font.systemFont(12);
-      message.textColor = this.widgetColor;
+      message.font = Font.mediumSystemFont(13);
+      message.textColor = Color.red();
+      message.centerAlignText();
       message.lineLimit = 3;
       widget.addSpacer();
     }
+    widget.addSpacer(8);
+    this.renderFooter(widget, contentWidth);
     return widget;
   }
 };

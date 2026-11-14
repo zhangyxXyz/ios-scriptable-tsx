@@ -68,7 +68,7 @@ npm run dev
 
 ## 脚本更新器
 
-`CPAMonitor` 提供 CLIProxy-Api 额度卡片：中号四格、大号六格，支持查询发现、指标排序和 Keychain 凭据，显示服务器数据更新时间及缓存状态。原 DoneHubMonitor 已移除。见 [配置与使用](./docs/zh-CN/cpa-monitor.md)。
+`CPAMonitor` 提供 CLIProxy-Api 额度卡片：中号四格、大号六格，支持查询发现、指标排序和 Keychain 凭据，沿用 DoneHub 样式与 5 分钟本地缓存，刷新失败时显示旧快照和红色缓存提示。原 DoneHubMonitor 已移除。见 [配置与使用](./docs/zh-CN/cpa-monitor.md)。
 
 `dist/ScriptUpdater.js` 可在 Scriptable 内管理脚本订阅。默认使用本仓库的 `dist/subscription.json`，也可以添加多个订阅源。
 

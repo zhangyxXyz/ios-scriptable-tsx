@@ -1,6 +1,6 @@
 # ios-scriptable-tsx
 
-`CPAMonitor` displays CLIProxy-Api quotas in four medium or six large tiles, with query discovery, ordered metrics and Keychain credentials. It displays server observation/cache states without a device-side quota cache. It replaces DoneHubMonitor. See the [setup guide](./docs/zh-CN/cpa-monitor.md).
+`CPAMonitor` displays CLIProxy-Api quotas in four medium or six large tiles, with query discovery, ordered metrics and Keychain credentials. It follows DoneHub styling and its five-minute local cache, retaining the last snapshot with a red status footer if a refresh fails. It replaces DoneHubMonitor. See the [setup guide](./docs/zh-CN/cpa-monitor.md).
 
 [中文](./README.md) | [English](./README.en.md)
 

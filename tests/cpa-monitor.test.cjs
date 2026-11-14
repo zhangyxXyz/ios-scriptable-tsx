@@ -41,3 +41,48 @@ test('a revoked part does not recover old items and reset never refills', () => 
   const row = selectTiles(reset, ['copilot-premium'], now)[0];
   assert.equal(row.amount, '1,493.4'); assert.equal(row.stale, true);
 });
+
+const { loadCachedQuota, QuotaRequestError } = load('src/widgets/cpa-cache.ts');
+const { attachPlans } = load('src/widgets/cpa-monitor.ts');
+function cacheOptions(age = 0) {
+  return { scope: 'dummy-scope', now, cache: { scope: 'dummy-scope', response: response(), fetchedAt: now - age },
+    request: async () => response(), save: () => {}, clear: () => {} };
+}
+test('fresh cache skips requests; exactly five minutes refreshes', async () => {
+  let requests = 0; const options = cacheOptions(299999);
+  options.request = async () => { requests++; return response(); };
+  const fresh = await loadCachedQuota(options);
+  assert.equal(requests, 0); assert.equal(fresh.status, '使用缓存'); assert.equal(fresh.warning, true);
+  options.now++;
+  assert.equal((await loadCachedQuota(options)).status, '在线'); assert.equal(requests, 1);
+});
+test('failed refresh preserves arbitrarily old cache and its timestamp', async () => {
+  const options = cacheOptions(86400000);
+  options.request = async () => { throw new Error('offline'); };
+  options.save = () => assert.fail('must not refresh cache timestamp');
+  const cached = await loadCachedQuota(options);
+  assert.equal(cached.fetchedAt, now - 86400000); assert.equal(cached.status, '请求失败/使用缓存');
+});
+test('changed scope cannot fall back and permission failures clear cache', async () => {
+  let cleared = 0; const options = cacheOptions(300000);
+  options.clear = () => { cleared++; }; options.scope = 'another-key';
+  options.request = async () => { throw new Error('offline'); };
+  await assert.rejects(loadCachedQuota(options), /offline/); assert.equal(cleared, 1);
+  options.scope = 'dummy-scope'; options.request = async () => { throw new QuotaRequestError('revoked', true); };
+  await assert.rejects(loadCachedQuota(options), /revoked/); assert.equal(cleared, 2);
+});
+test('forced discovery refreshes and replaces revoked parts without merging old data', async () => {
+  const options = cacheOptions(); options.force = true;
+  options.request = async () => ({ success: true, schema_version: 1, partial: true, data: { upstream: { status: 'forbidden' } } });
+  let saved; options.save = (value) => { saved = value; };
+  const result = await loadCachedQuota(options);
+  assert.equal(result.status, '部分查询失败'); assert.equal(saved.response.data.upstream.items, undefined);
+});
+test('plan enrichment requires one refreshable account and never invents plans', () => {
+  const data = response(); data.data.upstream.items.forEach(item => { item.refresh_supported = true; });
+  attachPlans(data, [{ category: 'copilot', quota: { plan: 'individual' } }, { category: 'deepseek', quota: {} }]);
+  assert.equal(data.data.upstream.items[0].plan_name, 'individual'); assert.equal(data.data.upstream.items[1].plan_name, undefined);
+  const ambiguous = response(); ambiguous.data.upstream.items[0].refresh_supported = true;
+  attachPlans(ambiguous, [{ category: 'copilot', quota: { plan: 'a' } }, { category: 'copilot', quota: { plan: 'b' } }]);
+  assert.equal(ambiguous.data.upstream.items[0].plan_name, undefined);
+});

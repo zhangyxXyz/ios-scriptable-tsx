@@ -15,6 +15,7 @@ export type QuotaPart = {
   provider?: string;
   name?: string;
   plan_name?: string;
+  refresh_supported?: boolean;
   unlimited?: boolean;
   cached?: boolean;
   refresh_status?: string;
@@ -31,6 +32,9 @@ export type MonitorResponse = {
 };
 export type Choice = { label: string; value: string };
 export type Tile = {
+  plan?: string;
+  resetAt?: string;
+  observedAt?: string;
   cached?: boolean;
   id: string;
   provider: string;
@@ -204,6 +208,9 @@ export function flattenQuota(
             ? "缓存"
             : "";
       rows.push({
+        plan: part.plan_name,
+        resetAt: window.reset_at,
+        observedAt: window.observed_at || part.fetched_at,
         cached: !!part.cached,
         id: JSON.stringify([identity, window.label, unit]),
         provider,
@@ -226,6 +233,8 @@ export function flattenQuota(
     }
     if (part.unlimited && !part.windows?.length)
       rows.push({
+        plan: part.plan_name,
+        observedAt: part.fetched_at,
         cached: !!part.cached,
         id: JSON.stringify([identity, "unlimited", ""]),
         provider,
@@ -245,6 +254,35 @@ export function flattenQuota(
       append(item, normalizeProvider(item.provider), item.credential_id);
   }
   return rows;
+}
+
+export function attachPlans(
+  response: MonitorResponse,
+  files: Array<{
+    category?: string;
+    disabled?: boolean;
+    quota?: { plan?: string };
+  }>,
+) {
+  const items = response.data.upstream?.items || [];
+  for (const item of items) {
+    if (item.plan_name || !item.refresh_supported) continue;
+    const provider = normalizeProvider(item.provider);
+    const matchingItems = items.filter(
+      (other) => normalizeProvider(other.provider) === provider,
+    );
+    const matchingFiles = files.filter(
+      (file) => !file.disabled && normalizeProvider(file.category) === provider,
+    );
+    // The legacy file list uses different IDs. Only an unambiguous single
+    // readable credential can supply a plan; never guess across accounts.
+    if (
+      matchingItems.length === 1 &&
+      matchingFiles.length === 1 &&
+      matchingFiles[0].quota?.plan
+    )
+      item.plan_name = matchingFiles[0].quota.plan;
+  }
 }
 export function tileChoices(response: MonitorResponse): Choice[] {
   return flattenQuota(response).map((row) => ({
