@@ -5,9 +5,9 @@
 /*
  * author   :  seiunzhang
  * date     :  2026/11/15
- * build    :  2026-11-15 04:44:27
- * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、中号四项与大号六项自由排列
- * version  :  1.1.5
+ * build    :  2026-11-15 04:52:53
+ * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、小号一项、中号四项与大号六项自由排列
+ * version  :  1.1.6
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -28,6 +28,7 @@ var statusLabels = {
   unavailable: "暂不可用",
   unsupported: "暂不支持",
 };
+var smallDefaults = ["codex-weekly"];
 var mediumDefaults = [
   "codex-weekly",
   "deepseek-balance",
@@ -313,6 +314,31 @@ var QuotaRequestError = class extends Error {
     this.discardCache = discardCache;
   }
 };
+function responseStatus(response, localCache = false) {
+  const parts = [
+    response.data.subscription,
+    response.data.upstream,
+    ...(response.data.upstream?.items || []),
+  ].filter((part) => !!part);
+  const stale = parts.some((part) => part.stale || part.status === "stale");
+  const failed = parts.some(
+    (part) => part.status === "error" || part.refresh_status === "error",
+  );
+  const partial =
+    !!response.partial || parts.some((part) => part.status !== "ok");
+  return {
+    status: stale
+      ? failed
+        ? "请求失败/使用缓存"
+        : "使用旧数据"
+      : failed || partial
+        ? "部分查询失败"
+        : localCache || parts.some((part) => part.cached)
+          ? ""
+          : "在线",
+    warning: stale || failed || partial,
+  };
+}
 async function loadCachedQuota(options) {
   const { scope, now } = options;
   const cache =
@@ -321,29 +347,12 @@ async function loadCachedQuota(options) {
       : null;
   if (!cache && options.cache) options.clear();
   if (!options.force && cache && now - cache.fetchedAt < 3e5)
-    return { ...cache, status: "使用缓存", warning: true };
+    return { ...cache, ...responseStatus(cache.response, true) };
   try {
     const response = await options.request();
     const snapshot = { scope, response, fetchedAt: now };
     options.save(snapshot);
-    const items = response.data.upstream?.items || [];
-    const stale = items.some((item) => item.stale || item.status === "stale");
-    const failed = items.some(
-      (item) => item.status === "error" || item.refresh_status === "error",
-    );
-    const partial =
-      response.partial || items.some((item) => item.status !== "ok");
-    return {
-      ...snapshot,
-      status: stale
-        ? failed
-          ? "请求失败/使用缓存"
-          : "使用缓存"
-        : partial
-          ? "部分查询失败"
-          : "在线",
-      warning: !!(stale || partial),
-    };
+    return { ...snapshot, ...responseStatus(response) };
   } catch (error) {
     if (error instanceof QuotaRequestError && error.discardCache) {
       options.clear();
@@ -374,6 +383,9 @@ var CPAMonitor = class extends WidgetBase {
       },
       displaySettings: {
         catalog: { val: "[]", type: this.settingValTypeString },
+      },
+      smallSettings: {
+        slot0: { val: smallDefaults[0], type: this.settingValTypeString },
       },
       mediumSettings: Object.fromEntries(
         mediumDefaults.map((id, i) => [
@@ -429,12 +441,17 @@ var CPAMonitor = class extends WidgetBase {
     } catch {}
     if (!Array.isArray(discovered)) discovered = [];
     for (const [family, defaults] of [
+      ["small", smallDefaults],
       ["medium", mediumDefaults],
       ["large", largeDefaults],
     ]) {
       this.registerSettingCategory(
         family + "Settings",
-        family === "medium" ? "中卡片 · 2 × 2" : "大卡片 · 2 × 3",
+        family === "small"
+          ? "小卡片 · 1 项"
+          : family === "medium"
+            ? "中卡片 · 2 × 2"
+            : "大卡片 · 2 × 3",
         defaults.map((id, index) => {
           const cfg = {
             selectOptions: this.choices(discovered),
@@ -442,7 +459,10 @@ var CPAMonitor = class extends WidgetBase {
           };
           this.choiceConfigs.push(cfg);
           return {
-            title: `第 ${index + 1} 项 · ${["左上", "右上", "左中", "右中", "左下", "右下"][family === "medium" && index > 1 ? index + 2 : index]}`,
+            title:
+              family === "small"
+                ? "第 1 项 · 显示额度"
+                : `第 ${index + 1} 项 · ${["左上", "右上", "左中", "右中", "左下", "右下"][family === "medium" && index > 1 ? index + 2 : index]}`,
             desc: "按位置选择显示项，即可调整排列；多账号请选查询发现的具体窗口",
             type: "select",
             option: { ["slot" + index]: id },
@@ -485,6 +505,14 @@ var CPAMonitor = class extends WidgetBase {
         icon: { name: "arrow.clockwise", color: "#27C46A" },
         onAction: async () => {
           await this.discover();
+          return true;
+        },
+      },
+      {
+        title: "小卡片排列 · 1 项",
+        icon: { name: "square", color: "#2563EB" },
+        onAction: async () => {
+          await this.presentSettings(["smallSettings"]);
           return true;
         },
       },
@@ -660,7 +688,7 @@ var CPAMonitor = class extends WidgetBase {
       this.saveCatalog(choices);
       const items = response.data.upstream?.items || [];
       alert.message =
-        `发现 ${choices.length} 个额度窗口。进入中/大卡片排列，可选择预设或具体账号窗口。
+        `发现 ${choices.length} 个额度窗口。进入小/中/大卡片排列，可选择预设或具体账号窗口。
 
 ` +
         (response.data.upstream?.status === "forbidden" ||
@@ -847,24 +875,7 @@ var CPAMonitor = class extends WidgetBase {
     suffix.minimumScaleFactor = 0.65;
     card.addSpacer(compact ? 2 : 4);
     const barHeight = compact ? 4 : 7;
-    const bar = card.addStack();
-    bar.layoutHorizontally();
-    bar.size = new Size(width - 20, barHeight);
-    bar.cornerRadius = Math.floor(barHeight / 2);
-    bar.backgroundColor = new Color("#DADDE3", 0.35);
-    const percent = tile.amount === "∞" ? 100 : tile.percent;
-    if (percent !== void 0 && percent > 0) {
-      const fill = bar.addStack();
-      fill.size = new Size(
-        Math.round(((width - 20) * percent) / 100),
-        barHeight,
-      );
-      fill.cornerRadius = Math.floor(barHeight / 2);
-      fill.backgroundColor = new Color(
-        percent < 20 ? "#EB5757" : percent < 50 ? "#F2C94C" : "#27C46A",
-      );
-    }
-    bar.addSpacer();
+    this.renderQuotaBar(card, tile, width - 20, barHeight);
     card.addSpacer(compact ? 2 : 3);
     const reset = Date.parse(tile.resetAt || "");
     const detail = card.addText(
@@ -884,17 +895,141 @@ var CPAMonitor = class extends WidgetBase {
     detail.lineLimit = 1;
     detail.minimumScaleFactor = 0.7;
   }
+  renderQuotaBar(parent, tile, width, barHeight) {
+    const bar = parent.addStack();
+    bar.layoutHorizontally();
+    bar.size = new Size(width, barHeight);
+    bar.cornerRadius = Math.floor(barHeight / 2);
+    bar.backgroundColor = new Color("#DADDE3", 0.35);
+    const percent = tile.amount === "∞" ? 100 : tile.percent;
+    if (percent !== void 0 && percent > 0) {
+      const fill = bar.addStack();
+      fill.size = new Size(Math.round((width * percent) / 100), barHeight);
+      fill.cornerRadius = Math.floor(barHeight / 2);
+      fill.backgroundColor = new Color(
+        percent < 20 ? "#EB5757" : percent < 50 ? "#F2C94C" : "#27C46A",
+      );
+    }
+    bar.addSpacer();
+  }
+  // The common settings menu discovers previews through these named renderers.
+  async renderMedium() {
+    this.widgetFamily = "medium";
+    return this.render();
+  }
+  async renderLarge() {
+    this.widgetFamily = "large";
+    return this.render();
+  }
+  async renderSmall() {
+    const widget = new ListWidget();
+    await this.getWidgetBackgroundImage(widget);
+    GenrateView.setListWidget(widget);
+    widget.setPadding(10, 10, 10, 10);
+    widget.url = `scriptable:///run/${encodeURIComponent(Script.name())}`;
+    widget.refreshAfterDate = new Date(Date.now() + refreshInterval);
+    const width = Math.min(150, this.getWidgetSize("small").width - 20);
+    const content = this.alignedRow(widget, width);
+    content.layoutVertically();
+    try {
+      const response = await this.loadQuota();
+      const tile = selectTiles(response, [
+        this.currentSettings.smallSettings.slot0.val || smallDefaults[0],
+      ])[0];
+      const header = content.addStack();
+      header.centerAlignContent();
+      await this.addProviderIcon(header, tile.provider, 14);
+      header.addSpacer(4);
+      const provider = header.addText(
+        tile.provider === "copilot"
+          ? "Copilot"
+          : this.providerName(tile.provider),
+      );
+      provider.font = Font.boldSystemFont(11);
+      provider.textColor = this.widgetColor;
+      provider.lineLimit = 1;
+      provider.minimumScaleFactor = 0.65;
+      header.addSpacer();
+      const plan = header.addText(this.planLabel(tile));
+      plan.font = Font.mediumSystemFont(9);
+      plan.textColor = this.widgetColor;
+      plan.textOpacity = 0.68;
+      plan.lineLimit = 1;
+      plan.minimumScaleFactor = 0.65;
+      content.addSpacer(6);
+      const metric = content.addText(tile.title.replace(/^[^·]+ · /, ""));
+      metric.font = Font.mediumSystemFont(10);
+      metric.textColor = this.widgetColor;
+      metric.textOpacity = 0.68;
+      metric.lineLimit = 1;
+      metric.minimumScaleFactor = 0.7;
+      content.addSpacer(2);
+      const valueRow = content.addStack();
+      valueRow.centerAlignContent();
+      const value = valueRow.addText(tile.amount);
+      value.font = Font.boldSystemFont(28);
+      value.textColor =
+        tile.percent !== void 0 && tile.percent < 20
+          ? Color.red()
+          : this.widgetColor;
+      value.lineLimit = 1;
+      value.minimumScaleFactor = 0.55;
+      if (tile.suffix || tile.amount === "∞") {
+        valueRow.addSpacer(3);
+        const suffix = valueRow.addText(
+          tile.amount === "∞" ? "不限" : tile.suffix,
+        );
+        suffix.font = Font.boldSystemFont(10);
+        suffix.textColor = this.widgetColor;
+        suffix.lineLimit = 1;
+        suffix.minimumScaleFactor = 0.65;
+      }
+      if (tile.percent !== void 0 || tile.amount === "∞") {
+        content.addSpacer(6);
+        this.renderQuotaBar(content, tile, width, 6);
+      }
+      const reset = Date.parse(tile.resetAt || "");
+      if (Number.isFinite(reset)) {
+        content.addSpacer(7);
+        for (const line of [
+          "重置 " + Utils.time("yyyy年M月d日", new Date(reset)),
+          Utils.time("HH:mm", new Date(reset)),
+        ]) {
+          const detail = content.addText(line);
+          detail.font = Font.systemFont(9);
+          detail.textColor = this.widgetColor;
+          detail.textOpacity = 0.55;
+          detail.lineLimit = 1;
+          detail.minimumScaleFactor = 0.7;
+        }
+      }
+    } catch (error) {
+      this.statusWarning = true;
+      this.statusMessage = "请求失败";
+      const message = content.addText(
+        error instanceof Error ? error.message : "额度暂不可用",
+      );
+      message.font = Font.mediumSystemFont(12);
+      message.textColor = Color.red();
+      message.lineLimit = 4;
+    }
+    widget.addSpacer();
+    this.renderFooter(widget, width);
+    return widget;
+  }
   renderFooter(widget, width) {
     const footer = this.alignedRow(widget, width);
     footer.addSpacer();
     const color = this.statusWarning ? Color.red() : new Color("#27C46A");
-    const status = footer.addText(this.statusMessage);
-    status.font = new Font("SF Mono", 10);
-    status.textColor = color;
-    status.textOpacity = 0.5;
-    status.lineLimit = 1;
-    status.minimumScaleFactor = 0.7;
-    footer.addSpacer(5);
+    if (this.statusMessage) {
+      const status = footer.addText(this.statusMessage);
+      status.font = new Font("SF Mono", 10);
+      status.textColor = color;
+      status.textOpacity = 0.5;
+      status.lineLimit = 1;
+      status.minimumScaleFactor = 0.7;
+      footer.addSpacer(5);
+    }
     const icon = footer.addImage(SFSymbol.named("arrow.clockwise").image);
     icon.imageSize = new Size(10, 10);
     icon.tintColor = color;
@@ -912,6 +1047,7 @@ var CPAMonitor = class extends WidgetBase {
     time.minimumScaleFactor = 0.7;
   }
   async render() {
+    if (this.widgetFamily === "small") return this.renderSmall();
     const widget = new ListWidget();
     await this.getWidgetBackgroundImage(widget);
     GenrateView.setListWidget(widget);

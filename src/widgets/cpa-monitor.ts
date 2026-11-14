@@ -56,6 +56,7 @@ export const statusLabels: Record<string, string> = {
   unavailable: "暂不可用",
   unsupported: "暂不支持",
 };
+export const smallDefaults = ["codex-weekly"];
 export const mediumDefaults = [
   "codex-weekly",
   "deepseek-balance",

@@ -53,7 +53,7 @@ test('fresh cache skips requests; exactly five minutes refreshes', async () => {
   let requests = 0; const options = cacheOptions(299999);
   options.request = async () => { requests++; return response(); };
   const fresh = await loadCachedQuota(options);
-  assert.equal(requests, 0); assert.equal(fresh.status, '使用缓存'); assert.equal(fresh.warning, true);
+  assert.equal(requests, 0); assert.equal(fresh.status, ''); assert.equal(fresh.warning, false);
   options.now++;
   assert.equal((await loadCachedQuota(options)).status, '在线'); assert.equal(requests, 1);
 });
@@ -86,4 +86,18 @@ test('plan enrichment requires one refreshable account and never invents plans',
   const ambiguous = response(); ambiguous.data.upstream.items[0].refresh_supported = true;
   attachPlans(ambiguous, [{ category: 'copilot', quota: { plan: 'a' } }, { category: 'copilot', quota: { plan: 'b' } }]);
   assert.equal(ambiguous.data.upstream.items[0].plan_name, undefined);
+});
+
+
+test('server cache is quiet but cached service failures stay red', async () => {
+  const options = cacheOptions(); options.cache.response.data.upstream.items[0].cached = true;
+  assert.equal((await loadCachedQuota(options)).warning, false);
+  options.cache.response.data.upstream.items[0].refresh_status = 'error';
+  options.cache.response.data.upstream.items[0].stale = true;
+  const failed = await loadCachedQuota(options);
+  assert.equal(failed.warning, true); assert.equal(failed.status, '请求失败/使用缓存');
+  options.force = true;
+  options.request = async () => { const data = response(); data.data.upstream.items.forEach(item => { item.cached = true; }); return data; };
+  const freshServerCache = await loadCachedQuota(options);
+  assert.equal(freshServerCache.status, ''); assert.equal(freshServerCache.warning, false);
 });
