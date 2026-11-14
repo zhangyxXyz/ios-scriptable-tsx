@@ -5,9 +5,9 @@
 /*
  * author   :  seiunzhang
  * date     :  2026/11/15
- * build    :  2026-11-15 04:36:41
+ * build    :  2026-11-15 04:41:12
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、中号四项与大号六项自由排列
- * version  :  1.1.3
+ * version  :  1.1.4
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -31,16 +31,16 @@ var statusLabels = {
 var mediumDefaults = [
   "codex-weekly",
   "deepseek-balance",
-  "copilot-premium",
   "opencode-five",
+  "copilot-premium",
 ];
 var largeDefaults = [
   "codex-weekly",
   "deepseek-balance",
-  "copilot-premium",
-  "copilot-completions",
   "opencode-five",
   "opencode-weekly",
+  "copilot-premium",
+  "copilot-completions",
 ];
 var presets = [
   {
@@ -76,7 +76,7 @@ var presets = [
   {
     id: "opencode-five",
     provider: "opencode",
-    label: "OpenCode · 5 小时",
+    label: "OpenCode · 每5小时使用限额",
     match: /rolling|5\s*(hours?|h|小时)|five.hour/i,
   },
   {
@@ -94,7 +94,7 @@ var presets = [
   {
     id: "claude-five",
     provider: "claude",
-    label: "Claude · 5 小时",
+    label: "Claude · 每5小时使用限额",
     match: /5\s*(hours?|h|小时)|five.hour/i,
   },
   {
@@ -158,7 +158,7 @@ function flattenQuota(response, now = Date.now()) {
         suffix = ["CNY", "USD"].includes(unit)
           ? unit
           : unit === "credits"
-            ? "credits"
+            ? "Credits"
             : unit;
       } else if (percent !== void 0) {
         amount = number(percent) + "%";
@@ -870,7 +870,7 @@ var CPAMonitor = class extends WidgetBase {
       const reset = Date.parse(tile.resetAt || "");
       const detail = card.addText(
         Number.isFinite(reset)
-          ? "重置 " + Utils.time("MM/dd HH:mm", new Date(reset))
+          ? "重置 " + Utils.time("yyyy年M月d日 HH:mm", new Date(reset))
           : tile.warning
             ? tile.detail
             : tile.amount === "∞"

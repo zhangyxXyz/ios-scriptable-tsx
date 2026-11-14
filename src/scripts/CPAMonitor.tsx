@@ -6,7 +6,7 @@
  * author   :  seiunzhang
  * date     :  2026/11/15
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、中号四项与大号六项自由排列
- * version  :  1.1.3
+ * version  :  1.1.4
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -565,7 +565,7 @@ class CPAMonitor extends WidgetBase {
       const reset = Date.parse(tile.resetAt || "");
       const detail = card.addText(
         Number.isFinite(reset)
-          ? "重置 " + Utils.time("MM/dd HH:mm", new Date(reset))
+          ? "重置 " + Utils.time("yyyy年M月d日 HH:mm", new Date(reset))
           : tile.warning
             ? tile.detail
             : tile.amount === "∞"

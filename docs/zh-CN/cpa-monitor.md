@@ -13,12 +13,12 @@
 | --- | --- | --- |
 | 左上 | Codex 每周使用限额 | Codex 每周使用限额 |
 | 右上 | DeepSeek 余额 | DeepSeek 余额 |
-| 第二行左 | Copilot 每月高级请求额度 | Copilot 每月高级请求额度 |
-| 第二行右 | OpenCode 5 小时 | Copilot 每月代码补全额度 |
-| 第三行左 | — | OpenCode 5 小时 |
-| 第三行右 | — | OpenCode 每周使用限额 |
+| 第二行左 | OpenCode 每5小时使用限额 | OpenCode 每5小时使用限额 |
+| 第二行右 | Copilot 每月高级请求额度 | OpenCode 每周使用限额 |
+| 第三行左 | — | Copilot 每月高级请求额度 |
+| 第三行右 | — | Copilot 每月代码补全额度 |
 
-另外可选择 Claude 五小时／周额度、Copilot 聊天、OpenCode 月额度和订阅额度。预设匹配多个账号或币种时提示“请选择”，请指定查询发现的窗口，不会相加或随意选取一个。
+另外可选择 Claude 每5小时使用限额／每周使用限额、Copilot 聊天、OpenCode 月额度和订阅额度。预设匹配多个账号或币种时提示“请选择”，请指定查询发现的窗口，不会相加或随意选取一个。
 
 余额保留币种，credits 保留小数，“不限量”仅来自上游明确返回；Codex credits 不作为美元余额。未知、无权限、不支持、刷新失败分别显示，不用零代替。DeepSeek 和 OpenCode 认证文件查询需要包含本次适配的 Key Billing v1.5.8 构建。
 
@@ -32,4 +32,4 @@
 
 源码：[`src/scripts/CPAMonitor.tsx`](../../src/scripts/CPAMonitor.tsx)。接口：[Key Billing monitor](https://github.com/zhangyxXyz/CLIProxyAPI-Plugins/blob/dev/plugins/key-billing/docs/monitor.md)。
 
-大卡片显示各额度窗口的 `reset_at` 重置时间，并转换为设备本地时区；Codex 周限额、OpenCode 各周期以及 Copilot 月度请求／补全均直接使用接口时间。余额不虚构重置周期。
+大卡片显示各额度窗口的 `reset_at` 重置时间，并转换为设备本地时区，格式为“重置 2026年11月16日 14:01”；Codex 周限额、OpenCode 各周期以及 Copilot 月度请求／补全均直接使用接口时间。余额不虚构重置周期。

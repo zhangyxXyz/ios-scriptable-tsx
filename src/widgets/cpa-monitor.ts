@@ -59,16 +59,16 @@ export const statusLabels: Record<string, string> = {
 export const mediumDefaults = [
   "codex-weekly",
   "deepseek-balance",
-  "copilot-premium",
   "opencode-five",
+  "copilot-premium",
 ];
 export const largeDefaults = [
   "codex-weekly",
   "deepseek-balance",
-  "copilot-premium",
-  "copilot-completions",
   "opencode-five",
   "opencode-weekly",
+  "copilot-premium",
+  "copilot-completions",
 ];
 export const presets = [
   {
@@ -104,7 +104,7 @@ export const presets = [
   {
     id: "opencode-five",
     provider: "opencode",
-    label: "OpenCode · 5 小时",
+    label: "OpenCode · 每5小时使用限额",
     match: /rolling|5\s*(hours?|h|小时)|five.hour/i,
   },
   {
@@ -122,7 +122,7 @@ export const presets = [
   {
     id: "claude-five",
     provider: "claude",
-    label: "Claude · 5 小时",
+    label: "Claude · 每5小时使用限额",
     match: /5\s*(hours?|h|小时)|five.hour/i,
   },
   {
@@ -190,7 +190,7 @@ export function flattenQuota(
         suffix = ["CNY", "USD"].includes(unit)
           ? unit
           : unit === "credits"
-            ? "credits"
+            ? "Credits"
             : unit;
       } else if (percent !== undefined) {
         amount = number(percent) + "%";
