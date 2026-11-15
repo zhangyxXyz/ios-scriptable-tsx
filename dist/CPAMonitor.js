@@ -5,7 +5,7 @@
 /*
  * author   :  seiunzhang
  * date     :  2026/11/15
- * build    :  2026-11-15 14:06:49
+ * build    :  2026-11-16 01:54:41
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、小号一项、中号四项与大号六项自由排列
  * version  :  1.1.8
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
@@ -624,7 +624,7 @@ var CPAMonitor = class extends WidgetBase {
       .filter(Boolean);
     const request = new Request(
       origin +
-        "/v0/resource/plugins/cpa-key-billing/monitor/usage" +
+        "/v0/resource/plugins/key-billing/monitor/usage" +
         (params.length ? "?" + params.join("&") : ""),
     );
     request.headers = { Authorization: "Bearer " + Keychain.get(keychainSlot) };
@@ -662,7 +662,7 @@ var CPAMonitor = class extends WidgetBase {
       )
     ) {
       const plans = new Request(
-        origin + "/v0/resource/plugins/cpa-key-billing/auth-files",
+        origin + "/v0/resource/plugins/key-billing/auth-files",
       );
       plans.headers = request.headers;
       plans.timeoutInterval = 10;

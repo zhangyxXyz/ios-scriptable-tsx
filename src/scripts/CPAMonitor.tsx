@@ -294,7 +294,7 @@ class CPAMonitor extends WidgetBase {
       .filter(Boolean);
     const request = new Request(
       origin +
-        "/v0/resource/plugins/cpa-key-billing/monitor/usage" +
+        "/v0/resource/plugins/key-billing/monitor/usage" +
         (params.length ? "?" + params.join("&") : ""),
     );
     request.headers = { Authorization: "Bearer " + Keychain.get(keychainSlot) };
@@ -332,7 +332,7 @@ class CPAMonitor extends WidgetBase {
       )
     ) {
       const plans = new Request(
-        origin + "/v0/resource/plugins/cpa-key-billing/auth-files",
+        origin + "/v0/resource/plugins/key-billing/auth-files",
       );
       plans.headers = request.headers;
       plans.timeoutInterval = 10;
