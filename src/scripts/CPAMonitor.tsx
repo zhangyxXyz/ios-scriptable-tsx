@@ -6,7 +6,7 @@
  * author   :  seiunzhang
  * date     :  2026/11/15
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、小号一项、中号四项与大号六项自由排列
- * version  :  1.1.6
+ * version  :  1.1.7
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -621,14 +621,12 @@ class CPAMonitor extends WidgetBase {
     widget.url = `scriptable:///run/${encodeURIComponent(Script.name())}`;
     widget.refreshAfterDate = new Date(Date.now() + refreshInterval);
     const width = Math.min(150, this.getWidgetSize("small").width - 20);
-    const content = this.alignedRow(widget, width);
-    content.layoutVertically();
     try {
       const response = await this.loadQuota();
       const tile = selectTiles(response, [
         this.currentSettings.smallSettings.slot0.val || smallDefaults[0],
       ])[0];
-      const header = content.addStack();
+      const header = this.alignedRow(widget, width);
       header.centerAlignContent();
       await this.addProviderIcon(header, tile.provider, 14);
       header.addSpacer(4);
@@ -648,7 +646,9 @@ class CPAMonitor extends WidgetBase {
       plan.textOpacity = 0.68;
       plan.lineLimit = 1;
       plan.minimumScaleFactor = 0.65;
-      content.addSpacer(6);
+      widget.addSpacer();
+      const content = this.alignedRow(widget, width);
+      content.layoutVertically();
       const metric = content.addText(tile.title.replace(/^[^·]+ · /, ""));
       metric.font = Font.mediumSystemFont(10);
       metric.textColor = this.widgetColor;
@@ -680,14 +680,16 @@ class CPAMonitor extends WidgetBase {
         content.addSpacer(6);
         this.renderQuotaBar(content, tile, width, 6);
       }
+      widget.addSpacer();
       const reset = Date.parse(tile.resetAt || "");
       if (Number.isFinite(reset)) {
-        content.addSpacer(7);
+        const resetBlock = this.alignedRow(widget, width);
+        resetBlock.layoutVertically();
         for (const line of [
           "重置 " + Utils.time("yyyy年M月d日", new Date(reset)),
           Utils.time("HH:mm", new Date(reset)),
         ]) {
-          const detail = content.addText(line);
+          const detail = resetBlock.addText(line);
           detail.font = Font.systemFont(9);
           detail.textColor = this.widgetColor;
           detail.textOpacity = 0.55;
@@ -698,14 +700,17 @@ class CPAMonitor extends WidgetBase {
     } catch (error) {
       this.statusWarning = true;
       this.statusMessage = "请求失败";
+      widget.addSpacer();
+      const content = this.alignedRow(widget, width);
       const message = content.addText(
         error instanceof Error ? error.message : "额度暂不可用",
       );
       message.font = Font.mediumSystemFont(12);
       message.textColor = Color.red();
       message.lineLimit = 4;
+      widget.addSpacer();
     }
-    widget.addSpacer();
+    widget.addSpacer(8);
     this.renderFooter(widget, width);
     return widget;
   }
