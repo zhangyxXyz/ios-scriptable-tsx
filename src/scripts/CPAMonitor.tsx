@@ -6,7 +6,7 @@
  * author   :  seiunzhang
  * date     :  2026/11/15
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、小号一项、中号四项与大号六项自由排列
- * version  :  1.1.7
+ * version  :  1.1.8
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -685,17 +685,14 @@ class CPAMonitor extends WidgetBase {
       if (Number.isFinite(reset)) {
         const resetBlock = this.alignedRow(widget, width);
         resetBlock.layoutVertically();
-        for (const line of [
-          "重置 " + Utils.time("yyyy年M月d日", new Date(reset)),
-          Utils.time("HH:mm", new Date(reset)),
-        ]) {
-          const detail = resetBlock.addText(line);
-          detail.font = Font.systemFont(9);
-          detail.textColor = this.widgetColor;
-          detail.textOpacity = 0.55;
-          detail.lineLimit = 1;
-          detail.minimumScaleFactor = 0.7;
-        }
+        const detail = resetBlock.addText(
+          "重置 " + Utils.time("yyyy年M月d日 HH:mm", new Date(reset)),
+        );
+        detail.font = Font.systemFont(8);
+        detail.textColor = this.widgetColor;
+        detail.textOpacity = 0.55;
+        detail.lineLimit = 1;
+        detail.minimumScaleFactor = 0.7;
       }
     } catch (error) {
       this.statusWarning = true;
