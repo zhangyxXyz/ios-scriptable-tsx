@@ -416,12 +416,16 @@ class CPAMonitor extends WidgetBase {
   layout(compact: boolean) {
     const size = this.getWidgetSize(compact ? "medium" : "large");
     const cardWidth = Math.floor((size.width - 20 - 16 - 10) / 2);
+    const cardHeight = compact
+      ? 68
+      : Math.min(70, Math.floor((size.height - 140) / 3));
+    // Share the extra height between the two gaps on taller large widgets.
+    const extraHeight = Math.max(0, size.height - 140 - cardHeight * 3);
     return {
       cardWidth,
       contentWidth: cardWidth * 2 + 10,
-      cardHeight: compact
-        ? 68
-        : Math.min(70, Math.floor((size.height - 140) / 3)),
+      cardHeight,
+      rowSpacing: compact ? 4 : 8 + Math.min(3, Math.floor(extraHeight / 2)),
     };
   }
   alignedRow(widget: ListWidget, width: number) {
@@ -439,28 +443,34 @@ class CPAMonitor extends WidgetBase {
     const base =
       "https://raw.githubusercontent.com/zhangyxXyz/PicGallery/master/ImageHost/icon/";
     const urls: Record<string, string> = {
+      antigravity: base + "antigravity.png",
       codex: base + "codex.png",
       claude: base + "claude.png",
       copilot: base + "github.png",
       opencode: base + "opencode.png",
       deepseek: base + "deepseek.png",
     };
-    if (!(provider in this.providerIcons)) {
-      this.providerIcons[provider] = null;
-      if (isAntigravityProvider(provider) || provider === "gemini") {
-        const data = Data.fromBase64String(antigravityIcon);
-        if (data) this.providerIcons[provider] = Image.fromData(data);
-      } else if (urls[provider]) {
+    const iconProvider =
+      isAntigravityProvider(provider) || provider === "gemini"
+        ? "antigravity"
+        : provider;
+    if (!(iconProvider in this.providerIcons)) {
+      this.providerIcons[iconProvider] = null;
+      if (urls[iconProvider]) {
         try {
-          this.providerIcons[provider] = await this.getImageByUrl(
-            urls[provider],
+          this.providerIcons[iconProvider] = await this.getImageByUrl(
+            urls[iconProvider],
           );
         } catch {
           /* Same symbol fallback as DoneHub. */
         }
       }
+      if (iconProvider === "antigravity" && !this.providerIcons[iconProvider]) {
+        const data = Data.fromBase64String(antigravityIcon);
+        if (data) this.providerIcons[iconProvider] = Image.fromData(data);
+      }
     }
-    const picture = this.providerIcons[provider];
+    const picture = this.providerIcons[iconProvider];
     const icon = parent.addImage(
       picture ||
         SFSymbol.named(
@@ -761,7 +771,8 @@ class CPAMonitor extends WidgetBase {
       return widget;
     }
     const compact = this.widgetFamily === "medium";
-    const { cardWidth, contentWidth, cardHeight } = this.layout(compact);
+    const { cardWidth, contentWidth, cardHeight, rowSpacing } =
+      this.layout(compact);
     widget.setPadding(compact ? 8 : 10, 10, compact ? 8 : 10, 10);
     try {
       const response = await this.loadQuota();
@@ -798,7 +809,7 @@ class CPAMonitor extends WidgetBase {
           cardHeight,
           compact,
         );
-        if (i + 2 < tiles.length) widget.addSpacer(compact ? 4 : 8);
+        if (i + 2 < tiles.length) widget.addSpacer(rowSpacing);
       }
     } catch (error) {
       this.statusWarning = true;
