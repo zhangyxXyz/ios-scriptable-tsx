@@ -6,7 +6,7 @@
  * author   :  seiunzhang
  * date     :  2026/11/15
  * desc     :  CLIProxy-Api 额度卡片，支持 Keychain、查询发现、小号一项、中号四项与大号六项自由排列
- * version  :  1.1.8
+ * version  :  1.1.12
  * github   :  https://github.com/zhangyxXyz/ios-scriptable-tsx
  * changelog:
  */
@@ -15,13 +15,14 @@ import {
   smallDefaults,
   mediumDefaults,
   largeDefaults,
-  presets,
-  tileChoices,
+  discoverChoices,
+  layoutChoices,
   selectTiles,
   statusLabels,
   attachPlans,
+  isAntigravityProvider,
 } from "../widgets/cpa-monitor";
-import type { MonitorResponse, Choice, Tile } from "../widgets/cpa-monitor";
+import type { Choice, MonitorResponse, Tile } from "../widgets/cpa-monitor";
 import { loadCachedQuota, QuotaRequestError } from "../widgets/cpa-cache";
 import type { QuotaCache } from "../widgets/cpa-cache";
 
@@ -33,6 +34,11 @@ const { WidgetBase, Runing, GenrateView, Utils } = runtimeRequire(
 const keychainSlot = "CPAMonitor:downstream-key";
 const refreshInterval = 5 * 60 * 1000;
 const quotaCacheKey = "cpa-quota-snapshot-v1";
+const quotaChoicesKey = "cpa-quota-choices-v1";
+type QuotaChoiceSnapshot = { scope: string; choices: Choice[] };
+// Optimized 64 px PNG from the official Google Antigravity press assets.
+const antigravityIcon =
+  "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAABgFBMVEVenJ6fol3TZVgxi/hdjOjfnTExiffwazeacphkZP+0bnH1WVsAAP8wifM8n7ucyVl1e7VaivPHkEc2nND/FRU/f792r3RWivTfUVbv7x2uaaYiY/JRq6aHe8ZbiPCGiIj0Vjl/f391vH2ayVbasiqexE////9/vz/eUVf//3Fxcbh66no5obfTxDU8t7c/v3/wpiVNr5mgbqlbtYqHhNh5yXi/P39nw4y/Pz+qVVV8w2uqqlW6uD66wz6Gw2DfXz8Af3+/vz+ibab5aTTLZolqvnrhryMA/wBcf9T/qlU5n7rEyEGJesMAAAAzifdKiPQ2ltEzkfU+f//tVklQhdJGpaoAf/8whvhwfM2KdLAA//+raI0yiPpVqv9xt3NTqZcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABotMUjAAAAYHRSTlP9/v4e/vyf+fwC/goBbvz4/xn/+AIE9J2bDBQGDPRe/2cCCRZUawEETAIDDpz6CASxXWWn//8E/wQDdwP8zb4IAgS/sP5uMwH/A0P/lgD8/f7+Bfv//gJS/v4B/tAD/f5eha0NAAADOklEQVR42u2X61ObQBTFNy6JwYCaJj6i0ai1Vqu1rY/at32/LxiiJEGI//9/0bvALhAWgtPpTD94vzjj5Pz2nLMXJiHwl0PuAP8S8ANg+2m5PD39aeMcarcH7MFXlDMAzkY2IQvwAbbLZQFAQvN2gNew/TgO6G3Ai9sA9qAV6svlKZxer7ebkSID0Hr7602pdI9NCOjVas3CgIfwYK4UTABghGW5BRmg1bo/xwGl0pSw0KwVBMQMsJnJtSABfIO4AQTMhCZqMgLJMjAaLS5yQIBAC81CgH14NzdieoLT6XSqIYFZaBYAbGIC1I9IOJ1qtXodeJDtQhqwBa9Omfzm5iZEMMI1IywXAuzA4mlCT+aHnCDJQNIJ9oPzr64EYH44RAIiduH5RMAWfDkTekW5xBGEz8sFAPtwfEZQfkVmLy58/eXlgBOqkzvYgS3i61GO0wgJA0ZAxAq8nAB4As/iesMwTAR8HwwGQ4Y4gpWJgGMi9IY/pmkyD4M1JHzEkid00CYkqfcJJiMwEysYMg+wCW2U+/quYcQJpsJMrB3Bo1zAIVaQ0gcAU0HEye8JgDYcKCl9RFBO1vJLdOBwtpHWxwhKHdQcQBt+SvUxwnouYAEOGjF9N/aHE5bGShiL4MT0XaPSp9SitOJ2OcBkGZxMgA00dn6F8v9T3YgI6+gzC7AAekPodQDLsx3HUS2AfhRiCawcB5Uu1/eBCqsaBSr2yayDlgF4jwl4/grQOJpCn/eAJXgZAAt0fr5rW1qi3lU0Z8gykLEEIYCiIjG2ykOMZSCJO4gCWONP6YIIoaxrlhRgxQzYTurd5UG4DphBlQE0h4ar1+0nagpH9W/CR9Q1VQIIPPoNaqrsm4AXOkzWGAFsx+3yBqUA26b8wao7TgrgcQPYoCf/PuXxa8Z1tsYBmmoLA7YtB2ie5YYe6uIzJHoM8hpM9mgo0T0TXgDNXgFJiKgnEttU/wao6mQDNM8e/xwJnxU9/wbETWhW5FQTAEusQD8vQKIGnjVwwPX6JL1/WEjQowjUKHh+QIg+zgGV4B1aSO8TgpVxBYC/Qwvp2WWu+kcaAoAvXVeH7AVK3QW2VnHd/t3vxv8F8Accv1SFSyU+ZgAAAABJRU5ErkJggg==";
 
 type Fields = Record<string, SettingValue<string>>;
 class CPAMonitor extends WidgetBase {
@@ -44,9 +50,6 @@ class CPAMonitor extends WidgetBase {
       origin: { val: "", type: this.settingValTypeString },
       include: { val: "", type: this.settingValTypeString },
       provider: { val: "", type: this.settingValTypeString },
-    },
-    displaySettings: {
-      catalog: { val: "[]", type: this.settingValTypeString },
     },
     smallSettings: {
       slot0: { val: smallDefaults[0], type: this.settingValTypeString },
@@ -68,7 +71,7 @@ class CPAMonitor extends WidgetBase {
   statusWarning = false;
   dataFetchTime: number | null = null;
   providerIcons: Record<string, Image | null> = {};
-  choiceConfigs: SettingItemConfig[] = [];
+  choiceConfigs: Record<string, Record<string, SettingItemConfig>> = {};
   constructor(scriptName?: string) {
     super(scriptName);
     if (!config.runsInApp) return;
@@ -100,34 +103,24 @@ class CPAMonitor extends WidgetBase {
         option: { provider: "" },
       },
     ]);
-    const settings = this.getSettings() as {
-      displaySettings?: { catalog?: string };
-    };
-    let discovered: Choice[] = [];
-    try {
-      discovered = JSON.parse(settings.displaySettings?.catalog || "[]");
-    } catch {
-      /* Invalid saved choices are ignored. */
-    }
-    if (!Array.isArray(discovered)) discovered = [];
     for (const [family, defaults] of [
       ["small", smallDefaults],
       ["medium", mediumDefaults],
       ["large", largeDefaults],
     ] as const) {
+      const category = family + "Settings";
+      this.choiceConfigs[category] = {};
       this.registerSettingCategory(
-        family + "Settings",
+        category,
         family === "small"
           ? "小卡片 · 1 项"
           : family === "medium"
             ? "中卡片 · 2 × 2"
             : "大卡片 · 2 × 3",
         defaults.map((id, index) => {
-          const cfg: SettingItemConfig = {
-            selectOptions: this.choices(discovered),
-            style: "compact",
-          };
-          this.choiceConfigs.push(cfg);
+          const slot = "slot" + index;
+          const cfg: SettingItemConfig = { style: "compact" };
+          this.choiceConfigs[category][slot] = cfg;
           return {
             title:
               family === "small"
@@ -135,7 +128,7 @@ class CPAMonitor extends WidgetBase {
                 : `第 ${index + 1} 项 · ${["左上", "右上", "左中", "右中", "左下", "右下"][family === "medium" && index > 1 ? index + 2 : index]}`,
             desc: "按位置选择显示项，即可调整排列；多账号请选查询发现的具体窗口",
             type: "select",
-            option: { ["slot" + index]: id },
+            option: { [slot]: id },
             config: cfg,
           };
         }),
@@ -182,7 +175,7 @@ class CPAMonitor extends WidgetBase {
         title: "小卡片排列 · 1 项",
         icon: { name: "square", color: "#2563EB" },
         onAction: async () => {
-          await this.presentSettings(["smallSettings"]);
+          await this.presentLayout("smallSettings");
           return true;
         },
       },
@@ -190,7 +183,7 @@ class CPAMonitor extends WidgetBase {
         title: "中卡片排列 · 4 项",
         icon: { name: "square.grid.2x2", color: "#2563EB" },
         onAction: async () => {
-          await this.presentSettings(["mediumSettings"]);
+          await this.presentLayout("mediumSettings");
           return true;
         },
       },
@@ -198,30 +191,25 @@ class CPAMonitor extends WidgetBase {
         title: "大卡片排列 · 6 项",
         icon: { name: "rectangle.grid.2x2", color: "#8B5CF6" },
         onAction: async () => {
-          await this.presentSettings(["largeSettings"]);
+          await this.presentLayout("largeSettings");
           return true;
         },
       },
     ]);
   }
-  choices(discovered: Choice[]) {
-    return [
-      ...presets.map((p) => ({ label: p.label, value: p.id })),
-      ...discovered.filter(
-        (p) => typeof p?.label === "string" && typeof p?.value === "string",
-      ),
-    ];
+  async presentLayout(category: string) {
+    const discovered = this.discoveredChoices();
+    for (const [slot, config] of Object.entries(this.choiceConfigs[category]))
+      config.selectOptions = layoutChoices(
+        discovered,
+        this.currentSettings[category][slot].val,
+      );
+    await this.presentSettings([category]);
   }
-  saveCatalog(choices: Choice[]) {
-    const value = JSON.stringify(choices);
-    this.settings.displaySettings = {
-      ...((this.settings.displaySettings as Record<string, unknown>) || {}),
-      catalog: value,
-    };
-    this.syncCurrentSettings("displaySettings", "catalog", value);
-    this.saveSettings(false);
-    for (const config of this.choiceConfigs)
-      config.selectOptions = this.choices(choices);
+  discoveredChoices() {
+    const snapshot =
+      this.storage.getStorage<QuotaChoiceSnapshot>(quotaChoicesKey);
+    return snapshot?.scope === this.quotaScope() ? snapshot.choices : null;
   }
   async setAPIKey() {
     const alert = new Alert();
@@ -237,17 +225,17 @@ class CPAMonitor extends WidgetBase {
       return;
     }
     this.storage.removeStorage(quotaCacheKey);
+    this.storage.removeStorage(quotaChoicesKey);
     if (value) Keychain.set(keychainSlot, value);
     else if (Keychain.contains(keychainSlot)) Keychain.remove(keychainSlot);
-    this.saveCatalog([]);
     await this.notify(
       "已保存",
       value ? "请点击“查询并发现额度项”，再调整卡片排列" : "API Key 已清除",
     );
   }
-  async loadQuota(force = false): Promise<MonitorResponse> {
+  quotaScope() {
     const settings = this.currentSettings.requestSettings;
-    const scope = this.md5(
+    return this.md5(
       JSON.stringify([
         settings.origin.val.trim().replace(/\/+$/, ""),
         settings.include.val.trim(),
@@ -255,13 +243,22 @@ class CPAMonitor extends WidgetBase {
         Keychain.contains(keychainSlot) ? Keychain.get(keychainSlot) : "",
       ]),
     );
+  }
+  async loadQuota(discover = false): Promise<MonitorResponse> {
     const loaded = await loadCachedQuota({
-      scope,
+      scope: this.quotaScope(),
       now: Date.now(),
-      force,
+      force: discover,
       cache: this.storage.getStorage<QuotaCache>(quotaCacheKey),
       request: () => this.fetchQuota(),
-      save: (value) => this.storage.setStorage(quotaCacheKey, value),
+      save: (value) => {
+        this.storage.setStorage(quotaCacheKey, value);
+        if (discover)
+          this.storage.setStorage(quotaChoicesKey, {
+            scope: value.scope,
+            choices: discoverChoices(value.response),
+          });
+      },
       clear: () => this.storage.removeStorage(quotaCacheKey),
     });
     this.statusMessage = loaded.status;
@@ -360,13 +357,13 @@ class CPAMonitor extends WidgetBase {
   async discover() {
     const alert = new Alert();
     alert.title = "额度查询";
+    const scope = this.quotaScope();
     try {
       const response = await this.loadQuota(true);
-      const choices = tileChoices(response);
-      this.saveCatalog(choices);
+      const windowCount = this.discoveredChoices()?.length ?? 0;
       const items = response.data.upstream?.items || [];
       alert.message =
-        `发现 ${choices.length} 个额度窗口。进入小/中/大卡片排列，可选择预设或具体账号窗口。\n\n` +
+        `当前可选额度窗口：${windowCount}。${this.statusMessage ? " " + this.statusMessage : ""}\n\n` +
         (response.data.upstream?.status === "forbidden" ||
         !response.data.upstream
           ? "上游额度未授权；请在 Key Billing 开启权限。\n"
@@ -378,12 +375,16 @@ class CPAMonitor extends WidgetBase {
           )
           .join("\n");
     } catch (error) {
+      if (error instanceof QuotaRequestError && error.discardCache)
+        this.storage.setStorage(quotaChoicesKey, { scope, choices: [] });
       alert.message = error instanceof Error ? error.message : "额度查询失败";
     }
     alert.addAction("完成");
     await alert.presentAlert();
   }
-  providerName(provider: string) {
+  providerName(tile: Tile) {
+    if (tile.displayProvider) return tile.displayProvider;
+    const { provider } = tile;
     return (
       (
         {
@@ -392,6 +393,9 @@ class CPAMonitor extends WidgetBase {
           copilot: "GitHub Copilot",
           opencode: "OpenCode",
           deepseek: "DeepSeek",
+          agy: "Antigravity CLI",
+          antigravity: "Antigravity",
+          gemini: "Gemini",
           subscription: "CLIProxy-Api",
         } as Record<string, string>
       )[provider] ||
@@ -402,7 +406,11 @@ class CPAMonitor extends WidgetBase {
   planLabel(tile: Tile) {
     const plan = tile.plan;
     if (plan === "Pay-as-you-go" || plan === "按量付费") return "";
-    if (!plan) return tile.provider === "opencode" ? "GO" : "套餐未知";
+    if (!plan) {
+      if (isAntigravityProvider(tile.provider) || tile.provider === "gemini")
+        return "";
+      return tile.provider === "opencode" ? "GO" : "套餐未知";
+    }
     return plan.toUpperCase();
   }
   layout(compact: boolean) {
@@ -439,7 +447,10 @@ class CPAMonitor extends WidgetBase {
     };
     if (!(provider in this.providerIcons)) {
       this.providerIcons[provider] = null;
-      if (urls[provider]) {
+      if (isAntigravityProvider(provider) || provider === "gemini") {
+        const data = Data.fromBase64String(antigravityIcon);
+        if (data) this.providerIcons[provider] = Image.fromData(data);
+      } else if (urls[provider]) {
         try {
           this.providerIcons[provider] = await this.getImageByUrl(
             urls[provider],
@@ -486,7 +497,7 @@ class CPAMonitor extends WidgetBase {
     await this.addProviderIcon(header, tile.provider, 16);
     header.addSpacer(6);
     const title = header.addText(
-      [this.providerName(tile.provider), this.planLabel(tile)]
+      [this.providerName(tile), this.planLabel(tile)]
         .filter(Boolean)
         .join(" | "),
     );
@@ -522,7 +533,7 @@ class CPAMonitor extends WidgetBase {
     const shortTitle = tile.title.replace(/^[^·]+ · /, "");
     const title = heading.addText(
       compact
-        ? [this.providerName(tile.provider), this.planLabel(tile)]
+        ? [this.providerName(tile), this.planLabel(tile)]
             .filter(Boolean)
             .join(" | ")
         : shortTitle,
@@ -631,9 +642,7 @@ class CPAMonitor extends WidgetBase {
       await this.addProviderIcon(header, tile.provider, 14);
       header.addSpacer(4);
       const provider = header.addText(
-        tile.provider === "copilot"
-          ? "Copilot"
-          : this.providerName(tile.provider),
+        tile.provider === "copilot" ? "Copilot" : this.providerName(tile),
       );
       provider.font = Font.boldSystemFont(11);
       provider.textColor = this.widgetColor;
@@ -768,6 +777,7 @@ class CPAMonitor extends WidgetBase {
           const header = this.alignedRow(widget, contentWidth);
           if (
             tiles[i].provider === tiles[i + 1].provider &&
+            this.providerName(tiles[i]) === this.providerName(tiles[i + 1]) &&
             tiles[i].plan === tiles[i + 1].plan
           )
             await this.providerHeader(header, tiles[i], contentWidth);

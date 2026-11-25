@@ -30,7 +30,7 @@ export type MonitorResponse = {
   partial?: boolean;
   data: { subscription?: QuotaPart; upstream?: QuotaPart };
 };
-export type Choice = { label: string; value: string };
+export type Choice = { label: string; value: string; presetIds?: string[] };
 export type Tile = {
   plan?: string;
   resetAt?: string;
@@ -38,6 +38,7 @@ export type Tile = {
   cached?: boolean;
   id: string;
   provider: string;
+  displayProvider?: string;
   title: string;
   account: string;
   amount: string;
@@ -46,6 +47,7 @@ export type Tile = {
   percent?: number;
   warning: boolean;
   stale: boolean;
+  hasQuotaData: boolean;
 };
 export const statusLabels: Record<string, string> = {
   ok: "正常",
@@ -71,17 +73,54 @@ export const largeDefaults = [
   "copilot-premium",
   "copilot-completions",
 ];
-export const presets = [
+const geminiGroup = /^gemini\b/i;
+const claudeGptGroup = /^claude\s*(and|&|\/)\s*gpt\b/i;
+const fiveHourWindow = /5[ -]*(hours?|h|小时)|five.hour/i;
+const weeklyWindow = /weekly|week|7.day|周|七天/i;
+const codexCreditBalance = /^(credit balance|credits)$/i;
+export function isAntigravityProvider(provider: string) {
+  return provider === "agy" || provider === "antigravity";
+}
+
+type Preset = {
+  id: string;
+  provider: string;
+  label: string;
+  match: RegExp;
+  group?: RegExp;
+};
+
+function matchesProvider(preset: Preset | undefined, provider: string) {
+  return preset?.group
+    ? isAntigravityProvider(provider)
+    : provider === preset?.provider;
+}
+
+function matchesPreset(preset: Preset, row: Tile) {
+  return (
+    matchesProvider(preset, row.provider) &&
+    (!preset.group || preset.group.test(row.title)) &&
+    preset.match.test(row.title)
+  );
+}
+
+const presets: Preset[] = [
   {
     id: "codex-weekly",
     provider: "codex",
-    label: "Codex · 每周使用限额",
-    match: /weekly|week|7.day|周|七天/i,
+    label: "Codex · Weekly limit",
+    match: /^(weekly( limit)?|7.day( limit)?|每?周(使用限额)?|七天(限额)?)$/i,
+  },
+  {
+    id: "codex-credits",
+    provider: "codex",
+    label: "Codex · Credit balance",
+    match: codexCreditBalance,
   },
   {
     id: "deepseek-balance",
     provider: "deepseek",
-    label: "DeepSeek · 余额",
+    label: "DeepSeek · Balance",
     match: /balance|余额/i,
   },
   {
@@ -105,32 +144,60 @@ export const presets = [
   {
     id: "opencode-five",
     provider: "opencode",
-    label: "OpenCode · 每5小时使用限额",
-    match: /rolling|5\s*(hours?|h|小时)|five.hour/i,
+    label: "OpenCode · 5-hour limit",
+    match: /rolling|5[ -]*(hours?|h|小时)|five.hour/i,
   },
   {
     id: "opencode-weekly",
     provider: "opencode",
-    label: "OpenCode · 每周使用限额",
+    label: "OpenCode · Weekly limit",
     match: /weekly|week|7.day|周|七天/i,
   },
   {
     id: "opencode-monthly",
     provider: "opencode",
-    label: "OpenCode · 月额度",
+    label: "OpenCode · Monthly limit",
     match: /month|月/i,
   },
   {
     id: "claude-five",
     provider: "claude",
-    label: "Claude · 每5小时使用限额",
-    match: /5\s*(hours?|h|小时)|five.hour/i,
+    label: "Claude · 5-hour limit",
+    match: fiveHourWindow,
   },
   {
     id: "claude-weekly",
     provider: "claude",
-    label: "Claude · 每周使用限额",
+    label: "Claude · Weekly limit",
     match: /weekly|week|7.day|周|七天/i,
+  },
+  {
+    id: "gemini-five",
+    provider: "gemini",
+    label: "Antigravity Gemini · 5-hour limit",
+    match: fiveHourWindow,
+    group: geminiGroup,
+  },
+  {
+    id: "gemini-weekly",
+    provider: "gemini",
+    label: "Antigravity Gemini · Weekly limit",
+    match: weeklyWindow,
+    group: geminiGroup,
+  },
+  {
+    id: "antigravity-claude-five",
+    provider: "antigravity",
+    label: "Antigravity Claude/GPT · 5-hour limit",
+    match: fiveHourWindow,
+    group: claudeGptGroup,
+  },
+  {
+    id: "antigravity-claude-weekly",
+    provider: "antigravity",
+    label: "Antigravity Claude/GPT · Weekly limit",
+    match: weeklyWindow,
+    group: claudeGptGroup,
   },
   {
     id: "subscription",
@@ -164,6 +231,7 @@ export function flattenQuota(
 ): Tile[] {
   const rows: Tile[] = [];
   const append = (part: QuotaPart, provider: string, identity: string) => {
+    const account = provider === "subscription" ? "" : identity.slice(0, 8);
     for (const window of part.windows || []) {
       const reset = Date.parse(window.reset_at || "");
       const stale =
@@ -198,7 +266,10 @@ export function flattenQuota(
         suffix = "剩余";
       } else if (finite(window.remaining)) {
         amount = number(window.remaining);
-        suffix = "剩余";
+        suffix =
+          provider === "codex" && codexCreditBalance.test(window.label)
+            ? "积分"
+            : "剩余";
       }
       const stamp = timeLabel(window.observed_at || part.fetched_at);
       const status = stale
@@ -215,9 +286,19 @@ export function flattenQuota(
         cached: !!part.cached,
         id: JSON.stringify([identity, window.label, unit]),
         provider,
+        displayProvider: isAntigravityProvider(provider)
+          ? antigravityDisplayName(window.label)
+          : undefined,
         title: window.label,
-        account: part.name || part.plan_name || identity,
+        account,
         amount,
+        hasQuotaData:
+          typeof window.label === "string" &&
+          !!window.label.trim() &&
+          (!!window.unlimited ||
+            !!part.unlimited ||
+            percent !== undefined ||
+            finite(window.remaining)),
         suffix,
         percent,
         stale,
@@ -240,12 +321,13 @@ export function flattenQuota(
         id: JSON.stringify([identity, "unlimited", ""]),
         provider,
         title: "不限额",
-        account: part.name || part.plan_name || "",
+        account,
         amount: "∞",
         suffix: "不限量",
         detail: statusLabels[part.status] || "",
         warning: part.status !== "ok",
         stale: !!part.stale,
+        hasQuotaData: true,
       });
   };
   if (response.data.subscription)
@@ -286,32 +368,115 @@ export function attachPlans(
   }
 }
 function displayTitle(row: Tile): string {
+  const provider =
+    row.provider === "agy"
+      ? "Antigravity CLI"
+      : row.provider === "antigravity"
+        ? "Antigravity"
+        : row.provider;
   return (
-    presets.find(
-      (preset) =>
-        preset.provider === row.provider && preset.match.test(row.title),
-    )?.label || `${row.provider} · ${row.title}`
+    presets.find((preset) => matchesPreset(preset, row))?.label ||
+    `${provider} · ${row.title}`
   );
 }
-export function tileChoices(response: MonitorResponse): Choice[] {
-  return flattenQuota(response).map((row) => ({
-    value: "window:" + row.id,
-    label: `${displayTitle(row)} · ${row.account}${row.suffix === "CNY" || row.suffix === "USD" ? " · " + row.suffix : ""}`,
-  }));
+
+function antigravityDisplayName(label: string) {
+  if (geminiGroup.test(label)) return "Gemini";
+  if (claudeGptGroup.test(label)) return "Antigravity Claude/GPT";
+}
+
+function distinctWindows(response: MonitorResponse, now = Date.now()) {
+  return Array.from(
+    new Map(flattenQuota(response, now).map((row) => [row.id, row])).values(),
+  );
+}
+
+export function layoutChoices(
+  discovered: Choice[] | null,
+  selected: string,
+): Choice[] {
+  const choices =
+    discovered?.map(({ label, value, presetIds }) => ({
+      label,
+      value: presetIds?.includes(selected) ? selected : value,
+    })) ??
+    presets
+      .filter((preset) => preset.id !== "codex-credits")
+      .map((preset) => ({ value: preset.id, label: preset.label }));
+  if (!choices.some((choice) => choice.value === selected))
+    choices.push({ value: selected, label: "当前项暂无可用额度" });
+  return choices;
+}
+
+export function discoverChoices(response: MonitorResponse): Choice[] {
+  const all = distinctWindows(response);
+  const rows = all.filter((row) => row.hasQuotaData);
+  const aliases = new Map<string, string[]>();
+  for (const preset of presets) {
+    const matches = all.filter((row) => matchesPreset(preset, row));
+    if (matches.length !== 1) continue;
+    const id = matches[0].id;
+    const ids = aliases.get(id) || [];
+    ids.push(preset.id);
+    aliases.set(id, ids);
+  }
+  const covered = new Set<string>();
+  const choices = presets.flatMap((preset) => {
+    const matches = rows.filter(
+      (row) => !covered.has(row.id) && matchesPreset(preset, row),
+    );
+    return matches.map((row) => {
+      covered.add(row.id);
+      const windowId = "window:" + row.id;
+      const label =
+        row.provider === "agy"
+          ? preset.label.replace("Antigravity ", "Antigravity CLI ")
+          : preset.label;
+      const sameName = matches.filter(
+        (other) =>
+          other.provider === row.provider && other.account === row.account,
+      );
+      const title =
+        sameName.length > 1
+          ? `${label} (${sameName.indexOf(row) + 1}) · ${row.title}`
+          : label;
+      const currency =
+        matches.length > 1 && (row.suffix === "CNY" || row.suffix === "USD")
+          ? row.suffix
+          : "";
+      return {
+        value: windowId,
+        label: [title, currency, row.account].filter(Boolean).join(" · "),
+        presetIds: aliases.get(row.id),
+      };
+    });
+  });
+  for (const row of rows) {
+    if (covered.has(row.id)) continue;
+    choices.push({
+      value: "window:" + row.id,
+      presetIds: aliases.get(row.id),
+      label: [
+        displayTitle(row),
+        row.suffix === "CNY" || row.suffix === "USD" ? row.suffix : "",
+        row.account,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    });
+  }
+  return choices;
 }
 export function selectTiles(
   response: MonitorResponse,
   selections: string[],
   now = Date.now(),
 ): Tile[] {
-  const rows = flattenQuota(response, now);
+  const rows = distinctWindows(response, now);
   return selections.map((selection) => {
     const preset = presets.find((p) => p.id === selection);
     const matches = preset
-      ? rows.filter(
-          (row) =>
-            row.provider === preset.provider && preset.match.test(row.title),
-        )
+      ? rows.filter((row) => matchesPreset(preset, row))
       : rows.filter((row) => "window:" + row.id === selection);
     if (matches.length === 1)
       return {
@@ -323,8 +488,8 @@ export function selectTiles(
         ? response.data.subscription
         : response.data.upstream;
     const items =
-      part?.items?.filter(
-        (item) => normalizeProvider(item.provider) === preset?.provider,
+      part?.items?.filter((item) =>
+        matchesProvider(preset, normalizeProvider(item.provider)),
       ) || [];
     const state =
       part?.status === "forbidden"
@@ -339,6 +504,7 @@ export function selectTiles(
     return {
       id: selection,
       provider: preset?.provider || "",
+      displayProvider: preset?.group ? preset.label.split(" · ")[0] : undefined,
       title: preset?.label || "已选额度",
       account: "",
       amount: matches.length > 1 ? "请选择" : state,
@@ -349,6 +515,7 @@ export function selectTiles(
           : "设置 → 查询并选择额度项",
       warning: true,
       stale: false,
+      hasQuotaData: false,
     };
   });
 }

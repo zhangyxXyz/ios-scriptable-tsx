@@ -7,7 +7,7 @@ function load(entry) {
   new Function('module', 'exports', result.outputFiles[0].text)(module, module.exports);
   return module.exports;
 }
-const { selectTiles, tileChoices, mediumDefaults, largeDefaults } = load('src/widgets/cpa-monitor.ts');
+const { selectTiles, discoverChoices, layoutChoices, flattenQuota, mediumDefaults, largeDefaults } = load('src/widgets/cpa-monitor.ts');
 const now = Date.parse('2026-11-15T04:00:00Z');
 function response(age = 0) {
   return { success: true, schema_version: 1, data: { upstream: { status: 'ok', items: [
@@ -31,8 +31,95 @@ test('multiple accounts require an explicit window rather than summing', () => {
   const data = response(); const item = structuredClone(data.data.upstream.items[0]);
   item.credential_id = 'dummy-c'; data.data.upstream.items.push(item);
   assert.equal(selectTiles(data, ['copilot-premium'], now)[0].amount, '请选择');
-  const choice = tileChoices(data)[0];
+  const choice = discoverChoices(data).find(row => row.label.startsWith('Copilot'));
   assert.equal(selectTiles(data, [choice.value], now)[0].amount, '1,493.4');
+});
+test('DeepSeek balance and Codex weekly are unique and purchased usage credits stay separate', () => {
+  const data = response();
+  data.data.upstream.items.push({ provider:'codex', credential_id:'1234abcd' + '0'.repeat(56), name:'codex 1234abcd', status:'ok', windows:[
+    { label:'Weekly limit', remaining_percent:80, reset_at:'2099-11-26T12:00:00Z' },
+    { label:'Code Review Weekly limit', remaining_percent:65 },
+    { label:'Credit balance', remaining:0 },
+  ] });
+  const choices = discoverChoices(data);
+  assert.deepEqual(choices.filter(row => row.label.startsWith('DeepSeek')).map(row => row.label), ['DeepSeek · Balance · dummy-b']);
+  assert.equal(choices.filter(row => row.label === 'Codex · Weekly limit · 1234abcd').length, 1);
+  assert.ok(choices.filter(row => /^codex/i.test(row.label)).every(row => row.label.endsWith(' · 1234abcd')));
+  assert.ok(choices.some(row => row.label.includes('Code Review Weekly limit')));
+  const [weekly, credits, balance] = selectTiles(data, ['codex-weekly', 'codex-credits', 'deepseek-balance'], now);
+  assert.equal(weekly.amount, '80%');
+  assert.equal(credits.amount, '0');
+  assert.equal(credits.suffix, '积分');
+  assert.equal(credits.percent, undefined);
+  assert.equal(credits.resetAt, undefined);
+  assert.equal(balance.amount, '¥0');
+  const saved = 'window:' + flattenQuota(data).find(row => row.title === 'Credit balance').id;
+  assert.equal(choices.find(row => row.label === 'Codex · Credit balance · 1234abcd').value, saved);
+  assert.equal(selectTiles(data, [saved], now)[0].title, 'Codex · Credit balance');
+  assert.ok(discoverChoices(response()).every(row => !/^codex/i.test(row.label)));
+  assert.equal(layoutChoices(null, 'codex-weekly').find(row => row.value === 'codex-weekly').label, 'Codex · Weekly limit');
+});
+test('Gemini presets match both Antigravity sources and skip other model groups', () => {
+  for (const provider of ['antigravity', 'agy']) {
+    const data = response();
+    const reset_at = '2099-11-26T12:00:00Z';
+    data.data.upstream.items.push({ provider, credential_id: 'google-dummy', status: 'ok', windows: [
+      { label: 'Gemini Models 5-hour limit', remaining_percent: 74, reset_at },
+      { label: 'Gemini Models Weekly limit', remaining_percent: 0 },
+      { label: 'Claude and GPT models 5-hour limit', remaining_percent: 35 },
+    ] });
+    const rows = selectTiles(data, ['gemini-five', 'gemini-weekly'], now);
+    assert.deepEqual(rows.map(row => row.amount), ['74%', '0%']);
+    assert.deepEqual(rows.map(row => row.displayProvider), ['Gemini', 'Gemini']);
+    assert.equal(rows[0].resetAt, reset_at);
+    assert.equal(rows[0].provider, provider);
+    assert.equal(selectTiles(data, ['antigravity-claude-five'], now)[0].amount, '35%');
+  }
+});
+test('Antigravity and OpenCode show one option per window and preserve saved window IDs', () => {
+  const data = response();
+  const item = (provider, credential_id, labels) => ({ provider, credential_id, status: 'ok',
+    windows: labels.map((label, index) => ({ label, remaining_percent: 80 - index })),
+  });
+  const google = item('antigravity', 'native', ['Gemini Models 5-hour limit', 'Gemini Models Weekly limit',
+    'Claude and GPT models 5-hour limit', 'Claude and GPT models Weekly limit']);
+  const go = item('opencode-go', 'go-first', ['Rolling 5 hours', 'Weekly limit', 'Monthly limit']);
+  data.data.upstream.items.push(google, go);
+  const choices = discoverChoices(data);
+  assert.deepEqual(choices.filter(row => row.label.startsWith('Antigravity')).map(row => row.label), [
+    'Antigravity Gemini · 5-hour limit · native', 'Antigravity Gemini · Weekly limit · native',
+    'Antigravity Claude/GPT · 5-hour limit · native', 'Antigravity Claude/GPT · Weekly limit · native',
+  ]);
+  assert.deepEqual(choices.filter(row => row.label.startsWith('OpenCode')).flatMap(row => row.presetIds),
+    ['opencode-five', 'opencode-weekly', 'opencode-monthly']);
+  assert.ok(choices.filter(row => row.label.startsWith('OpenCode')).every(row => row.label.endsWith(' · go-first')));
+  const saved = 'window:' + flattenQuota(data).find(row => row.provider === 'antigravity').id;
+  assert.equal(choices.find(row => row.presetIds?.includes('gemini-five')).value, saved);
+  assert.equal(layoutChoices(choices, 'gemini-five').find(row => row.label.startsWith('Antigravity Gemini · 5-hour')).value, 'gemini-five');
+  data.data.upstream.items.push(
+    item('agy', 'cli', ['Gemini Models 5h']), item('opencode-go', 'go-second', ['Weekly limit']),
+  );
+  const multiple = discoverChoices(data);
+  assert.equal(multiple.filter(row => row.label.startsWith('Antigravity CLI Gemini')).length, 1);
+  assert.equal(multiple.filter(row => row.label.startsWith('OpenCode · Weekly limit · ')).length, 2);
+  assert.ok(multiple.some(row => row.value === saved));
+  assert.ok(multiple.every(row => row.value !== 'gemini-five' && row.value !== 'opencode-weekly'));
+  assert.equal(selectTiles(data, ['gemini-five'], now)[0].amount, '请选择');
+  assert.ok(layoutChoices(null, saved).every(row => !row.label.startsWith('Antigravity CLI')));
+});
+test('manual discovery lists only returned windows with a value and can represent an empty result', () => {
+  const data = response();
+  data.data.upstream.items[0].windows = [{ label: 'Premium interactions' }];
+  data.data.upstream.items.push({ provider:'codex', credential_id:'zero', status:'ok', windows:[
+    { label:'Weekly limit', remaining_percent:0 }, { label:'Credits', unlimited:true },
+  ] });
+  const choices = discoverChoices(data);
+  assert.equal(choices.length, 3);
+  assert.ok(choices.every(row => !row.label.startsWith('Copilot')));
+  assert.ok(layoutChoices(null, 'copilot-premium').some(row => row.label.startsWith('Copilot')));
+  const preserved = { value:'copilot-premium', label:'当前项暂无可用额度' };
+  assert.deepEqual(layoutChoices(choices, 'copilot-premium').at(-1), preserved);
+  assert.deepEqual(layoutChoices([], 'copilot-premium'), [preserved]);
 });
 test('a revoked part does not recover old items and reset never refills', () => {
   const data = response(); data.data.upstream = { status: 'forbidden' };
