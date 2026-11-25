@@ -6,9 +6,11 @@
  * author   :  seiun
  * date     :  2021/11/13
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
- * version  :  2.0.0
+ * version  :  2.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
  * changelog:
+ *   v2.0.1 (2026/11/26)
+ *     - 修复 WebView 下拉保存含引号或特殊字符的选项值
  *   v2.0.0 (2025/12/3)
  *     - 使用 WebView 重写设置
  *     - 拼音字典剥离脚本，从远端加载

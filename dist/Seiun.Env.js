@@ -5,11 +5,13 @@
 /*
  * author   :  seiun
  * date     :  2021/11/13
- * build    :  2026-06-12 01:44:17
+ * build    :  2026-11-26 03:46:05
  * desc     :  Scriptable Widget env scripts, 基于2Ya的DmYY依赖 https://github.com/dompling/Scriptable/tree/master/Scripts
- * version  :  2.0.0
+ * version  :  2.0.1
  * github   :  https://github.com/zhangyxXyz/ios-scriptable
  * changelog:
+ *   v2.0.1 (2026/11/26)
+ *     - 修复 WebView 下拉保存含引号或特殊字符的选项值
  *   v2.0.0 (2025/12/3)
  *     - 使用 WebView 重写设置
  *     - 拼音字典剥离脚本，从远端加载
@@ -1840,26 +1842,27 @@ function createWidgetBaseRuntime(deps2) {
                                 selectedValues = [];
                             }
     
-                            // 构建选项列表 HTML
-                            function buildOptionsHtml(opts) {
-                                let html = '';
-                                opts.forEach((opt, idx) => {
-                                    const value = typeof opt === 'object' ? opt.value : opt;
-                                    const label = typeof opt === 'object' ? opt.label : opt;
-                                    const isCustom = typeof opt === 'object' && opt.custom;
-                                    const isSelected = selectedValues.includes(value);
-                                    html += '<div class="select-option ' + (isSelected ? 'selected' : '') + (isCustom ? ' custom' : '') + '" data-value="' + value + '" data-index="' + idx + '"' + (isCustom ? ' data-custom="true"' : '') + '>' +
-                                        '<div class="select-option-left">' +
-                                            (editable && isCustom ? '<div class="select-option-delete" data-value="' + value + '"></div>' : '') +
-                                            '<span class="select-option-text">' + label + '</span>' +
-                                        '</div>' +
-                                        '<div class="select-option-check"></div>' +
-                                    '</div>';
-                                });
-                                return html;
+                            function buildOption(opt) {
+                                const value = typeof opt === 'object' ? opt.value : opt;
+                                const label = typeof opt === 'object' ? opt.label : opt;
+                                const isCustom = typeof opt === 'object' && opt.custom;
+                                const row = document.createElement('div');
+                                row.className = 'select-option';
+                                row.classList.toggle('selected', selectedValues.includes(value));
+                                row.dataset.value = String(value);
+                                if (isCustom) {
+                                    row.classList.add('custom');
+                                    row.dataset.custom = 'true';
+                                }
+                                row.innerHTML = '<div class="select-option-left">' +
+                                    (editable && isCustom ? '<div class="select-option-delete"></div>' : '') +
+                                    '<span class="select-option-text"></span>' +
+                                    '</div><div class="select-option-check"></div>';
+                                row.querySelector('.select-option-text').textContent = label;
+                                const deleteButton = row.querySelector('.select-option-delete');
+                                if (deleteButton) deleteButton.dataset.value = String(value);
+                                return row;
                             }
-    
-                            let optionsHtml = buildOptionsHtml(options);
     
                             // 添加选项输入区（editable 模式下）
                             const addOptionHtml = editable ?
@@ -1880,12 +1883,12 @@ function createWidgetBaseRuntime(deps2) {
                                         (multiple ? '<span class="select-popup-confirm">完成</span>' : '') +
                                     '</div>' +
                                     (desc ? '<div class="select-popup-desc">' + desc + '</div>' : '') +
-                                    '<div class="select-popup-list">' +
-                                        optionsHtml +
-                                    '</div>' +
+                                    '<div class="select-popup-list"></div>' +
                                     addOptionHtml +
                                 '</div>' +
                             '</div>', 'select-popup-overlay');
+                            const optionList = overlay.querySelector('.select-popup-list');
+                            options.forEach(opt => optionList.appendChild(buildOption(opt)));
     
                             // 关闭弹窗函数
                             // 更新显示和发送数据
@@ -2036,15 +2039,7 @@ function createWidgetBaseRuntime(deps2) {
                                     customOptions.push({label: newLabel, value: newValue});
     
                                     // 添加到列表 DOM
-                                    const listEl = overlay.querySelector('.select-popup-list');
-                                    const newOptHtml = '<div class="select-option custom" data-value="' + newValue + '" data-custom="true">' +
-                                        '<div class="select-option-left">' +
-                                            '<div class="select-option-delete" data-value="' + newValue + '"></div>' +
-                                            '<span class="select-option-text">' + newLabel + '</span>' +
-                                        '</div>' +
-                                        '<div class="select-option-check"></div>' +
-                                    '</div>';
-                                    listEl.insertAdjacentHTML('beforeend', newOptHtml);
+                                    optionList.appendChild(buildOption({label: newLabel, value: newValue, custom: true}));
     
                                     // 重新绑定事件
                                     bindOptionEvents();
@@ -3053,20 +3048,19 @@ function createWidgetBaseRuntime(deps2) {
                 '<img class="icon-select-indicator" src="' +
                 selectIndicatorIcon +
                 '"/>';
-              const optionsJson = JSON.stringify(selectOptions).replace(
-                /"/g,
-                "&quot;",
-              );
-              const selectedJson = JSON.stringify(selectedValues).replace(
-                /"/g,
-                "&quot;",
-              );
-              const customOptionsJson = JSON.stringify(customOptions).replace(
-                /"/g,
-                "&quot;",
+              const escapeMarkup = (value) =>
+                value
+                  .replace(/&/g, "&amp;")
+                  .replace(/"/g, "&quot;")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;");
+              const optionsJson = escapeMarkup(JSON.stringify(selectOptions));
+              const selectedJson = escapeMarkup(JSON.stringify(selectedValues));
+              const customOptionsJson = escapeMarkup(
+                JSON.stringify(customOptions),
               );
               const dataTruncate = truncateLength <= 0 ? 0 : truncateLength;
-              rightHtml = `<div class="select-picker-wrapper" data-name="${idName}" data-options="${optionsJson}" data-multiple="${multiple}" data-editable="${editable}" data-custom-options="${customOptionsJson}" data-title="${item.title || ""}" data-desc="${item.desc || ""}" data-selected="${selectedJson}" data-default="${defaultShowContent}" data-truncate="${dataTruncate}"><span class="${valueTextClass}">${displayText}</span>${selectIndicatorHtmlStr}${selectChevronHtml}</div>`;
+              rightHtml = `<div class="select-picker-wrapper" data-name="${idName}" data-options="${optionsJson}" data-multiple="${multiple}" data-editable="${editable}" data-custom-options="${customOptionsJson}" data-title="${item.title || ""}" data-desc="${item.desc || ""}" data-selected="${selectedJson}" data-default="${defaultShowContent}" data-truncate="${dataTruncate}"><span class="${valueTextClass}">${escapeMarkup(displayText)}</span>${selectIndicatorHtmlStr}${selectChevronHtml}</div>`;
               actionsConfig[actionsConfig.length - 1].selectOptions =
                 selectOptions;
               actionsConfig[actionsConfig.length - 1].multiple = multiple;
